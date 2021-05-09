@@ -18,6 +18,28 @@ func GetRedisValue(key string, client *radix.Pool) ([]byte, *radix.Pool, error) 
 	return result, client, nil
 }
 
+func GetRedisValuesFuzzy(pattern string, client *radix.Pool) (map[string][]byte, *radix.Pool, error) {
+	result := make(map[string][]byte)
+	var err error
+	if client == nil {
+		client, err = radix.NewPool("tcp", "127.0.0.1:6379", 1)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	sc := radix.NewScanner(client, radix.ScanOpts{Command: "SCAN", Pattern: "vpn/*/is_up"})
+	defer sc.Close()
+	var key string
+	for sc.Next(&key) {
+		value, _, err := GetRedisValue(key, client)
+		if err != nil {
+			return nil, nil, err
+		}
+		result[key] = value
+	}
+	return result, client, nil
+}
+
 func SetRedisValue(key, value string, client *radix.Pool) (*radix.Pool, error) {
 	var err error
 	if client == nil {
