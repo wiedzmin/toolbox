@@ -6,15 +6,17 @@ import (
 	"strings"
 )
 
-func ShellCmd(cmd string, input *string, needOutput bool) (*string, error) {
+// ShellCmd executes shell commands
+// environment variables are provided in form of "<name>=<value>"
+func ShellCmd(cmd string, input *string, env []string, needOutput bool) (*string, error) {
 	c := exec.Command("sh", "-c", cmd)
-	c.Stderr = os.Stderr
+	c.Env = append(os.Environ(), env...)
 	if input != nil {
 		reader := strings.NewReader(*input)
 		c.Stdin = reader
 	}
 	if needOutput {
-		out, err := c.Output()
+		out, err := c.CombinedOutput()
 		result := strings.TrimRight(string(out), "\n")
 		return &result, err
 	} else {
