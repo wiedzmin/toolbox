@@ -10,6 +10,7 @@ import (
 	"github.com/wiedzmin/toolbox/impl/json"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/ui"
+	"github.com/wiedzmin/toolbox/impl/vpn"
 )
 
 func perform(ctx *cli.Context) error {
@@ -30,9 +31,16 @@ func perform(ctx *cli.Context) error {
 		fmt.Printf("failed to get webjump metadata for '%s'", key)
 	} else {
 		if vpnName, ok := webjumpMeta.Path("vpn").Data().(string); ok {
-			_, err := shell.ShellCmd(fmt.Sprintf("vpnctl --start %s", vpnName), nil, nil, false)
+			vpnMeta, err := vpn.GetMetadata(client)
 			if err != nil {
 				return err
+			}
+			if vpnStartMeta, ok := vpnMeta[vpnName]; !ok {
+				ui.NotifyCritical("[VPN]", fmt.Sprintf("Cannot find '%s' service", vpnName))
+				return err
+			} else {
+				vpn.StopRunning([]string{vpnName}, vpnMeta, true)
+				vpn.StartService(vpnName, vpnStartMeta, true)
 			}
 		}
 		if url, ok := webjumpMeta.Path("url").Data().(string); ok {
