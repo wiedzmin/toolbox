@@ -13,16 +13,15 @@ import (
 )
 
 func perform(ctx *cli.Context) error {
-	webjumpsData, _, err := env.GetRedisValue("nav/webjumps")
-	webjumpsMeta, err := json.GetMapByPath(webjumpsData, "")
+	webjumpsData, client, err := env.GetRedisValue("nav/webjumps", nil)
 	if err != nil {
 		return err
 	}
+	webjumpsMeta, err := json.GetMapByPath(webjumpsData, "")
 	var keys []string
 	for key, _ := range webjumpsMeta {
 		keys = append(keys, key)
 	}
-
 	key, err := ui.GetSelectionRofi(keys, "jump to")
 	if err != nil {
 		return err
