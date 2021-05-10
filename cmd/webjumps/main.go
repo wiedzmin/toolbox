@@ -74,7 +74,7 @@ func perform(ctx *cli.Context) error {
 func createCLI() *cli.App {
 	app := cli.NewApp()
 	app.Name = "Webjumps"
-	app.Usage = "Opens various web resource from predefined list"
+	app.Usage = "Opens various web resources from predefined list"
 	app.Description = "Webjumps"
 	app.Version = "0.0.1#master"
 
