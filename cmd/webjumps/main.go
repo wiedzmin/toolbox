@@ -46,7 +46,7 @@ func perform(ctx *cli.Context) error {
 		if url, ok := webjumpMeta.Path("url").Data().(string); ok {
 			copyURL := ctx.Bool("copy")
 			if copyURL {
-				_, err := shell.ShellCmd("xsel -ib", &url, nil, false)
+				_, err := shell.ShellCmd("xsel -ib", &url, nil, false, false)
 				if err != nil {
 					return err
 				}
@@ -58,7 +58,7 @@ func perform(ctx *cli.Context) error {
 						browserCmd = ctx.String("fallback-browser")
 					}
 				}
-				_, err := shell.ShellCmd(fmt.Sprintf("%s %s", browserCmd, url), nil, nil, false)
+				_, err := shell.ShellCmd(fmt.Sprintf("%s %s", browserCmd, url), nil, nil, false, false)
 				if err != nil {
 					return err
 				}
