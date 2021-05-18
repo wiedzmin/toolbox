@@ -41,6 +41,9 @@ func GetSelectionDmenuWithCase(seq []string, prompt string, lines int, font stri
 	result, err := shell.ShellCmd(fmt.Sprintf("dmenu -p %s -l %d -fn %s", prompt, lines, font), &seqStr, nil, true, false)
 	return *result, err
 }
+
+// TODO: make selector function for fzf, see example(s): https://junegunn.kr/2016/02/using-fzf-in-your-program
+
 func NotifyNormal(title, text string) {
 	notify.Push(title, text, "", notificator.UR_NORMAL)
 }
