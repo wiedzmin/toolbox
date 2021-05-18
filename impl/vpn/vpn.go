@@ -195,7 +195,6 @@ func StartService(name string, meta map[string]string, notify bool) error {
 
 func StopOVPN(name, device, cmd string, attempts int, notify bool) error {
 	tun_path := fmt.Sprintf("%s%s", ipV4StatusPath, device)
-	ui.NotifyCritical("[VPN/debug]", fmt.Sprintf("tun_path = `%s`", tun_path))
 	if _, err := os.Stat(tun_path); !os.IsNotExist(err) {
 		env.SetRedisValue(fmt.Sprintf("vpn/%s/is_up", name), "no", nil)
 		if notify {
