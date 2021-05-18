@@ -83,9 +83,11 @@ func StopRunning(omit []string, vpnMeta map[string]map[string]string, notify boo
 	}
 	omitStr := strings.Join(omit, ",")
 	for name, meta := range vpnMeta {
-		if !strings.Contains(name, omitStr) {
-			StopService(name, meta, notify)
+		if omitStr != "" && strings.Contains(name, omitStr) {
+			continue
 		}
+		ui.NotifyNormal("[VPN]", fmt.Sprintf("Stopping `%s`...", name))
+		StopService(name, meta, notify)
 	}
 	return nil
 }
@@ -207,7 +209,7 @@ func StopOVPN(name, device, cmd string, attempts int, notify bool) error {
 		if err == nil {
 			attempt := 0
 			for {
-				if _, err := os.Stat(tun_path); !os.IsNotExist(err) {
+				if _, err := os.Stat(tun_path); os.IsNotExist(err) {
 					success = true
 					break
 				}
