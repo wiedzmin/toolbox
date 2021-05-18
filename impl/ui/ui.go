@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	rofiOptionsSeparator = "@"
+	rofiOptionsSeparator  = "@"
+	dmenuOptionsSeparator = "\n"
 )
 
 var notify *notificator.Notificator
@@ -28,6 +29,18 @@ func GetSelectionRofi(seq []string, prompt string) (string, error) {
 	return *result, err
 }
 
+func GetSelectionDmenu(seq []string, prompt string, lines int, font string) (string, error) {
+	seqStr := strings.Join(seq, dmenuOptionsSeparator)
+	result, err := shell.ShellCmd(fmt.Sprintf("dmenu -i -p '%s' -l %d -fn '%s'", prompt, lines, font),
+		&seqStr, nil, true, false)
+	return *result, err
+}
+
+func GetSelectionDmenuWithCase(seq []string, prompt string, lines int, font string) (string, error) {
+	seqStr := strings.Join(seq, dmenuOptionsSeparator)
+	result, err := shell.ShellCmd(fmt.Sprintf("dmenu -p %s -l %d -fn %s", prompt, lines, font), &seqStr, nil, true, false)
+	return *result, err
+}
 func NotifyNormal(title, text string) {
 	notify.Push(title, text, "", notificator.UR_NORMAL)
 }
