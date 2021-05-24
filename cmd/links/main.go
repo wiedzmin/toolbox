@@ -10,17 +10,10 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/shell"
+	"github.com/wiedzmin/toolbox/impl/tberrors"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/xserver"
 )
-
-type invalidUrlError struct {
-	Content string
-}
-
-func (e invalidUrlError) Error() string {
-	return "invalid url found"
-}
 
 type orgLink struct {
 	Link  string
@@ -58,7 +51,7 @@ func acquireUrl() (*url.URL, error) {
 			uri, err = url.ParseRequestURI(*windowName)
 			if err != nil {
 				ui.NotifyCritical("[scrape]", "Non-URL content in window name, giving up")
-				return nil, invalidUrlError{*windowName}
+				return nil, tberrors.ErrInvalidUrl{*windowName}
 			}
 		}
 		return uri, nil
@@ -117,7 +110,7 @@ func perform(ctx *cli.Context) error {
 	pageUrl, err := acquireUrl()
 
 	if err != nil {
-		if e, ok := err.(invalidUrlError); ok {
+		if e, ok := err.(tberrors.ErrInvalidUrl); ok {
 			ui.NotifyCritical("[scrape]", fmt.Sprintf("Invalid URL: '%s'", e.Content))
 			os.Exit(1)
 		}
