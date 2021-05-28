@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/0xAX/notificator"
@@ -24,6 +25,7 @@ func init() {
 
 // GetSelectionRofi returns users choice from list of options, using Rofi selector tool
 func GetSelectionRofi(seq []string, prompt string) (string, error) {
+	sort.Strings(seq)
 	seqStr := strings.Join(seq, rofiOptionsSeparator)
 	result, err := shell.ShellCmd(fmt.Sprintf("rofi -dmenu -i -sep %s -p '%s'", rofiOptionsSeparator, prompt), &seqStr, nil, true, false)
 	return *result, err
