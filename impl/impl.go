@@ -21,19 +21,6 @@ func CommonNowTimestamp() string {
 	return fmt.Sprintf("%02d-%02d-%d-%02d-%02d-%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
 }
 
-func FileStats(name string) (atime, mtime, ctime time.Time, isDir bool, err error) {
-	fi, err := os.Stat(name)
-	if err != nil {
-		return
-	}
-	mtime = fi.ModTime()
-	stat := fi.Sys().(*syscall.Stat_t)
-	atime = time.Unix(int64(stat.Atim.Sec), int64(stat.Atim.Nsec))
-	ctime = time.Unix(int64(stat.Ctim.Sec), int64(stat.Ctim.Nsec))
-	isDir = fi.IsDir()
-	return
-}
-
 func FilesOlderThan(path, olderThan string, fullPath bool, regexWhitelist *string) ([]string, error) {
 	files, err := ioutil.ReadDir(fmt.Sprintf("%s/.", path))
 	if err != nil {
@@ -51,19 +38,17 @@ func FilesOlderThan(path, olderThan string, fullPath bool, regexWhitelist *strin
 
 	pastTime := time.Now().Add(-d)
 	var result []string
-	for _, f := range files {
-		_, _, ctime, isDir, err := FileStats(fmt.Sprintf("%s/%s", path, f.Name()))
-		if err != nil {
-			return nil, err
-		}
-		if ctime.Before(pastTime) && !isDir {
-			if regexWhitelist != nil && !regexWhitelistRe.MatchString(f.Name()) {
+	for _, fi := range files {
+		stat := fi.Sys().(*syscall.Stat_t)
+		ctime := time.Unix(int64(stat.Ctim.Sec), int64(stat.Ctim.Nsec))
+		if ctime.Before(pastTime) && !fi.IsDir() {
+			if regexWhitelist != nil && !regexWhitelistRe.MatchString(fi.Name()) {
 				continue
 			}
 			if fullPath {
-				result = append(result, fmt.Sprintf("%s/%s", path, f.Name()))
+				result = append(result, fmt.Sprintf("%s/%s", path, fi.Name()))
 			} else {
-				result = append(result, f.Name())
+				result = append(result, fi.Name())
 			}
 		}
 	}
@@ -90,16 +75,12 @@ func CollectFiles(path string, fullPath bool) ([]string, error) {
 		return nil, err
 	}
 	var result []string
-	for _, f := range files {
-		_, _, _, isDir, err := FileStats(fmt.Sprintf("%s/%s", path, f.Name()))
-		if err != nil {
-			return nil, err
-		}
-		if !isDir {
+	for _, fi := range files {
+		if !fi.IsDir() {
 			if fullPath {
-				result = append(result, fmt.Sprintf("%s/%s", path, f.Name()))
+				result = append(result, fmt.Sprintf("%s/%s", path, fi.Name()))
 			} else {
-				result = append(result, f.Name())
+				result = append(result, fi.Name())
 			}
 		}
 	}
