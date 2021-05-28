@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"path/filepath"
 	"regexp"
 	"syscall"
 	"time"
@@ -83,6 +84,38 @@ func CollectFiles(path string, fullPath bool) ([]string, error) {
 				result = append(result, fi.Name())
 			}
 		}
+	}
+	return result, nil
+}
+
+func CollectFilesRecursive(path string, fullPath bool, regexpsWhitelist []string) ([]string, error) {
+	var result []string
+	var regexpsWhitelistRe []regexp.Regexp
+	for _, re := range regexpsWhitelist {
+		rc := regexp.MustCompile(re)
+		regexpsWhitelistRe = append(regexpsWhitelistRe, *rc)
+	}
+	err := filepath.Walk(path,
+		func(pathentry string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if !info.IsDir() {
+				match := false
+				for _, rc := range regexpsWhitelistRe {
+					if rc.MatchString(info.Name()) {
+						match = true
+						break
+					}
+				}
+				if match {
+					result = append(result, pathentry)
+				}
+			}
+			return nil
+		})
+	if err != nil {
+		return nil, err
 	}
 	return result, nil
 }
