@@ -9,51 +9,61 @@ import (
 // Service struct provides SystemD unit metadata
 type Service struct {
 	Name string // service unit name should be sufficient for now
+	User bool
 }
 
 // Restart restarts service unit
 func (s *Service) Restart() error {
-	if err := exec.Command("systemctl", "restart", s.Name).Run(); err != nil {
-		return err
+	if s.User {
+		return exec.Command("systemctl", "--user", "restart", s.Name).Run()
+	} else {
+		return exec.Command("systemctl", "restart", s.Name).Run()
 	}
-	return nil
 }
 
 // Start starts service unit
 func (s *Service) Start() error {
-	if err := exec.Command("systemctl", "start", s.Name).Run(); err != nil {
-		return err
+	if s.User {
+		return exec.Command("systemctl", "--user", "start", s.Name).Run()
+	} else {
+		return exec.Command("systemctl", "start", s.Name).Run()
 	}
-	return nil
 }
 
 // Stop stops service unit
 func (s *Service) Stop() error {
-	if err := exec.Command("systemctl", "stop", s.Name).Run(); err != nil {
-		return err
+	if s.User {
+		return exec.Command("systemctl", "--user", "stop", s.Name).Run()
+	} else {
+		return exec.Command("systemctl", "stop", s.Name).Run()
 	}
-	return nil
 }
 
 // Enable enables service
 func (s *Service) Enable() error {
-	if err := exec.Command("systemctl", "enable", s.Name).Run(); err != nil {
-		return err
+	if s.User {
+		return exec.Command("systemctl", "--user", "enable", s.Name).Run()
+	} else {
+		return exec.Command("systemctl", "enable", s.Name).Run()
 	}
-	return nil
 }
 
 // Disable disables service
 func (s *Service) Disable() error {
-	if err := exec.Command("systemctl", "disable", s.Name).Run(); err != nil {
-		return err
+	if s.User {
+		return exec.Command("systemctl", "--user", "disable", s.Name).Run()
+	} else {
+		return exec.Command("systemctl", "disable", s.Name).Run()
 	}
-	return nil
 }
 
 // IsActive checks if the service unit is active
 func (s *Service) IsActive() (bool, error) {
-	out, err := exec.Command("systemctl", "is-active", s.Name).Output()
+	args := []string{"is-active", s.Name}
+	if s.User {
+		args = []string{"--user", "is-active", s.Name}
+	}
+	out, err := exec.Command("systemctl", args...).Output()
 	if err != nil {
 		return false, err
 	}
