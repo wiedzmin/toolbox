@@ -27,7 +27,7 @@ func GetRedisValuesFuzzy(pattern string, client *radix.Pool) (map[string][]byte,
 			return nil, nil, err
 		}
 	}
-	sc := radix.NewScanner(client, radix.ScanOpts{Command: "SCAN", Pattern: "vpn/*/is_up"})
+	sc := radix.NewScanner(client, radix.ScanOpts{Command: "SCAN", Pattern: pattern})
 	defer sc.Close()
 	var key string
 	for sc.Next(&key) {
