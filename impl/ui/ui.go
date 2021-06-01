@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	rofiOptionsSeparator  = "@"
+	rofiOptionsSeparator  = "\n"
 	dmenuOptionsSeparator = "\n"
 )
 
