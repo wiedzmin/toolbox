@@ -27,7 +27,7 @@ func init() {
 func GetSelectionRofi(seq []string, prompt string) (string, error) {
 	sort.Strings(seq)
 	seqStr := strings.Join(seq, rofiOptionsSeparator)
-	result, err := shell.ShellCmd(fmt.Sprintf("rofi -dmenu -i -sep %s -p '%s'", rofiOptionsSeparator, prompt), &seqStr, nil, true, false)
+	result, err := shell.ShellCmd(fmt.Sprintf("rofi -dmenu -i -sep '%s' -p '%s'", rofiOptionsSeparator, prompt), &seqStr, nil, true, false)
 	return *result, err
 }
 
