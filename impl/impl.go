@@ -88,7 +88,7 @@ func CollectFiles(path string, fullPath bool) ([]string, error) {
 	return result, nil
 }
 
-func CollectFilesRecursive(path string, fullPath bool, regexpsWhitelist []string) ([]string, error) {
+func CollectFilesRecursive(path string, regexpsWhitelist []string) ([]string, error) {
 	var result []string
 	var regexpsWhitelistRe []regexp.Regexp
 	for _, re := range regexpsWhitelist {
