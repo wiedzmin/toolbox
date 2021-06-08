@@ -2,6 +2,7 @@ package impl
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"os"
@@ -131,4 +132,54 @@ func SendToUnixSocket(socket, data string) error {
 	}
 	_, err = c.Write([]byte(fmt.Sprintf("%s\n", data)))
 	return err
+}
+
+func copyFileContents(src, dst string) (err error) {
+	in, err := os.Open(src)
+	if err != nil {
+		return
+	}
+	defer in.Close()
+	out, err := os.Create(dst)
+	if err != nil {
+		return
+	}
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+	if _, err = io.Copy(out, in); err != nil {
+		return
+	}
+	err = out.Sync()
+	return
+}
+
+func CopyFile(src, dst string) error {
+	sfi, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	if !sfi.Mode().IsRegular() {
+		return fmt.Errorf("CopyFile: non-regular source file %s (%q)", sfi.Name(), sfi.Mode().String())
+	}
+	dfi, err := os.Stat(dst)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+	} else {
+		if !(dfi.Mode().IsRegular()) {
+			return fmt.Errorf("CopyFile: non-regular destination file %s (%q)", dfi.Name(), dfi.Mode().String())
+		}
+		if os.SameFile(sfi, dfi) {
+			return err
+		}
+	}
+	if err = os.Link(src, dst); err == nil {
+		return err
+	}
+	return copyFileContents(src, dst)
 }
