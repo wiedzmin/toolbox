@@ -12,7 +12,7 @@ import (
 )
 
 func perform(ctx *cli.Context) error {
-	result, err := impl.CollectFilesRecursive(ctx.String("root"), true, strings.Split(ctx.String("exts"), ","))
+	result, err := impl.CollectFilesRecursive(ctx.String("root"), strings.Split(ctx.String("exts"), ","))
 	if err != nil {
 		return err
 	}

@@ -71,7 +71,7 @@ func SocketPath() (*string, error) {
 	return &result, nil
 }
 
-func SessionsPath() (*string, error) {
+func RawSessionsPath() (*string, error) {
 	userInfo, err := user.Current()
 	if err != nil {
 		return nil, err

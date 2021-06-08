@@ -54,7 +54,7 @@ func exportSession(sessionsPath, sessionName, exportPath string, format qutebrow
 }
 
 func perform(ctx *cli.Context) error {
-	sessionsPath, err := qutebrowser.SessionsPath()
+	sessionsPath, err := qutebrowser.RawSessionsPath()
 	if err != nil {
 		return err
 	}
