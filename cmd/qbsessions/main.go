@@ -33,7 +33,7 @@ func saveSession(name *string) error {
 }
 
 func selectSession(path string) (*string, error) {
-	files, err := impl.CollectFiles(path, false)
+	files, err := impl.CollectFiles(path, false, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func perform(ctx *cli.Context) error {
 		return exportSession(*sessionsPath, *sessionName, ctx.String("export-path"), exportFormat)
 	}
 	if ctx.Bool("export-all") {
-		files, err := impl.CollectFiles(*sessionsPath, false)
+		files, err := impl.CollectFiles(*sessionsPath, false, nil)
 		if err != nil {
 			return err
 		}

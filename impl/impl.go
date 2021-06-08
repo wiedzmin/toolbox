@@ -71,18 +71,32 @@ func RotateOlderThan(path, olderThan string, regexWhitelist *string) error {
 	return nil
 }
 
-func CollectFiles(path string, fullPath bool) ([]string, error) {
+func CollectFiles(path string, fullPath bool, regexpsWhitelist []string) ([]string, error) {
 	files, err := ioutil.ReadDir(fmt.Sprintf("%s/.", path))
 	if err != nil {
 		return nil, err
 	}
 	var result []string
+	var regexpsWhitelistRe []regexp.Regexp
+	for _, re := range regexpsWhitelist {
+		rc := regexp.MustCompile(re)
+		regexpsWhitelistRe = append(regexpsWhitelistRe, *rc)
+	}
 	for _, fi := range files {
 		if !fi.IsDir() {
-			if fullPath {
-				result = append(result, fmt.Sprintf("%s/%s", path, fi.Name()))
-			} else {
-				result = append(result, fi.Name())
+			match := false
+			for _, rc := range regexpsWhitelistRe {
+				if rc.MatchString(fi.Name()) {
+					match = true
+					break
+				}
+			}
+			if match {
+				if fullPath {
+					result = append(result, fmt.Sprintf("%s/%s", path, fi.Name()))
+				} else {
+					result = append(result, fi.Name())
+				}
 			}
 		}
 	}
