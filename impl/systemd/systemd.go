@@ -2,8 +2,9 @@ package systemd
 
 import (
 	"fmt"
-	"os/exec"
 	"strings"
+
+	"github.com/wiedzmin/toolbox/impl/shell"
 )
 
 // Service struct provides SystemD unit metadata
@@ -12,69 +13,64 @@ type Service struct {
 	User bool
 }
 
+func sysctlCmd(user bool, cmd, name string) string {
+	var tokens []string
+	if user {
+		tokens = []string{"systemctl", "--user", cmd, name}
+	} else {
+		tokens = []string{"systemctl", cmd, name}
+	}
+	var result strings.Builder
+	for _, t := range tokens {
+		result.WriteString(fmt.Sprintf("%s ", t))
+	}
+	return strings.TrimSpace(result.String())
+}
+
 // Restart restarts service unit
 func (s *Service) Restart() error {
-	if s.User {
-		return exec.Command("systemctl", "--user", "restart", s.Name).Run()
-	} else {
-		return exec.Command("systemctl", "restart", s.Name).Run()
-	}
+	_, err := shell.ShellCmd(sysctlCmd(s.User, "restart", s.Name), nil, nil, false, false)
+	return err
 }
 
 // Start starts service unit
 func (s *Service) Start() error {
-	if s.User {
-		return exec.Command("systemctl", "--user", "start", s.Name).Run()
-	} else {
-		return exec.Command("systemctl", "start", s.Name).Run()
-	}
+	_, err := shell.ShellCmd(sysctlCmd(s.User, "start", s.Name), nil, nil, false, false)
+	return err
 }
 
 // Stop stops service unit
 func (s *Service) Stop() error {
-	if s.User {
-		return exec.Command("systemctl", "--user", "stop", s.Name).Run()
-	} else {
-		return exec.Command("systemctl", "stop", s.Name).Run()
-	}
+	_, err := shell.ShellCmd(sysctlCmd(s.User, "stop", s.Name), nil, nil, false, false)
+	return err
 }
 
 // Enable enables service
 func (s *Service) Enable() error {
-	if s.User {
-		return exec.Command("systemctl", "--user", "enable", s.Name).Run()
-	} else {
-		return exec.Command("systemctl", "enable", s.Name).Run()
-	}
+	_, err := shell.ShellCmd(sysctlCmd(s.User, "enable", s.Name), nil, nil, false, false)
+	return err
 }
 
 // Disable disables service
 func (s *Service) Disable() error {
-	if s.User {
-		return exec.Command("systemctl", "--user", "disable", s.Name).Run()
-	} else {
-		return exec.Command("systemctl", "disable", s.Name).Run()
-	}
+	_, err := shell.ShellCmd(sysctlCmd(s.User, "disable", s.Name), nil, nil, false, false)
+	return err
 }
 
 // IsActive checks if the service unit is active
 func (s *Service) IsActive() (bool, error) {
-	args := []string{"is-active", s.Name}
-	if s.User {
-		args = []string{"--user", "is-active", s.Name}
-	}
-	out, err := exec.Command("systemctl", args...).Output()
+	out, err := shell.ShellCmd(sysctlCmd(s.User, "disable", s.Name), nil, nil, false, false)
 	if err != nil {
 		return false, err
 	}
 
-	switch strings.TrimSpace(string(out)) {
+	switch strings.TrimSpace(*out) {
 	case "active":
 		return true, nil
 	case "inactive":
 		return false, nil
 	default:
-		return false, fmt.Errorf("unknown status '%s'", string(out))
+		return false, fmt.Errorf("unknown status '%s'", *out)
 	}
 }
 
