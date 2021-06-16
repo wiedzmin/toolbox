@@ -13,6 +13,14 @@ type Service struct {
 	User bool
 }
 
+const (
+	UNIT_TYPE_SERVICE string = "service"
+	UNIT_TYPE_TIMER   string = "timer"
+	UNIT_TYPE_SLICE   string = "slice"
+	UNIT_TYPE_SOCKET  string = "socket"
+	UNIT_TYPE_TARGET  string = "target"
+)
+
 func sysctlCmd(user bool, cmd, name string) string {
 	var tokens []string
 	if user {
@@ -79,4 +87,33 @@ func DaemonReload() error {
 	_, err := shell.ShellCmd("pkexec systemctl daemon-reload", nil, nil, false, false)
 	return err
 }
+
+// CollectUnits returns slice of active services and timers
+func CollectUnits(system, user bool) ([]Service, error) {
+	var units []Service
+	var cases = []struct {
+		isUser bool
+		cmd    string
+	}{
+		{false, "systemctl list-unit-files"},
+		{true, "systemctl --user list-unit-files"},
+	}
+	for _, c := range cases {
+		out, err := shell.ShellCmd(c.cmd, nil, nil, true, false)
+		if err != nil {
+			return nil, err
+		}
+		unitsSlice := strings.Split(*out, "\n")
+		for _, unit := range unitsSlice[1 : len(unitsSlice)-1] {
+			if len(unit) > 0 {
+				unit = strings.Fields(unit)[0]
+				if strings.HasSuffix(unit, UNIT_TYPE_SERVICE) || strings.HasSuffix(unit, UNIT_TYPE_TIMER) {
+					units = append(units, Service{Name: unit, User: c.isUser})
+				}
+			}
+		}
+	}
+	return units, nil
+}
+
 // TODO: implement "try-restart" command
