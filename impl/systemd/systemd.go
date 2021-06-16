@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/shell"
+	"github.com/wiedzmin/toolbox/impl/tmux"
 )
 
 // Service struct provides SystemD unit metadata
@@ -32,6 +34,23 @@ func sysctlCmd(user bool, cmd, name string) string {
 	for _, t := range tokens {
 		result.WriteString(fmt.Sprintf("%s ", t))
 	}
+	return strings.TrimSpace(result.String())
+}
+
+func jctlCmd(user, follow bool, name string) string {
+	tokens := []string{"journalctl"}
+	if user {
+		tokens = append(tokens, "--user")
+	}
+	if follow {
+		tokens = append(tokens, "--follow")
+	}
+	tokens = append(tokens, fmt.Sprintf("-u %s", name))
+	var result strings.Builder
+	for _, t := range tokens {
+		result.WriteString(fmt.Sprintf("%s ", t))
+	}
+
 	return strings.TrimSpace(result.String())
 }
 
@@ -114,6 +133,46 @@ func CollectUnits(system, user bool) ([]Service, error) {
 		}
 	}
 	return units, nil
+}
+
+func doShow(cmd, title, tmuxSession, vtermCmd string) error {
+	if len(vtermCmd) > 0 {
+		if len(tmuxSession) > 0 {
+			session, err := tmux.GetSession(tmuxSession, false, true)
+			switch err.(type) {
+			case tmux.ErrSessionNotFound:
+				return shell.RunInTerminal(cmd, vtermCmd)
+			default:
+				return err
+			}
+			return session.NewWindow(cmd, title, "", true)
+		} else {
+			return shell.RunInTerminal(cmd, vtermCmd)
+		}
+	} else {
+		return impl.ErrNotImplemented{Token: "ShowTextDialog"}
+	}
+	return nil
+}
+
+// ShowStatus shows unit's status in form of `systemctl status` output
+func (s *Service) ShowStatus(tmuxSession, vtermCmd string) error {
+	cmd := fmt.Sprintf("sh -c '%s'; read", sysctlCmd(s.User, "status", s.Name))
+	title := fmt.Sprintf("status :: %s", s.Name)
+
+	return doShow(cmd, title, tmuxSession, vtermCmd)
+}
+
+// ShowStatus shows unit's journal in form of `journalctl` output
+func (s *Service) ShowJournal(follow bool, tmuxSession, vtermCmd string) error {
+	cmd := fmt.Sprintf("sh -c '%s'", jctlCmd(s.User, follow, s.Name))
+	title := fmt.Sprintf("journal :: %s", s.Name)
+	if follow {
+		cmd = fmt.Sprintf("sh -c '%s'; read", jctlCmd(s.User, follow, s.Name))
+		title = fmt.Sprintf("journal/follow :: %s", s.Name)
+	}
+
+	return doShow(cmd, title, tmuxSession, vtermCmd)
 }
 
 // TODO: implement "try-restart" command

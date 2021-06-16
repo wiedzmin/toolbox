@@ -30,6 +30,14 @@ func (e FileErrNotExist) Error() string {
 	return "file/dir does not exist"
 }
 
+type ErrNotImplemented struct {
+	Token string
+}
+
+func (e ErrNotImplemented) Error() string {
+	return fmt.Sprintf("'%s' not implemented", e.Token)
+}
+
 func CommonNowTimestamp() string {
 	now := time.Now()
 	return fmt.Sprintf("%02d-%02d-%d-%02d-%02d-%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
