@@ -1,6 +1,7 @@
 package shell
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -29,4 +30,9 @@ func ShellCmd(cmd string, input *string, env []string, needOutput, combineOutput
 		err := c.Run()
 		return nil, err
 	}
+}
+
+func RunInTerminal(cmd, vtermCmd string) error {
+	_, err := ShellCmd(fmt.Sprintf("%s '%s'", vtermCmd, cmd), nil, nil, false, false)
+	return err
 }
