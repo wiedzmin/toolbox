@@ -74,4 +74,9 @@ func (s *Service) IsActive() (bool, error) {
 	}
 }
 
+// DaemonReload tries to reload systemd, mostly to take care of newly added/removed units
+func DaemonReload() error {
+	_, err := shell.ShellCmd("pkexec systemctl daemon-reload", nil, nil, false, false)
+	return err
+}
 // TODO: implement "try-restart" command
