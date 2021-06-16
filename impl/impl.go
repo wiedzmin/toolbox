@@ -10,13 +10,25 @@ import (
 	"regexp"
 	"syscall"
 	"time"
-
-	"github.com/wiedzmin/toolbox/impl/tberrors"
 )
 
 const (
 	EnvPrefix = "TB"
 )
+
+type ErrInvalidUrl struct {
+	Content string
+}
+
+func (e ErrInvalidUrl) Error() string {
+	return "invalid url found"
+}
+
+type FileErrNotExist struct{}
+
+func (e FileErrNotExist) Error() string {
+	return "file/dir does not exist"
+}
 
 func CommonNowTimestamp() string {
 	now := time.Now()
@@ -137,7 +149,7 @@ func CollectFilesRecursive(path string, regexpsWhitelist []string) ([]string, er
 
 func SendToUnixSocket(socket, data string) error {
 	if _, err := os.Stat(socket); os.IsNotExist(err) {
-		return tberrors.ErrNotExist{}
+		return FileErrNotExist{}
 	}
 	c, err := net.Dial("unix", socket)
 	defer c.Close()

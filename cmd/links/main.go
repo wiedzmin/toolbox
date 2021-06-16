@@ -10,7 +10,6 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/shell"
-	"github.com/wiedzmin/toolbox/impl/tberrors"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/xserver"
 )
@@ -51,7 +50,7 @@ func acquireUrl() (*url.URL, error) {
 			uri, err = url.ParseRequestURI(*windowName)
 			if err != nil {
 				ui.NotifyCritical("[scrape]", "Non-URL content in window name, giving up")
-				return nil, tberrors.ErrInvalidUrl{*windowName}
+				return nil, impl.ErrInvalidUrl{*windowName}
 			}
 		}
 		return uri, nil
@@ -110,7 +109,7 @@ func perform(ctx *cli.Context) error {
 	pageUrl, err := acquireUrl()
 
 	if err != nil {
-		if e, ok := err.(tberrors.ErrInvalidUrl); ok {
+		if e, ok := err.(impl.ErrInvalidUrl); ok {
 			ui.NotifyCritical("[scrape]", fmt.Sprintf("Invalid URL: '%s'", e.Content))
 			os.Exit(1)
 		}

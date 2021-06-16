@@ -8,7 +8,6 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/browsers/qutebrowser"
-	"github.com/wiedzmin/toolbox/impl/tberrors"
 	"github.com/wiedzmin/toolbox/impl/ui"
 )
 
@@ -25,7 +24,7 @@ func saveSession(name *string) error {
 		fmt.Sprintf(":session-save --quiet %s", sessionName),
 		":session-save --quiet",
 	}))
-	if _, ok := err.(tberrors.ErrNotExist); ok {
+	if _, ok := err.(impl.FileErrNotExist); ok {
 		ui.NotifyCritical("[qutebrowser]", fmt.Sprintf("cannot access socket at `%s`\nIs qutebrowser running?", *socketPath))
 		os.Exit(0)
 	}
