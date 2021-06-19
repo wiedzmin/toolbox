@@ -86,7 +86,7 @@ func (s *Service) Disable() error {
 
 // IsActive checks if the service unit is active
 func (s *Service) IsActive() (bool, error) {
-	out, err := shell.ShellCmd(sysctlCmd(s.User, "disable", s.Name), nil, nil, false, false)
+	out, err := shell.ShellCmd(sysctlCmd(s.User, "is-active", s.Name), nil, nil, false, false)
 	if err != nil {
 		return false, err
 	}
