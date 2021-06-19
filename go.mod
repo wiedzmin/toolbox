@@ -9,6 +9,9 @@ require (
 	github.com/jezek/xgb v0.0.0-20210312150743-0e0f116e1240
 	github.com/mediocregopher/radix/v3 v3.7.0
 	github.com/urfave/cli/v2 v2.3.0
+	go.uber.org/atomic v1.8.0 // indirect
+	go.uber.org/multierr v1.7.0 // indirect
+	go.uber.org/zap v1.17.0 // indirect
 	golang.org/x/net v0.0.0-20210521195947-fe42d452be8f // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/yaml.v2 v2.4.0
