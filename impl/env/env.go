@@ -54,3 +54,18 @@ func SetRedisValue(key, value string, client *radix.Pool) (*radix.Pool, error) {
 	}
 	return client, nil
 }
+
+func DeleteRedisValue(key string, client *radix.Pool) (*radix.Pool, error) {
+	var err error
+	if client == nil {
+		client, err = radix.NewPool("tcp", "127.0.0.1:6379", 1)
+		if err != nil {
+			return nil, err
+		}
+	}
+	err = client.Do(radix.Cmd(nil, "DEL", key))
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
+}
