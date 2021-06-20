@@ -2,6 +2,8 @@ package ui
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 	"sort"
 	"strings"
 
@@ -25,6 +27,18 @@ func init() {
 	})
 	logger, _ = zap.NewProduction()
 	l := logger.Sugar()
+	rofiPath, err := exec.LookPath("rofi")
+	if err != nil {
+		l.Warnw("[ui::init] rofi not found")
+		os.Exit(1)
+	}
+	l.Debugw("[ui::init]", "rofi", rofiPath)
+	dmenuPath, err := exec.LookPath("dmenu")
+	if err != nil {
+		l.Warnw("[ui::init] dmenu not found")
+		os.Exit(1)
+	}
+	l.Debugw("[ui::init]", "dmenu", dmenuPath)
 }
 
 // GetSelectionRofi returns users choice from list of options, using Rofi selector tool
