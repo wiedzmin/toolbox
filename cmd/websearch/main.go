@@ -12,9 +12,13 @@ import (
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/vpn"
+	"go.uber.org/zap"
 )
 
+var logger *zap.Logger
+
 func perform(ctx *cli.Context) error {
+	l := logger.Sugar()
 	searchenginesData, client, err := env.GetRedisValue("nav/searchengines", nil)
 	if err != nil {
 		return err
@@ -24,25 +28,30 @@ func perform(ctx *cli.Context) error {
 	for key, _ := range searchenginesMeta {
 		keys = append(keys, key)
 	}
+	l.Debugw("[perform]", "keys", keys)
+
 	key, err := ui.GetSelectionRofi(keys, "search with")
+	l.Debugw("[perform]", "key", key, "err", err)
 	if err != nil {
 		return err
 	}
 	if searchengineMeta, ok := searchenginesMeta[key]; !ok {
-		fmt.Printf("failed to get searchengine metadata for '%s'", key)
+		l.Errorw("[perform]", "failed to get searchengine metadata for", key)
 	} else {
 		if vpnName, ok := searchengineMeta.Path("vpn").Data().(string); ok {
-			vpnMeta, err := vpn.GetMetadata(client)
+			vpnsMeta, err := vpn.GetMetadata(client)
 			if err != nil {
 				return err
 			}
-			if vpnStartMeta, ok := vpnMeta[vpnName]; !ok {
+			var vpnStartMeta map[string]string
+			if vpnStartMeta, ok = vpnsMeta[vpnName]; !ok {
 				ui.NotifyCritical("[VPN]", fmt.Sprintf("Cannot find '%s' service", vpnName))
 				return err
 			} else {
-				vpn.StopRunning([]string{vpnName}, vpnMeta, true)
+				vpn.StopRunning([]string{vpnName}, vpnsMeta, true)
 				vpn.StartService(vpnName, vpnStartMeta, true)
 			}
+			l.Debugw("[perform]", "vpnName", vpnName, "vpnStartMeta", vpnStartMeta, "vpnsMeta", vpnsMeta)
 		}
 		if url, ok := searchengineMeta.Path("url").Data().(string); ok {
 			browserCmd, ok := searchengineMeta.Path("browser").Data().(string)
@@ -52,14 +61,17 @@ func perform(ctx *cli.Context) error {
 					browserCmd = ctx.String("fallback-browser")
 				}
 			}
+			l.Debugw("[perform]", "browserCmd", browserCmd)
 			var searchTerm string
 			if ctx.Bool("prompt") {
 				searchTerm, err = ui.GetSelectionDmenu([]string{}, fmt.Sprintf("%s | term", key), 1, ctx.String("selector-font"))
+				l.Debugw("[perform]", "searchTerm", searchTerm, "err", err)
 				if err != nil {
 					return err
 				}
 			} else {
 				result, err := shell.ShellCmd("xsel -o", nil, nil, true, false)
+				l.Debugw("[perform]", "clipboard/searchTerm", *result, "err", err)
 				if err != nil {
 					return err
 				}
@@ -125,9 +137,12 @@ func createCLI() *cli.App {
 }
 
 func main() {
+	logger = impl.NewLogger()
+	defer logger.Sync()
+	l := logger.Sugar()
 	app := createCLI()
 	err := app.Run(os.Args)
 	if err != nil {
-		fmt.Println(err)
+		l.Errorw("[main]", "err", err)
 	}
 }
