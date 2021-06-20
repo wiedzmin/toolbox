@@ -10,10 +10,13 @@ import (
 	"regexp"
 	"syscall"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 const (
-	EnvPrefix = "TB"
+	EnvPrefix       = "TB"
+	DEBUG_FLAG_NAME = "DEBUG_MODE" // NOTE: not only for `toolbox`
 )
 
 type ErrInvalidUrl struct {
@@ -216,4 +219,16 @@ func CopyFile(src, dst string) error {
 		return err
 	}
 	return copyFileContents(src, dst)
+}
+
+func NewLogger() *zap.Logger {
+	config := zap.NewDevelopmentConfig()
+	_, exists := os.LookupEnv(DEBUG_FLAG_NAME)
+	if exists {
+		config.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
+	} else {
+		config.Level = zap.NewAtomicLevelAt(zap.WarnLevel)
+	}
+	logger, _ := config.Build()
+	return logger
 }

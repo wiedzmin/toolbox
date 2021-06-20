@@ -13,7 +13,10 @@ import (
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/systemd"
 	"github.com/wiedzmin/toolbox/impl/ui"
+	"go.uber.org/zap"
 )
+
+var logger *zap.Logger
 
 func open(ctx *cli.Context) error {
 	bookmarksData, _, err := env.GetRedisValue("nav/bookmarks", nil)
@@ -151,6 +154,8 @@ func createCLI() *cli.App {
 }
 
 func main() {
+	logger = impl.NewLogger()
+	defer logger.Sync()
 	app := createCLI()
 	err := app.Run(os.Args)
 	if err != nil {

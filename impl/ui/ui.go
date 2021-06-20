@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/0xAX/notificator"
+	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"go.uber.org/zap"
 )
@@ -25,20 +26,20 @@ func init() {
 		// DefaultIcon: "icon/default.png",
 		AppName: "webjumps",
 	})
-	logger, _ = zap.NewProduction()
+	logger = impl.NewLogger()
 	l := logger.Sugar()
 	rofiPath, err := exec.LookPath("rofi")
 	if err != nil {
-		l.Warnw("[ui::init] rofi not found")
+		l.Warnw("[init] rofi not found")
 		os.Exit(1)
 	}
-	l.Debugw("[ui::init]", "rofi", rofiPath)
+	l.Debugw("[init]", "rofi", rofiPath)
 	dmenuPath, err := exec.LookPath("dmenu")
 	if err != nil {
-		l.Warnw("[ui::init] dmenu not found")
+		l.Warnw("[init] dmenu not found")
 		os.Exit(1)
 	}
-	l.Debugw("[ui::init]", "dmenu", dmenuPath)
+	l.Debugw("[init]", "dmenu", dmenuPath)
 }
 
 // GetSelectionRofi returns users choice from list of options, using Rofi selector tool
@@ -46,7 +47,7 @@ func GetSelectionRofi(seq []string, prompt string) (string, error) {
 	l := logger.Sugar()
 	sort.Strings(seq)
 	seqStr := strings.Join(seq, rofiOptionsSeparator)
-	l.Debugw("[ui::GetSelectionRofi]", "seq", seq, "seqStr", seqStr)
+	l.Debugw("[GetSelectionRofi]", "seq", seq, "seqStr", seqStr)
 	result, err := shell.ShellCmd(fmt.Sprintf("rofi -dmenu -i -sep '%s' -p '%s'", rofiOptionsSeparator, prompt), &seqStr, nil, true, false)
 	return *result, err
 }
@@ -55,7 +56,7 @@ func GetSelectionDmenu(seq []string, prompt string, lines int, font string) (str
 	l := logger.Sugar()
 	sort.Strings(seq)
 	seqStr := strings.Join(seq, dmenuOptionsSeparator)
-	l.Debugw("[ui::GetSelectionDmenu]", "seq", seq, "seqStr", seqStr)
+	l.Debugw("[GetSelectionDmenu]", "seq", seq, "seqStr", seqStr)
 	result, err := shell.ShellCmd(fmt.Sprintf("dmenu -i -p '%s' -l %d -fn '%s'", prompt, lines, font),
 		&seqStr, nil, true, false)
 	return *result, err
@@ -65,7 +66,7 @@ func GetSelectionDmenuWithCase(seq []string, prompt string, lines int, font stri
 	l := logger.Sugar()
 	sort.Strings(seq)
 	seqStr := strings.Join(seq, dmenuOptionsSeparator)
-	l.Debugw("[ui::GetSelectionDmenuWithCase]", "seq", seq, "seqStr", seqStr)
+	l.Debugw("[GetSelectionDmenuWithCase]", "seq", seq, "seqStr", seqStr)
 	result, err := shell.ShellCmd(fmt.Sprintf("dmenu -p %s -l %d -fn %s", prompt, lines, font), &seqStr, nil, true, false)
 	return *result, err
 }
