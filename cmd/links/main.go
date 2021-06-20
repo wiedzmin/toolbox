@@ -12,6 +12,7 @@ import (
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/xserver"
+	"go.uber.org/zap"
 )
 
 type orgLink struct {
@@ -32,15 +33,20 @@ func (l orgLink) String() string {
 	return result
 }
 
+var logger *zap.Logger
+
 func acquireUrl() (*url.URL, error) {
 	var uri *url.URL
 	var err error
+	l := logger.Sugar()
 	urlCandidate, err := shell.ShellCmd("xsel -o -b", nil, nil, true, false)
+	l.Debugw("[acquireUrl]", "urlCandidate", urlCandidate, "err", err)
 	if err != nil {
 		return nil, err
 	}
 	if len(*urlCandidate) > 0 {
 		uri, err = url.ParseRequestURI(*urlCandidate)
+		l.Debugw("[acquireUrl]", "uri (from XA_CLIPBOARD)", uri, "err", err)
 		if err == nil {
 			return uri, nil
 		} else {
@@ -49,10 +55,12 @@ func acquireUrl() (*url.URL, error) {
 	}
 
 	windowName, err := xserver.GetCurrentWindowName(nil)
+	l.Debugw("[acquireUrl]", "windowName", windowName, "err", err)
 	if err != nil {
 		return nil, err
 	}
 	uri, err = url.ParseRequestURI(*windowName)
+	l.Debugw("[acquireUrl]", "uri (from window name)", uri, "err", err)
 	if err != nil {
 		ui.NotifyCritical("[scrape]", "Non-URL content in active window name, giving up")
 		return nil, impl.ErrInvalidUrl{*windowName}
@@ -62,12 +70,14 @@ func acquireUrl() (*url.URL, error) {
 }
 
 func normalizeLink(link string, pageUrl *url.URL) (*url.URL, error) {
+	l := logger.Sugar()
 	if pageUrl == nil {
 		return nil, fmt.Errorf("no parent page URL passed")
 	}
 
 	result := pageUrl
 	uri, err := url.Parse(link)
+	l.Debugw("[normalizeLink]", "parsed uri", uri, "err", err)
 	if err != nil {
 		return nil, err
 	}
@@ -82,12 +92,14 @@ func normalizeLink(link string, pageUrl *url.URL) (*url.URL, error) {
 }
 
 func collectLinks(doc soup.Root, pageUrl *url.URL) (*string, []orgLink, error) {
+	l := logger.Sugar()
 	if pageUrl == nil {
 		return nil, nil, fmt.Errorf("no parent page URL passed")
 	}
 
 	var title string
 	titleNode := doc.Find("title")
+	l.Debugw("[collectLinks]", "titleNode", titleNode)
 	if titleNode.Error != nil {
 		title = pageUrl.String()
 	} else {
@@ -99,6 +111,7 @@ func collectLinks(doc soup.Root, pageUrl *url.URL) (*string, []orgLink, error) {
 	for _, linkNode := range linkNodes {
 		linkHref := linkNode.Attrs()["href"]
 		linkUrl, err := normalizeLink(linkHref, pageUrl)
+		l.Debugw("[collectLinks/loop]", "linkNode", linkNode, "linkHref", linkHref, "err", err)
 		if err != nil {
 			continue
 		}
@@ -109,6 +122,7 @@ func collectLinks(doc soup.Root, pageUrl *url.URL) (*string, []orgLink, error) {
 }
 
 func perform(ctx *cli.Context) error {
+	l := logger.Sugar()
 	pageUrl, err := acquireUrl()
 
 	if err != nil {
@@ -125,7 +139,9 @@ func perform(ctx *cli.Context) error {
 	ui.NotifyNormal("[scrape]", fmt.Sprintf("scraping from %s", pageUrl.String()))
 
 	sessionName, err := ui.GetSelectionDmenu([]string{}, "save as", 1, ctx.String("selector-font"))
+	l.Debugw("[perform]", "sessionName", sessionName, "err", err)
 	pageSoup, err := soup.Get(pageUrl.String())
+	l.Debugw("[perform]", "pageSoup", pageSoup, "err", err)
 	if err != nil {
 		return err
 	}
@@ -143,8 +159,9 @@ func perform(ctx *cli.Context) error {
 		orgContent = append(orgContent, link.String())
 	}
 
-	file, err := os.OpenFile(fmt.Sprintf("%s/%s.org", ctx.String("export-path"), sessionName),
-		os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+	orgFilename := fmt.Sprintf("%s/%s.org", ctx.String("export-path"), sessionName)
+	l.Debugw("[perform]", "orgFilename", orgFilename)
+	file, err := os.OpenFile(orgFilename, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
 	defer file.Close()
 	writer := bufio.NewWriter(file)
 	defer writer.Flush()
@@ -188,9 +205,12 @@ func createCLI() *cli.App {
 }
 
 func main() {
+	logger = impl.NewLogger()
+	defer logger.Sync()
+	l := logger.Sugar()
 	app := createCLI()
 	err := app.Run(os.Args)
 	if err != nil {
-		fmt.Println(err)
+		l.Errorw("[main]", "err", err)
 	}
 }
