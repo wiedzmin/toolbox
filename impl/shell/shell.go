@@ -8,7 +8,7 @@ import (
 )
 
 // ShellCmd executes shell commands
-// environment variables are provided in form of "<name>=<value>"
+// environment variables are provided as string slice of "<name>=<value>" entries
 func ShellCmd(cmd string, input *string, env []string, needOutput, combineOutput bool) (*string, error) {
 	c := exec.Command("sh", "-c", cmd)
 	c.Env = append(os.Environ(), env...)
