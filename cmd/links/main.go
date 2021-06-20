@@ -41,21 +41,24 @@ func acquireUrl() (*url.URL, error) {
 	}
 	if len(*urlCandidate) > 0 {
 		uri, err = url.ParseRequestURI(*urlCandidate)
-		if err != nil {
-			ui.NotifyNormal("[scrape]", "Non-URL content in clipboard, trying current window name")
-			windowName, err := xserver.GetCurrentWindowName(nil)
-			if err != nil {
-				return nil, err
-			}
-			uri, err = url.ParseRequestURI(*windowName)
-			if err != nil {
-				ui.NotifyCritical("[scrape]", "Non-URL content in window name, giving up")
-				return nil, impl.ErrInvalidUrl{*windowName}
-			}
+		if err == nil {
+			return uri, nil
+		} else {
+			ui.NotifyNormal("[scrape]", "Non-URL content in clipboard, trying active window name")
 		}
-		return uri, nil
 	}
-	return nil, fmt.Errorf("got empty clipboard selection")
+
+	windowName, err := xserver.GetCurrentWindowName(nil)
+	if err != nil {
+		return nil, err
+	}
+	uri, err = url.ParseRequestURI(*windowName)
+	if err != nil {
+		ui.NotifyCritical("[scrape]", "Non-URL content in active window name, giving up")
+		return nil, impl.ErrInvalidUrl{*windowName}
+	}
+
+	return nil, impl.ErrInvalidUrl{}
 }
 
 func normalizeLink(link string, pageUrl *url.URL) (*url.URL, error) {
