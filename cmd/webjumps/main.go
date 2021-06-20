@@ -11,9 +11,13 @@ import (
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/vpn"
+	"go.uber.org/zap"
 )
 
+var logger *zap.Logger
+
 func perform(ctx *cli.Context) error {
+	l := logger.Sugar()
 	webjumpsData, client, err := env.GetRedisValue("nav/webjumps", nil)
 	if err != nil {
 		return err
@@ -23,27 +27,33 @@ func perform(ctx *cli.Context) error {
 	for key, _ := range webjumpsMeta {
 		keys = append(keys, key)
 	}
+	l.Debugw("[perform]", "keys", keys)
+
 	key, err := ui.GetSelectionRofi(keys, "jump to")
+	l.Debugw("[perform]", "key", key, "err", err)
 	if err != nil {
 		return err
 	}
 	if webjumpMeta, ok := webjumpsMeta[key]; !ok {
-		fmt.Printf("failed to get webjump metadata for '%s'", key)
+		l.Errorw("[main]", "failed to get webjump metadata for", key)
 	} else {
 		if vpnName, ok := webjumpMeta.Path("vpn").Data().(string); ok {
-			vpnMeta, err := vpn.GetMetadata(client)
+			vpnsMeta, err := vpn.GetMetadata(client)
 			if err != nil {
 				return err
 			}
-			if vpnStartMeta, ok := vpnMeta[vpnName]; !ok {
+			var vpnStartMeta map[string]string
+			if vpnStartMeta, ok = vpnsMeta[vpnName]; !ok {
 				ui.NotifyCritical("[VPN]", fmt.Sprintf("Cannot find '%s' service", vpnName))
 				return err
 			} else {
-				vpn.StopRunning([]string{vpnName}, vpnMeta, true)
+				vpn.StopRunning([]string{vpnName}, vpnsMeta, true)
 				vpn.StartService(vpnName, vpnStartMeta, true)
 			}
+			l.Debugw("[perform]", "vpnName", vpnName, "vpnStartMeta", vpnStartMeta, "vpnsMeta", vpnsMeta)
 		}
 		if url, ok := webjumpMeta.Path("url").Data().(string); ok {
+			l.Debugw("[perform]", "url", url)
 			copyURL := ctx.Bool("copy")
 			if copyURL {
 				_, err := shell.ShellCmd("xsel -ib", &url, nil, false, false)
@@ -58,6 +68,7 @@ func perform(ctx *cli.Context) error {
 						browserCmd = ctx.String("fallback-browser")
 					}
 				}
+				l.Debugw("[perform]", "browserCmd", browserCmd)
 				_, err := shell.ShellCmd(fmt.Sprintf("%s %s", browserCmd, url), nil, nil, false, false)
 				if err != nil {
 					return err
@@ -116,9 +127,12 @@ func createCLI() *cli.App {
 }
 
 func main() {
+	logger = impl.NewLogger()
+	defer logger.Sync()
+	l := logger.Sugar()
 	app := createCLI()
 	err := app.Run(os.Args)
 	if err != nil {
-		fmt.Println(err)
+		l.Errorw("[main]", "err", err)
 	}
 }
