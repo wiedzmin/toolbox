@@ -32,6 +32,7 @@ func GetSelectionRofi(seq []string, prompt string) (string, error) {
 }
 
 func GetSelectionDmenu(seq []string, prompt string, lines int, font string) (string, error) {
+	sort.Strings(seq)
 	seqStr := strings.Join(seq, dmenuOptionsSeparator)
 	result, err := shell.ShellCmd(fmt.Sprintf("dmenu -i -p '%s' -l %d -fn '%s'", prompt, lines, font),
 		&seqStr, nil, true, false)
@@ -39,6 +40,7 @@ func GetSelectionDmenu(seq []string, prompt string, lines int, font string) (str
 }
 
 func GetSelectionDmenuWithCase(seq []string, prompt string, lines int, font string) (string, error) {
+	sort.Strings(seq)
 	seqStr := strings.Join(seq, dmenuOptionsSeparator)
 	result, err := shell.ShellCmd(fmt.Sprintf("dmenu -p %s -l %d -fn %s", prompt, lines, font), &seqStr, nil, true, false)
 	return *result, err
