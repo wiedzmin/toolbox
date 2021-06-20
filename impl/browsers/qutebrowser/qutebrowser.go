@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/Jeffail/gabs"
+	"github.com/wiedzmin/toolbox/impl"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 )
 
@@ -22,7 +24,14 @@ const (
 	SESSION_FORMAT_ORG_FLAT SessionFormat = 2
 )
 
-var RegexTimedSessionName = `session-(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})-[0-9]{2}-[0-9]{2}-[0-9]{2}`
+var (
+	RegexTimedSessionName = `session-(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})-[0-9]{2}-[0-9]{2}-[0-9]{2}`
+	logger                *zap.Logger
+)
+
+func init() {
+	logger = impl.NewLogger()
+}
 
 type LastVisitedTS string
 
@@ -62,17 +71,22 @@ type SessionLayout struct {
 }
 
 func SocketPath() (*string, error) {
+	l := logger.Sugar()
 	userInfo, err := user.Current()
+	l.Debugw("[SocketPath]", "userInfo", userInfo)
 	if err != nil {
 		return nil, err
 	}
 	result := fmt.Sprintf("/run/user/%s/qutebrowser/ipc-%x",
 		userInfo.Uid, md5.Sum([]byte(userInfo.Username)))
+	l.Debugw("[SocketPath]", "socket path", result)
 	return &result, nil
 }
 
 func RawSessionsPath() (*string, error) {
+	l := logger.Sugar()
 	userInfo, err := user.Current()
+	l.Debugw("[RawSessionsPath]", "userInfo", userInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -80,10 +94,13 @@ func RawSessionsPath() (*string, error) {
 		return nil, errors.New("current user has no home directory")
 	}
 	result := fmt.Sprintf("%s/.local/share/qutebrowser/sessions", userInfo.HomeDir)
+	l.Debugw("[RawSessionsPath]", "sessions path", result)
 	return &result, nil
 }
 
 func CommandsJSON(commands []string) string {
+	l := logger.Sugar()
+	l.Debugw("[CommandsJSON]", "commands", commands)
 	jsonObj := gabs.New()
 
 	jsonObj.Array("args")
@@ -97,6 +114,8 @@ func CommandsJSON(commands []string) string {
 }
 
 func LoadSession(path string) (*SessionLayout, error) {
+	l := logger.Sugar()
+	l.Debugw("[LoadSession]", "path", path)
 	var session SessionLayout
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -110,14 +129,18 @@ func LoadSession(path string) (*SessionLayout, error) {
 }
 
 func FixSession(data *SessionLayout) *SessionLayout {
+	l := logger.Sugar()
 	var result SessionLayout
 	for _, w := range data.Windows {
+		l.Debugw("[FixSession]", "window/before", w)
 		var win Window
 		win.Geometry = w.Geometry
 		for _, t := range w.Tabs {
+			l.Debugw("[FixSession]", "tab/before", t)
 			var tab Tab
 			tab.Active = t.Active
 			for _, p := range t.History {
+				l.Debugw("[FixSession]", "page", p)
 				if strings.HasPrefix(p.Title, "Error loading") {
 					continue
 				}
@@ -131,14 +154,18 @@ func FixSession(data *SessionLayout) *SessionLayout {
 				tab.History[len(tab.History)-1].Active = true
 				tab.History[len(tab.History)-1].Zoom = 1.0
 			}
+			l.Debugw("[FixSession]", "window/after", tab)
 			win.Tabs = append(win.Tabs, tab)
 		}
+		l.Debugw("[FixSession]", "window/after", win)
 		result.Windows = append(result.Windows, win)
 	}
 	return &result
 }
 
 func SaveSession(path string, data *SessionLayout, format SessionFormat) error {
+	l := logger.Sugar()
+	l.Debugw("[SaveSession]", "path", path, "data", data, "format", format)
 	if data == nil {
 		return fmt.Errorf("empty session")
 	}
@@ -167,6 +194,7 @@ func SaveSession(path string, data *SessionLayout, format SessionFormat) error {
 			for _, t := range w.Tabs {
 				for _, p := range t.History {
 					if p.Active {
+						l.Debugw("[SaveSession]", "url", p.URL)
 						result = append(result, (fmt.Sprintf("** %s", p.URL)))
 						break
 					}
@@ -183,6 +211,7 @@ func SaveSession(path string, data *SessionLayout, format SessionFormat) error {
 			for _, t := range w.Tabs {
 				for _, p := range t.History {
 					if p.Active {
+						l.Debugw("[SaveSession]", "url", p.URL)
 						result = append(result, (fmt.Sprintf("* %s", p.URL)))
 						break
 					}
