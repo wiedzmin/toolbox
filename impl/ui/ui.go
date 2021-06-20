@@ -7,6 +7,7 @@ import (
 
 	"github.com/0xAX/notificator"
 	"github.com/wiedzmin/toolbox/impl/shell"
+	"go.uber.org/zap"
 )
 
 const (
@@ -15,33 +16,42 @@ const (
 )
 
 var notify *notificator.Notificator
+var logger *zap.Logger
 
 func init() {
 	notify = notificator.New(notificator.Options{
 		// DefaultIcon: "icon/default.png",
 		AppName: "webjumps",
 	})
+	logger, _ = zap.NewProduction()
+	l := logger.Sugar()
 }
 
 // GetSelectionRofi returns users choice from list of options, using Rofi selector tool
 func GetSelectionRofi(seq []string, prompt string) (string, error) {
+	l := logger.Sugar()
 	sort.Strings(seq)
 	seqStr := strings.Join(seq, rofiOptionsSeparator)
+	l.Debugw("[ui::GetSelectionRofi]", "seq", seq, "seqStr", seqStr)
 	result, err := shell.ShellCmd(fmt.Sprintf("rofi -dmenu -i -sep '%s' -p '%s'", rofiOptionsSeparator, prompt), &seqStr, nil, true, false)
 	return *result, err
 }
 
 func GetSelectionDmenu(seq []string, prompt string, lines int, font string) (string, error) {
+	l := logger.Sugar()
 	sort.Strings(seq)
 	seqStr := strings.Join(seq, dmenuOptionsSeparator)
+	l.Debugw("[ui::GetSelectionDmenu]", "seq", seq, "seqStr", seqStr)
 	result, err := shell.ShellCmd(fmt.Sprintf("dmenu -i -p '%s' -l %d -fn '%s'", prompt, lines, font),
 		&seqStr, nil, true, false)
 	return *result, err
 }
 
 func GetSelectionDmenuWithCase(seq []string, prompt string, lines int, font string) (string, error) {
+	l := logger.Sugar()
 	sort.Strings(seq)
 	seqStr := strings.Join(seq, dmenuOptionsSeparator)
+	l.Debugw("[ui::GetSelectionDmenuWithCase]", "seq", seq, "seqStr", seqStr)
 	result, err := shell.ShellCmd(fmt.Sprintf("dmenu -p %s -l %d -fn %s", prompt, lines, font), &seqStr, nil, true, false)
 	return *result, err
 }
