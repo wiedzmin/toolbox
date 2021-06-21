@@ -9,10 +9,22 @@ import (
 	"regexp"
 	"syscall"
 	"time"
+
+	"github.com/wiedzmin/toolbox/impl"
+	"go.uber.org/zap"
 )
 
+var logger *zap.Logger
+
+func init() {
+	logger = impl.NewLogger()
+}
+
 func FilesOlderThan(path, olderThan string, fullPath bool, regexWhitelist *string) ([]string, error) {
+	l := logger.Sugar()
+	l.Debugw("[FilesOlderThan]", "path", path, "olderThan", olderThan, "fullPath", fullPath, "regexWhitelist", *regexWhitelist)
 	files, err := ioutil.ReadDir(fmt.Sprintf("%s/.", path))
+	l.Debugw("[FilesOlderThan]", "files", files)
 	if err != nil {
 		return nil, err
 	}
@@ -42,10 +54,13 @@ func FilesOlderThan(path, olderThan string, fullPath bool, regexWhitelist *strin
 			}
 		}
 	}
+
+	l.Debugw("[FilesOlderThan]", "result", result)
 	return result, nil
 }
 
 func RotateOlderThan(path, olderThan string, regexWhitelist *string) error {
+	l := logger.Sugar()
 	files, err := FilesOlderThan(path, olderThan, true, regexWhitelist)
 	if err != nil {
 		return err
@@ -55,12 +70,16 @@ func RotateOlderThan(path, olderThan string, regexWhitelist *string) error {
 		if err != nil {
 			return err
 		}
+		l.Debugw("[RotateOlderThan]", "removed", f)
 	}
 	return nil
 }
 
 func CollectFiles(path string, fullPath bool, regexpsWhitelist []string) ([]string, error) {
+	l := logger.Sugar()
+	l.Debugw("[CollectFiles]", "path", path, "fullPath", fullPath, "regexpsWhitelist", regexpsWhitelist)
 	files, err := ioutil.ReadDir(fmt.Sprintf("%s/.", path))
+	l.Debugw("[CollectFiles]", "files", files)
 	if err != nil {
 		return nil, err
 	}
@@ -75,6 +94,7 @@ func CollectFiles(path string, fullPath bool, regexpsWhitelist []string) ([]stri
 			match := false
 			for _, rc := range regexpsWhitelistRe {
 				if rc.MatchString(fi.Name()) {
+					l.Debugw("[CollectFiles]", "matched", fi.Name(), rc)
 					match = true
 					break
 				}
@@ -94,6 +114,8 @@ func CollectFiles(path string, fullPath bool, regexpsWhitelist []string) ([]stri
 func CollectFilesRecursive(path string, regexpsWhitelist []string) ([]string, error) {
 	var result []string
 	var regexpsWhitelistRe []regexp.Regexp
+	l := logger.Sugar()
+	l.Debugw("[CollectFilesRecursive]", "path", path, "regexpsWhitelist", regexpsWhitelist)
 	for _, re := range regexpsWhitelist {
 		rc := regexp.MustCompile(re)
 		regexpsWhitelistRe = append(regexpsWhitelistRe, *rc)
@@ -107,6 +129,7 @@ func CollectFilesRecursive(path string, regexpsWhitelist []string) ([]string, er
 				match := false
 				for _, rc := range regexpsWhitelistRe {
 					if rc.MatchString(info.Name()) {
+						l.Debugw("[CollectFiles]", "matched", info.Name(), rc)
 						match = true
 						break
 					}
@@ -120,6 +143,7 @@ func CollectFilesRecursive(path string, regexpsWhitelist []string) ([]string, er
 	if err != nil {
 		return nil, err
 	}
+	l.Debugw("[CollectFilesRecursive]", "result", result)
 	return result, nil
 }
 
