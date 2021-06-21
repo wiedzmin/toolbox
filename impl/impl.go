@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"syscall"
@@ -231,4 +232,14 @@ func NewLogger() *zap.Logger {
 	}
 	logger, _ := config.Build()
 	return logger
+}
+
+func EnsureBinary(name string, logger zap.Logger) {
+	l := logger.Sugar()
+	path, err := exec.LookPath(name)
+	if err != nil {
+		l.Warnw(fmt.Sprintf("[EnsureBinary] %s not found", name))
+		os.Exit(1)
+	}
+	l.Debugw("[EnsureBinary]", name, path)
 }

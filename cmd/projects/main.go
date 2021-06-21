@@ -156,6 +156,7 @@ func createCLI() *cli.App {
 func main() {
 	logger = impl.NewLogger()
 	defer logger.Sync()
+	impl.EnsureBinary("fd", *logger)
 	app := createCLI()
 	err := app.Run(os.Args)
 	if err != nil {

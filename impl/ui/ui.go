@@ -2,8 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 	"sort"
 	"strings"
 
@@ -27,19 +25,8 @@ func init() {
 		AppName: "webjumps",
 	})
 	logger = impl.NewLogger()
-	l := logger.Sugar()
-	rofiPath, err := exec.LookPath("rofi")
-	if err != nil {
-		l.Warnw("[init] rofi not found")
-		os.Exit(1)
-	}
-	l.Debugw("[init]", "rofi", rofiPath)
-	dmenuPath, err := exec.LookPath("dmenu")
-	if err != nil {
-		l.Warnw("[init] dmenu not found")
-		os.Exit(1)
-	}
-	l.Debugw("[init]", "dmenu", dmenuPath)
+	impl.EnsureBinary("rofi", *logger)
+	impl.EnsureBinary("dmenu", *logger)
 }
 
 // GetSelectionRofi returns users choice from list of options, using Rofi selector tool
