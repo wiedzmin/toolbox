@@ -8,6 +8,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/browsers/qutebrowser"
+	"github.com/wiedzmin/toolbox/impl/fs"
 	"github.com/wiedzmin/toolbox/impl/ui"
 )
 
@@ -32,7 +33,7 @@ func saveSession(name *string) error {
 }
 
 func selectSession(path string) (*string, error) {
-	files, err := impl.CollectFiles(path, false, nil)
+	files, err := fs.CollectFiles(path, false, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +69,7 @@ func perform(ctx *cli.Context) error {
 		return saveSession(&name)
 	}
 	if ctx.Bool("rotate") {
-		return impl.RotateOlderThan(*sessionsPath, fmt.Sprintf("%dm", ctx.Int("keep-minutes")), &qutebrowser.RegexTimedSessionName)
+		return fs.RotateOlderThan(*sessionsPath, fmt.Sprintf("%dm", ctx.Int("keep-minutes")), &qutebrowser.RegexTimedSessionName)
 	}
 	exportFormat := qutebrowser.SESSION_FORMAT_ORG
 	if ctx.Bool("flat") {
@@ -82,7 +83,7 @@ func perform(ctx *cli.Context) error {
 		return exportSession(*sessionsPath, *sessionName, ctx.String("export-path"), exportFormat)
 	}
 	if ctx.Bool("export-all") {
-		files, err := impl.CollectFiles(*sessionsPath, false, nil)
+		files, err := fs.CollectFiles(*sessionsPath, false, nil)
 		if err != nil {
 			return err
 		}

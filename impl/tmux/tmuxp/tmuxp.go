@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/wiedzmin/toolbox/impl"
+	"github.com/wiedzmin/toolbox/impl/fs"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"go.uber.org/zap"
 )
@@ -49,7 +50,7 @@ func SessionsRootDefault() (*string, error) {
 
 func CollectSessions(root string) ([]Session, error) {
 	l := logger.Sugar()
-	sessionFiles, err := impl.CollectFiles(root, false, []string{SESSION_FILE_SUFFIX})
+	sessionFiles, err := fs.CollectFiles(root, false, []string{SESSION_FILE_SUFFIX})
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +72,7 @@ func GetSession(root, name string) (*Session, error) {
 		regexp = fmt.Sprintf("%s/%s", name, SESSION_FILE_SUFFIX)
 	}
 	l.Debugw("[GetSession]", "root", root, "name", name, "regexp", regexp)
-	sessionFiles, err := impl.CollectFiles(root, false, []string{regexp})
+	sessionFiles, err := fs.CollectFiles(root, false, []string{regexp})
 	if err != nil {
 		return nil, err
 	}

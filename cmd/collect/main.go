@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	"github.com/urfave/cli/v2"
-	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/env"
+	"github.com/wiedzmin/toolbox/impl/fs"
 )
 
 func perform(ctx *cli.Context) error {
-	result, err := impl.CollectFilesRecursive(ctx.String("root"), strings.Split(ctx.String("exts"), ","))
+	result, err := fs.CollectFilesRecursive(ctx.String("root"), strings.Split(ctx.String("exts"), ","))
 	if err != nil {
 		return err
 	}
