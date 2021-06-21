@@ -136,3 +136,18 @@ func FindWindow(X *xgbutil.XUtil, query WindowQuery) (*xproto.Window, error) {
 	}
 	return nil, ErrWindowNotFound{query}
 }
+
+func SetActiveWindow(X *xgbutil.XUtil, query WindowQuery) error {
+	var err error
+	if X == nil {
+		X, err = xgbutil.NewConn()
+		if err != nil {
+			return err
+		}
+	}
+	win, err := FindWindow(X, query)
+	if err != nil {
+		return err
+	}
+	return ewmh.ActiveWindowSet(X, *win)
+}
