@@ -7,6 +7,7 @@ require (
 	github.com/Jeffail/gabs v1.4.0
 	github.com/anaskhan96/soup v1.2.4
 	github.com/jezek/xgb v0.0.0-20210312150743-0e0f116e1240
+	github.com/jezek/xgbutil v0.0.0-20210302171758-530099784e66 // indirect
 	github.com/mediocregopher/radix/v3 v3.7.0
 	github.com/urfave/cli/v2 v2.3.0
 	go.uber.org/atomic v1.8.0 // indirect
