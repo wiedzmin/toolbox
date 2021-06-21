@@ -8,7 +8,15 @@ import (
 	"github.com/jezek/xgbutil"
 	"github.com/jezek/xgbutil/ewmh"
 	"github.com/jezek/xgbutil/icccm"
+	"github.com/wiedzmin/toolbox/impl"
+	"go.uber.org/zap"
 )
+
+var logger *zap.Logger
+
+func init() {
+	logger = impl.NewLogger()
+}
 
 type WindowQuery struct {
 	Name           string
@@ -117,6 +125,7 @@ func GetCurrentWindowName(X *xgbutil.XUtil) (*string, error) {
 }
 
 func FindWindow(X *xgbutil.XUtil, query WindowQuery) (*xproto.Window, error) {
+	l := logger.Sugar()
 	var err error
 	if X == nil {
 		X, err = xgbutil.NewConn()
@@ -125,6 +134,7 @@ func FindWindow(X *xgbutil.XUtil, query WindowQuery) (*xproto.Window, error) {
 		}
 	}
 	query = prepareWindowQuery(query)
+	l.Debugw("[FindWindow]", "query", query)
 	windows, err := ewmh.ClientListGet(X)
 	if err != nil {
 		return nil, err
@@ -138,6 +148,7 @@ func FindWindow(X *xgbutil.XUtil, query WindowQuery) (*xproto.Window, error) {
 }
 
 func SetActiveWindow(X *xgbutil.XUtil, query WindowQuery) error {
+	l := logger.Sugar()
 	var err error
 	if X == nil {
 		X, err = xgbutil.NewConn()
@@ -146,6 +157,7 @@ func SetActiveWindow(X *xgbutil.XUtil, query WindowQuery) error {
 		}
 	}
 	win, err := FindWindow(X, query)
+	l.Debugw("[SetActiveWindow]", "win", win, "err", err)
 	if err != nil {
 		return err
 	}
