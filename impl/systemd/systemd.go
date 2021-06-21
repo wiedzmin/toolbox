@@ -7,6 +7,7 @@ import (
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/tmux"
+	"go.uber.org/zap"
 )
 
 // Service struct provides SystemD unit metadata
@@ -23,6 +24,12 @@ const (
 	UNIT_TYPE_TARGET  string = "target"
 )
 
+var logger *zap.Logger
+
+func init() {
+	logger = impl.NewLogger()
+}
+
 func sysctlCmd(user bool, cmd, name string) string {
 	var tokens []string
 	if user {
@@ -34,7 +41,9 @@ func sysctlCmd(user bool, cmd, name string) string {
 	for _, t := range tokens {
 		result.WriteString(fmt.Sprintf("%s ", t))
 	}
-	return strings.TrimSpace(result.String())
+	r := strings.TrimSpace(result.String())
+
+	return r
 }
 
 func jctlCmd(user, follow bool, name string) string {
@@ -50,8 +59,9 @@ func jctlCmd(user, follow bool, name string) string {
 	for _, t := range tokens {
 		result.WriteString(fmt.Sprintf("%s ", t))
 	}
+	r := strings.TrimSpace(result.String())
 
-	return strings.TrimSpace(result.String())
+	return r
 }
 
 // Restart restarts service unit
@@ -86,12 +96,15 @@ func (s *Service) Disable() error {
 
 // IsActive checks if the service unit is active
 func (s *Service) IsActive() (bool, error) {
+	l := logger.Sugar()
 	out, err := shell.ShellCmd(sysctlCmd(s.User, "is-active", s.Name), nil, nil, false, false)
 	if err != nil {
 		return false, err
 	}
+	result := strings.TrimSpace(*out)
+	l.Debugw(fmt.Sprintf("[%s.IsActive]", s.Name), "result", result)
 
-	switch strings.TrimSpace(*out) {
+	switch result {
 	case "active":
 		return true, nil
 	case "inactive":
@@ -103,12 +116,15 @@ func (s *Service) IsActive() (bool, error) {
 
 // DaemonReload tries to reload systemd, mostly to take care of newly added/removed units
 func DaemonReload() error {
+	l := logger.Sugar()
+	l.Debugw("[DaemonReload]")
 	_, err := shell.ShellCmd("pkexec systemctl daemon-reload", nil, nil, false, false)
 	return err
 }
 
 // CollectUnits returns slice of active services and timers
 func CollectUnits(system, user bool) ([]Service, error) {
+	l := logger.Sugar()
 	var units []Service
 	var cases = []struct {
 		isUser bool
@@ -117,6 +133,7 @@ func CollectUnits(system, user bool) ([]Service, error) {
 		{false, "systemctl list-unit-files"},
 		{true, "systemctl --user list-unit-files"},
 	}
+	l.Debugw("[CollectUnits]", "system", system, "user", user)
 	for _, c := range cases {
 		out, err := shell.ShellCmd(c.cmd, nil, nil, true, false)
 		if err != nil {
@@ -127,6 +144,7 @@ func CollectUnits(system, user bool) ([]Service, error) {
 			if len(unit) > 0 {
 				unit = strings.Fields(unit)[0]
 				if strings.HasSuffix(unit, UNIT_TYPE_SERVICE) || strings.HasSuffix(unit, UNIT_TYPE_TIMER) {
+					l.Debugw("[CollectUnits]", "unit", unit)
 					units = append(units, Service{Name: unit, User: c.isUser})
 				}
 			}
@@ -136,6 +154,8 @@ func CollectUnits(system, user bool) ([]Service, error) {
 }
 
 func doShow(cmd, title, tmuxSession, vtermCmd string) error {
+	l := logger.Sugar()
+	l.Debugw("[doShow]", "cmd", cmd, "title", title, "tmuxSession", tmuxSession, "vtermCmd", vtermCmd)
 	if len(vtermCmd) > 0 {
 		if len(tmuxSession) > 0 {
 			session, err := tmux.GetSession(tmuxSession, false, true)
