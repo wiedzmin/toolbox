@@ -98,7 +98,7 @@ func (s *Unit) Disable() error {
 // IsActive checks if the unit is active
 func (s *Unit) IsActive() (bool, error) {
 	l := logger.Sugar()
-	out, err := shell.ShellCmd(sysctlCmd(s.User, "is-active", s.Name), nil, nil, false, false)
+	out, err := shell.ShellCmd(sysctlCmd(s.User, "is-active", s.Name), nil, nil, true, true)
 	if err != nil {
 		return false, err
 	}
