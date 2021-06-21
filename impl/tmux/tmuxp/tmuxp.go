@@ -8,6 +8,7 @@ import (
 
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/shell"
+	"go.uber.org/zap"
 )
 
 const SESSION_FILE_SUFFIX = "yml"
@@ -25,8 +26,16 @@ func (e ErrSessionNotFound) Error() string {
 	return fmt.Sprintf("tmuxp: session '%s' not exist", e.Name)
 }
 
+var logger *zap.Logger
+
+func init() {
+	logger = impl.NewLogger()
+}
+
 func SessionsRootDefault() (*string, error) {
+	l := logger.Sugar()
 	userInfo, err := user.Current()
+	l.Debugw("[SessionsRootDefault]", "userInfo", userInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -34,16 +43,19 @@ func SessionsRootDefault() (*string, error) {
 		return nil, errors.New("current user has no home directory")
 	}
 	result := fmt.Sprintf("%s/.tmuxp", userInfo.HomeDir)
+	l.Debugw("[SessionsRootDefault]", "root", result)
 	return &result, nil
 }
 
 func CollectSessions(root string) ([]Session, error) {
+	l := logger.Sugar()
 	sessionFiles, err := impl.CollectFiles(root, false, []string{SESSION_FILE_SUFFIX})
 	if err != nil {
 		return nil, err
 	}
 	var result []Session
 	for _, f := range sessionFiles {
+		l.Debugw("[SessionsRootDefault]", "session", f)
 		result = append(result, Session{
 			Name: strings.Split(f, ".")[0],
 			Path: fmt.Sprintf("%s/%s", root, f),
@@ -53,10 +65,12 @@ func CollectSessions(root string) ([]Session, error) {
 }
 
 func GetSession(root, name string) (*Session, error) {
+	l := logger.Sugar()
 	regexp := name
 	if !strings.HasSuffix(name, SESSION_FILE_SUFFIX) {
 		regexp = fmt.Sprintf("%s/%s", name, SESSION_FILE_SUFFIX)
 	}
+	l.Debugw("[GetSession]", "root", root, "name", name, "regexp", regexp)
 	sessionFiles, err := impl.CollectFiles(root, false, []string{regexp})
 	if err != nil {
 		return nil, err
@@ -71,10 +85,12 @@ func GetSession(root, name string) (*Session, error) {
 }
 
 func (s *Session) Load(attach bool) error {
+	l := logger.Sugar()
 	cmd := fmt.Sprintf("tmuxp load -y -d %s", s.Path)
 	if attach {
 		cmd = fmt.Sprintf("tmuxp load -y %s", s.Path)
 	}
+	l.Debugw(fmt.Sprintf("[%s.GetSession]", s.Name), "cmd", cmd)
 	_, err := shell.ShellCmd(cmd, nil, nil, false, false)
 	return err
 }
