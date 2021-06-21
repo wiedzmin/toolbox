@@ -78,6 +78,7 @@ func (s *Unit) Start() error {
 
 // Stop stops unit
 func (s *Unit) Stop() error {
+	// TODO: unit absence should be treated as success
 	_, err := shell.ShellCmd(sysctlCmd(s.User, "stop", s.Name), nil, nil, false, false)
 	return err
 }
