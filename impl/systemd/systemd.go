@@ -195,4 +195,8 @@ func (s *Service) ShowJournal(follow bool, tmuxSession, vtermCmd string) error {
 	return doShow(cmd, title, tmuxSession, vtermCmd)
 }
 
-// TODO: implement "try-restart" command
+// TryRestart tries to restart unit
+func (s *Service) TryRestart() error {
+	_, err := shell.ShellCmd(sysctlCmd(s.User, "try-restart", s.Name), nil, nil, false, false)
+	return err
+}
