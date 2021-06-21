@@ -8,11 +8,13 @@ import (
 	"time"
 
 	"github.com/mediocregopher/radix/v3"
+	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/env"
 	"github.com/wiedzmin/toolbox/impl/json"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/systemd"
 	"github.com/wiedzmin/toolbox/impl/ui"
+	"go.uber.org/zap"
 )
 
 const (
@@ -22,6 +24,13 @@ const (
 )
 
 var nmVpnActiveStatusCodes = []string{"3", "5"}
+
+var logger *zap.Logger
+
+func init() {
+	logger = impl.NewLogger()
+	impl.EnsureBinary("nmcli", *logger)
+}
 
 func nmIpsecVpnUp(name string) (bool, error) {
 	result, err := shell.ShellCmd(fmt.Sprintf("nmcli con show id %s", name), nil, []string{"LANGUAGE=en_US.en"}, true, false)
@@ -76,16 +85,20 @@ func GetMetadata(client *radix.Pool) (map[string]map[string]string, error) {
 }
 
 func StopRunning(omit []string, vpnMeta map[string]map[string]string, notify bool) error {
+	l := logger.Sugar()
 	devdns := systemd.Unit{Name: "docker-devdns.service"}
 	err := devdns.Stop()
 	if err != nil {
 		return err
 	}
+	l.Debugw("[StopRunning]", "omit", omit)
+
 	omitStr := strings.Join(omit, ",")
 	for name, meta := range vpnMeta {
 		if omitStr != "" && strings.Contains(name, omitStr) {
 			continue
 		}
+		l.Debugw("[StopRunning]", "name", name, "meta", meta)
 		ui.NotifyNormal("[VPN]", fmt.Sprintf("Stopping `%s`...", name))
 		StopService(name, meta, notify)
 	}
@@ -93,7 +106,10 @@ func StopRunning(omit []string, vpnMeta map[string]map[string]string, notify boo
 }
 
 func StartOVPN(name, device, cmd string, attempts int, notify bool) error {
+	l := logger.Sugar()
 	tun_path := fmt.Sprintf("%s%s", ipV4StatusPath, device)
+	l.Debugw("[StartOVPN]", "name", name, "device", device, "cmd", cmd, "attempts", attempts, "notify", notify)
+	l.Debugw("[StartOVPN]", "tun_path", tun_path)
 	if _, err := os.Stat(tun_path); !os.IsNotExist(err) {
 		env.SetRedisValue(fmt.Sprintf("vpn/%s/is_up", name), "yes", nil)
 		if notify {
@@ -122,12 +138,14 @@ func StartOVPN(name, device, cmd string, attempts int, notify bool) error {
 		}
 		if success {
 			env.SetRedisValue(fmt.Sprintf("vpn/%s/is_up", name), "yes", nil)
+			l.Debugw("[StartOVPN]", fmt.Sprintf("vpn/%s/is_up", name), "yes")
 			if notify {
 				ui.NotifyNormal("[VPN]", fmt.Sprintf("Started `%s` service", name))
 			}
 			return nil
 		} else {
 			env.SetRedisValue(fmt.Sprintf("vpn/%s/is_up", name), "unk", nil)
+			l.Debugw("[StartOVPN]", fmt.Sprintf("vpn/%s/is_up", name), "unk")
 			if notify {
 				ui.NotifyCritical("[VPN]", fmt.Sprintf("Error starting `%s` service:\n\n%s", name, err.Error()))
 			}
@@ -137,12 +155,14 @@ func StartOVPN(name, device, cmd string, attempts int, notify bool) error {
 }
 
 func StartIPSec(name, cmd string, notify bool) error {
+	l := logger.Sugar()
 	up, err := nmIpsecVpnUp(name)
 	if err != nil {
 		return err
 	}
 	if up {
 		env.SetRedisValue(fmt.Sprintf("vpn/%s/is_up", name), "yes", nil)
+		l.Debugw("[StartIPSec]", fmt.Sprintf("vpn/%s/is_up", name), "yes")
 		if notify {
 			ui.NotifyNormal("[VPN]", fmt.Sprintf("`%s` is up", name))
 		}
@@ -152,12 +172,14 @@ func StartIPSec(name, cmd string, notify bool) error {
 		if err != nil {
 			if strings.Contains(*result, "is already active") {
 				env.SetRedisValue(fmt.Sprintf("vpn/%s/is_up", name), "yes", nil)
+				l.Debugw("[StartIPSec]", fmt.Sprintf("vpn/%s/is_up", name), "yes")
 				if notify {
 					ui.NotifyNormal("[VPN]", fmt.Sprintf("`%s` is up", name))
 				}
 				return nil
 			} else {
 				env.SetRedisValue(fmt.Sprintf("vpn/%s/is_up", name), "unk", nil)
+				l.Debugw("[StartIPSec]", fmt.Sprintf("vpn/%s/is_up", name), "unk")
 				if notify {
 					ui.NotifyCritical("[VPN]", fmt.Sprintf("Error starting `%s` service:\n\n%s", name, err.Error()))
 				}
@@ -165,6 +187,7 @@ func StartIPSec(name, cmd string, notify bool) error {
 			}
 		} else {
 			env.SetRedisValue(fmt.Sprintf("vpn/%s/is_up", name), "yes", nil)
+			l.Debugw("[StartIPSec]", fmt.Sprintf("vpn/%s/is_up", name), "yes")
 			if notify {
 				ui.NotifyNormal("[VPN]", fmt.Sprintf("`%s` is up", name))
 			}
@@ -174,6 +197,8 @@ func StartIPSec(name, cmd string, notify bool) error {
 }
 
 func StartService(name string, meta map[string]string, notify bool) error {
+	l := logger.Sugar()
+	l.Debugw("[StartService]", "name", name, "meta", meta, "notify", notify)
 	t, ok := meta["type"]
 	if !ok {
 		return fmt.Errorf("failed to get vpn type")
@@ -196,9 +221,13 @@ func StartService(name string, meta map[string]string, notify bool) error {
 }
 
 func StopOVPN(name, device, cmd string, attempts int, notify bool) error {
+	l := logger.Sugar()
 	tun_path := fmt.Sprintf("%s%s", ipV4StatusPath, device)
+	l.Debugw("[StopOVPN]", "name", name, "device", device, "cmd", cmd, "attempts", attempts, "notify", notify)
+	l.Debugw("[StopOVPN]", "tun_path", tun_path)
 	if _, err := os.Stat(tun_path); !os.IsNotExist(err) {
 		env.SetRedisValue(fmt.Sprintf("vpn/%s/is_up", name), "no", nil)
+		l.Debugw("[StopOVPN]", fmt.Sprintf("vpn/%s/is_up", name), "no")
 		if notify {
 			ui.NotifyNormal("[VPN]", fmt.Sprintf("`%s` is down", name))
 		}
@@ -225,12 +254,14 @@ func StopOVPN(name, device, cmd string, attempts int, notify bool) error {
 		}
 		if success {
 			env.SetRedisValue(fmt.Sprintf("vpn/%s/is_up", name), "no", nil)
+			l.Debugw("[StopOVPN]", fmt.Sprintf("vpn/%s/is_up", name), "no")
 			if notify {
 				ui.NotifyNormal("[VPN]", fmt.Sprintf("Stopped `%s` service", name))
 			}
 			return nil
 		} else {
 			env.SetRedisValue(fmt.Sprintf("vpn/%s/is_up", name), "unk", nil)
+			l.Debugw("[StopOVPN]", fmt.Sprintf("vpn/%s/is_up", name), "unk")
 			if notify {
 				ui.NotifyCritical("[VPN]", fmt.Sprintf("Error stopping `%s` service:\n\n%s", name, err.Error()))
 			}
@@ -240,12 +271,14 @@ func StopOVPN(name, device, cmd string, attempts int, notify bool) error {
 }
 
 func StopIPSec(name, cmd string, notify bool) error {
+	l := logger.Sugar()
 	up, err := nmIpsecVpnUp(name)
 	if err != nil {
 		return err
 	}
 	if !up {
 		env.SetRedisValue(fmt.Sprintf("vpn/%s/is_up", name), "no", nil)
+		l.Debugw("[StopIPSec]", fmt.Sprintf("vpn/%s/is_up", name), "no")
 		if notify {
 			ui.NotifyNormal("[VPN]", fmt.Sprintf("`%s` is down", name))
 		}
@@ -255,12 +288,14 @@ func StopIPSec(name, cmd string, notify bool) error {
 		if err != nil {
 			if strings.Contains(*result, "not an active") {
 				env.SetRedisValue(fmt.Sprintf("vpn/%s/is_up", name), "no", nil)
+				l.Debugw("[StopIPSec]", fmt.Sprintf("vpn/%s/is_up", name), "no")
 				if notify {
 					ui.NotifyNormal("[VPN]", fmt.Sprintf("`%s` is down", name))
 				}
 				return nil
 			} else {
 				env.SetRedisValue(fmt.Sprintf("vpn/%s/is_up", name), "unk", nil)
+				l.Debugw("[StopIPSec]", fmt.Sprintf("vpn/%s/is_up", name), "unk")
 				if notify {
 					ui.NotifyCritical("[VPN]", fmt.Sprintf("Error stopping `%s` service:\n\n%s", name, err.Error()))
 				}
@@ -268,6 +303,7 @@ func StopIPSec(name, cmd string, notify bool) error {
 			}
 		} else {
 			env.SetRedisValue(fmt.Sprintf("vpn/%s/is_up", name), "no", nil)
+			l.Debugw("[StopIPSec]", fmt.Sprintf("vpn/%s/is_up", name), "no")
 			if notify {
 				ui.NotifyNormal("[VPN]", fmt.Sprintf("`%s` is down", name))
 			}
@@ -277,6 +313,8 @@ func StopIPSec(name, cmd string, notify bool) error {
 }
 
 func StopService(name string, meta map[string]string, notify bool) error {
+	l := logger.Sugar()
+	l.Debugw("[StopService]", "name", name, "meta", meta, "notify", notify)
 	ui.NotifyNormal("[VPN]", fmt.Sprintf("Stopping `%s`...", name))
 	t, ok := meta["type"]
 	if !ok {
