@@ -41,7 +41,7 @@ func open(ctx *cli.Context) error {
 			if _, ok := bookmarkMeta.Path("shell").Data().(string); ok {
 				fmt.Printf("open shell: not implemented")
 			}
-			emacsService := systemd.Service{Name: "emacs.service", User: true}
+			emacsService := systemd.Unit{Name: "emacs.service", User: true}
 			isActive, err := emacsService.IsActive()
 			if err != nil {
 				return err
@@ -82,7 +82,7 @@ func search(ctx *cli.Context) error {
 		return err
 	}
 
-	emacsService := systemd.Service{Name: "emacs.service", User: true}
+	emacsService := systemd.Unit{Name: "emacs.service", User: true}
 	isActive, err := emacsService.IsActive()
 	if err != nil {
 		return err

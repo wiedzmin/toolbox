@@ -11,7 +11,7 @@ import (
 )
 
 // Service struct provides SystemD unit metadata
-type Service struct {
+type Unit struct {
 	Name string // service unit name should be sufficient for now
 	User bool
 }
@@ -64,38 +64,38 @@ func jctlCmd(user, follow bool, name string) string {
 	return r
 }
 
-// Restart restarts service unit
-func (s *Service) Restart() error {
+// Restart restarts unit
+func (s *Unit) Restart() error {
 	_, err := shell.ShellCmd(sysctlCmd(s.User, "restart", s.Name), nil, nil, false, false)
 	return err
 }
 
-// Start starts service unit
-func (s *Service) Start() error {
+// Start starts unit
+func (s *Unit) Start() error {
 	_, err := shell.ShellCmd(sysctlCmd(s.User, "start", s.Name), nil, nil, false, false)
 	return err
 }
 
-// Stop stops service unit
-func (s *Service) Stop() error {
+// Stop stops unit
+func (s *Unit) Stop() error {
 	_, err := shell.ShellCmd(sysctlCmd(s.User, "stop", s.Name), nil, nil, false, false)
 	return err
 }
 
-// Enable enables service
-func (s *Service) Enable() error {
+// Enable enables unit
+func (s *Unit) Enable() error {
 	_, err := shell.ShellCmd(sysctlCmd(s.User, "enable", s.Name), nil, nil, false, false)
 	return err
 }
 
-// Disable disables service
-func (s *Service) Disable() error {
+// Disable disables unit
+func (s *Unit) Disable() error {
 	_, err := shell.ShellCmd(sysctlCmd(s.User, "disable", s.Name), nil, nil, false, false)
 	return err
 }
 
-// IsActive checks if the service unit is active
-func (s *Service) IsActive() (bool, error) {
+// IsActive checks if the unit is active
+func (s *Unit) IsActive() (bool, error) {
 	l := logger.Sugar()
 	out, err := shell.ShellCmd(sysctlCmd(s.User, "is-active", s.Name), nil, nil, false, false)
 	if err != nil {
@@ -122,10 +122,10 @@ func DaemonReload() error {
 	return err
 }
 
-// CollectUnits returns slice of active services and timers
-func CollectUnits(system, user bool) ([]Service, error) {
+// CollectUnits returns slice of active units (services + timers)
+func CollectUnits(system, user bool) ([]Unit, error) {
 	l := logger.Sugar()
-	var units []Service
+	var units []Unit
 	var cases = []struct {
 		isUser bool
 		cmd    string
@@ -145,7 +145,7 @@ func CollectUnits(system, user bool) ([]Service, error) {
 				unit = strings.Fields(unit)[0]
 				if strings.HasSuffix(unit, UNIT_TYPE_SERVICE) || strings.HasSuffix(unit, UNIT_TYPE_TIMER) {
 					l.Debugw("[CollectUnits]", "unit", unit)
-					units = append(units, Service{Name: unit, User: c.isUser})
+					units = append(units, Unit{Name: unit, User: c.isUser})
 				}
 			}
 		}
@@ -176,7 +176,7 @@ func doShow(cmd, title, tmuxSession, vtermCmd string) error {
 }
 
 // ShowStatus shows unit's status in form of `systemctl status` output
-func (s *Service) ShowStatus(tmuxSession, vtermCmd string) error {
+func (s *Unit) ShowStatus(tmuxSession, vtermCmd string) error {
 	cmd := fmt.Sprintf("sh -c '%s'; read", sysctlCmd(s.User, "status", s.Name))
 	title := fmt.Sprintf("status :: %s", s.Name)
 
@@ -184,7 +184,7 @@ func (s *Service) ShowStatus(tmuxSession, vtermCmd string) error {
 }
 
 // ShowStatus shows unit's journal in form of `journalctl` output
-func (s *Service) ShowJournal(follow bool, tmuxSession, vtermCmd string) error {
+func (s *Unit) ShowJournal(follow bool, tmuxSession, vtermCmd string) error {
 	cmd := fmt.Sprintf("sh -c '%s'", jctlCmd(s.User, follow, s.Name))
 	title := fmt.Sprintf("journal :: %s", s.Name)
 	if follow {
@@ -196,7 +196,7 @@ func (s *Service) ShowJournal(follow bool, tmuxSession, vtermCmd string) error {
 }
 
 // TryRestart tries to restart unit
-func (s *Service) TryRestart() error {
+func (s *Unit) TryRestart() error {
 	_, err := shell.ShellCmd(sysctlCmd(s.User, "try-restart", s.Name), nil, nil, false, false)
 	return err
 }

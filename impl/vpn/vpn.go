@@ -76,7 +76,7 @@ func GetMetadata(client *radix.Pool) (map[string]map[string]string, error) {
 }
 
 func StopRunning(omit []string, vpnMeta map[string]map[string]string, notify bool) error {
-	devdns := systemd.Service{Name: "docker-devdns.service"}
+	devdns := systemd.Unit{Name: "docker-devdns.service"}
 	err := devdns.Stop()
 	if err != nil {
 		return err
