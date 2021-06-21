@@ -115,3 +115,24 @@ func GetCurrentWindowName(X *xgbutil.XUtil) (*string, error) {
 	windowName, err := ewmh.WmNameGet(X, active)
 	return &windowName, err
 }
+
+func FindWindow(X *xgbutil.XUtil, query WindowQuery) (*xproto.Window, error) {
+	var err error
+	if X == nil {
+		X, err = xgbutil.NewConn()
+		if err != nil {
+			return nil, err
+		}
+	}
+	query = prepareWindowQuery(query)
+	windows, err := ewmh.ClientListGet(X)
+	if err != nil {
+		return nil, err
+	}
+	for _, win := range windows {
+		if query.MatchWindow(X, win) {
+			return &win, nil
+		}
+	}
+	return nil, ErrWindowNotFound{query}
+}
