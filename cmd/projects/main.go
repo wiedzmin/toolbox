@@ -19,6 +19,7 @@ import (
 var logger *zap.Logger
 
 func open(ctx *cli.Context) error {
+	l := logger.Sugar()
 	bookmarksData, _, err := env.GetRedisValue("nav/bookmarks", nil)
 	if err != nil {
 		return err
@@ -28,18 +29,21 @@ func open(ctx *cli.Context) error {
 	for key, _ := range bookmarksMeta {
 		keys = append(keys, key)
 	}
+	l.Debugw("[open]", "keys", keys)
+
 	key, err := ui.GetSelectionRofi(keys, "open")
+	l.Debugw("[open]", "key", key, "err", err)
 	if err != nil {
 		return err
 	}
 	if bookmarkMeta, ok := bookmarksMeta[key]; !ok {
-		fmt.Printf("failed to get bookmark metadata for '%s'", key)
+		l.Errorw("[open]", "failed to get bookmark metadata for", key)
 	} else {
 		if path, ok := bookmarkMeta.Path("path").Data().(string); !ok {
-			fmt.Printf("missing bookmark path '%s'", key)
+			l.Errorw("[open]", "missing bookmark path", key)
 		} else {
 			if _, ok := bookmarkMeta.Path("shell").Data().(string); ok {
-				fmt.Printf("open shell: not implemented")
+				l.Errorw("[open]", "open shell", "not implemented")
 			}
 			emacsService := systemd.Unit{Name: "emacs.service", User: true}
 			isActive, err := emacsService.IsActive()
@@ -47,6 +51,7 @@ func open(ctx *cli.Context) error {
 				return err
 			}
 			if !isActive {
+				l.Errorw("[open]", "`emacs` service", "not running")
 				ui.NotifyCritical("[bookmarks]", "Emacs service not running")
 				os.Exit(1)
 			}
@@ -58,6 +63,7 @@ func open(ctx *cli.Context) error {
 			if !fi.IsDir() {
 				elispCmd = fmt.Sprintf("(find-file \"%s\")", path)
 			}
+			l.Debugw("[open]", "elispCmd", elispCmd)
 			return emacs.SendToServer(elispCmd)
 		}
 	}
@@ -65,8 +71,10 @@ func open(ctx *cli.Context) error {
 }
 
 func search(ctx *cli.Context) error {
+	l := logger.Sugar()
 	searchTerm, err := ui.GetSelectionDmenu([]string{}, "token", 1, ctx.String("selector-font"))
 	if err != nil {
+		l.Warnw("[search]", "no keyword provided")
 		ui.NotifyCritical("[search repos]", "no keyword provided")
 		return err
 	}
@@ -78,20 +86,24 @@ func search(ctx *cli.Context) error {
 	matchingReposSlice := strings.Split(*matchingRepos, "\n")
 	path, err := ui.GetSelectionRofi(matchingReposSlice, "explore")
 	if err != nil {
+		l.Warnw("[search]", "no repository provided")
 		ui.NotifyNormal("[search repos]", "no repository selected")
 		return err
 	}
 
 	emacsService := systemd.Unit{Name: "emacs.service", User: true}
+	l.Debugw("[search]", "emacsService", emacsService)
 	isActive, err := emacsService.IsActive()
 	if err != nil {
 		return err
 	}
 	if !isActive {
+		l.Errorw("[search]", "`emacs` service", "not running")
 		ui.NotifyCritical("[search repos]", "Emacs service not running")
 		os.Exit(1)
 	}
 	elispCmd := fmt.Sprintf("(dired \"%s\")", path)
+	l.Debugw("[search]", "elispCmd", elispCmd)
 	return emacs.SendToServer(elispCmd)
 }
 
