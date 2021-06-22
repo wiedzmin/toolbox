@@ -7,8 +7,8 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
-	"github.com/wiedzmin/toolbox/impl/env"
 	"github.com/wiedzmin/toolbox/impl/json"
+	"github.com/wiedzmin/toolbox/impl/redis"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/vpn"
@@ -19,7 +19,11 @@ var logger *zap.Logger
 
 func perform(ctx *cli.Context) error {
 	l := logger.Sugar()
-	searchenginesData, client, err := env.GetRedisValue("nav/searchengines", nil)
+	r, err := redis.NewRedisLocal()
+	if err != nil {
+		return err
+	}
+	searchenginesData, err := r.GetValue("nav/searchengines")
 	if err != nil {
 		return err
 	}
@@ -39,7 +43,7 @@ func perform(ctx *cli.Context) error {
 		l.Errorw("[perform]", "failed to get searchengine metadata for", key)
 	} else {
 		if vpnName, ok := searchengineMeta.Path("vpn").Data().(string); ok {
-			vpnsMeta, err := vpn.GetMetadata(client)
+			vpnsMeta, err := vpn.GetMetadata()
 			if err != nil {
 				return err
 			}

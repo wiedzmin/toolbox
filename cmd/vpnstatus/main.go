@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/urfave/cli/v2"
-	"github.com/wiedzmin/toolbox/impl/env"
+	"github.com/wiedzmin/toolbox/impl/redis"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/vpn"
 )
@@ -14,7 +14,7 @@ import (
 func perform(ctx *cli.Context) error {
 	var result []string
 	if ctx.Bool("stop-all") {
-		vpnMeta, err := vpn.GetMetadata(nil)
+		vpnMeta, err := vpn.GetMetadata()
 		if err != nil {
 			return err
 		}
@@ -24,7 +24,11 @@ func perform(ctx *cli.Context) error {
 		}
 		return nil
 	}
-	statuses, _, err := env.GetRedisValuesFuzzy("vpn/*/is_up", nil)
+	r, err := redis.NewRedisLocal()
+	if err != nil {
+		return err
+	}
+	statuses, err := r.GetValuesFuzzy("vpn/*/is_up")
 	if err == nil {
 		for key, value := range statuses {
 			result = append(result, fmt.Sprintf("%s: %s", strings.Split(key, "/")[1], string(value)))

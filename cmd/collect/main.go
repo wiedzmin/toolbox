@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/urfave/cli/v2"
-	"github.com/wiedzmin/toolbox/impl/env"
 	"github.com/wiedzmin/toolbox/impl/fs"
+	"github.com/wiedzmin/toolbox/impl/redis"
 )
 
 func perform(ctx *cli.Context) error {
@@ -20,7 +20,11 @@ func perform(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = env.SetRedisValue(ctx.String("key"), string(jsonData), nil)
+	r, err := redis.NewRedisLocal()
+	if err != nil {
+		return err
+	}
+	err = r.SetValue(ctx.String("key"), string(jsonData))
 	return err
 }
 

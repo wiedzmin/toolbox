@@ -7,14 +7,18 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
-	"github.com/wiedzmin/toolbox/impl/env"
+	"github.com/wiedzmin/toolbox/impl/redis"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/ui"
 )
 
 func perform(ctx *cli.Context) error {
 	var result []string
-	ebooks, _, err := env.GetRedisValuesFuzzy("content/*/ebooks", nil)
+	r, err := redis.NewRedisLocal()
+	if err != nil {
+		return err
+	}
+	ebooks, err := r.GetValuesFuzzy("content/*/ebooks")
 	if err != nil {
 		ui.NotifyCritical("[bookshelf]", "Failed to fetch ebooks data")
 		os.Exit(1)

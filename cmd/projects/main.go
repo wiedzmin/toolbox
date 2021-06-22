@@ -8,8 +8,8 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/emacs"
-	"github.com/wiedzmin/toolbox/impl/env"
 	"github.com/wiedzmin/toolbox/impl/json"
+	"github.com/wiedzmin/toolbox/impl/redis"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/systemd"
 	"github.com/wiedzmin/toolbox/impl/ui"
@@ -20,7 +20,11 @@ var logger *zap.Logger
 
 func open(ctx *cli.Context) error {
 	l := logger.Sugar()
-	bookmarksData, _, err := env.GetRedisValue("nav/bookmarks", nil)
+	r, err := redis.NewRedisLocal()
+	if err != nil {
+		return err
+	}
+	bookmarksData, err := r.GetValue("nav/bookmarks")
 	if err != nil {
 		return err
 	}

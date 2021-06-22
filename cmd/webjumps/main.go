@@ -6,8 +6,8 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
-	"github.com/wiedzmin/toolbox/impl/env"
 	"github.com/wiedzmin/toolbox/impl/json"
+	"github.com/wiedzmin/toolbox/impl/redis"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/vpn"
@@ -18,7 +18,11 @@ var logger *zap.Logger
 
 func perform(ctx *cli.Context) error {
 	l := logger.Sugar()
-	webjumpsData, client, err := env.GetRedisValue("nav/webjumps", nil)
+	r, err := redis.NewRedisLocal()
+	if err != nil {
+		return err
+	}
+	webjumpsData, err := r.GetValue("nav/webjumps")
 	if err != nil {
 		return err
 	}
@@ -38,7 +42,7 @@ func perform(ctx *cli.Context) error {
 		l.Errorw("[main]", "failed to get webjump metadata for", key)
 	} else {
 		if vpnName, ok := webjumpMeta.Path("vpn").Data().(string); ok {
-			vpnsMeta, err := vpn.GetMetadata(client)
+			vpnsMeta, err := vpn.GetMetadata()
 			if err != nil {
 				return err
 			}
