@@ -87,3 +87,27 @@ func DeleteRedisValue(key string, client *radix.Pool) (*radix.Pool, error) {
 	}
 	return client, nil
 }
+
+func RedisKeyExists(key string, client *radix.Pool) bool {
+	l := logger.Sugar()
+	var err error
+	if client == nil {
+		client, err = radix.NewPool("tcp", "127.0.0.1:6379", 1)
+		if err != nil {
+			return false
+		}
+	}
+
+	var exists int
+	err = client.Do(radix.Cmd(&exists, "EXISTS", key))
+	l.Debugw("[RedisKeyExists]", "key", key, "exists", exists)
+	if err == nil {
+		switch exists {
+		case 0:
+			return false
+		case 1:
+			return true
+		}
+	}
+	return false
+}
