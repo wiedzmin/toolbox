@@ -57,7 +57,7 @@ func (s *Session) NewWindow(cmd, title, startDirectory string, attach bool) erro
 	l := logger.Sugar()
 	args := []string{
 		fmt.Sprintf("-t %s", s.Name),
-		fmt.Sprintf("-n %s", title),
+		fmt.Sprintf("-n '%s'", title),
 	}
 	l.Debugw(fmt.Sprintf("[%s.NewWindow]", s.Name), "cmd", cmd, "title", title, "startDirectory", startDirectory, "attach", attach)
 	var argsStr strings.Builder
@@ -67,7 +67,7 @@ func (s *Session) NewWindow(cmd, title, startDirectory string, attach bool) erro
 	if len(startDirectory) > 0 {
 		args = append(args, fmt.Sprintf("-c %s", startDirectory))
 	}
-	args = append(args, fmt.Sprintf("'%s'", cmd))
+	args = append(args, fmt.Sprintf("\"%s\"", cmd))
 	for _, arg := range args {
 		argsStr.WriteString(fmt.Sprintf("%s ", arg))
 	}
