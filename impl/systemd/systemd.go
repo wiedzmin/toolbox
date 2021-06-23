@@ -188,9 +188,12 @@ func doShow(cmd, title, tmuxSession, vtermCmd string) error {
 			case tmux.ErrSessionNotFound:
 				return shell.RunInTerminal(cmd, vtermCmd)
 			default:
-				return err
+				if err != nil {
+					return err
+				}
+				return session.NewWindow(cmd, title, "", true)
 			}
-			return session.NewWindow(cmd, title, "", true)
+			return nil
 		} else {
 			return shell.RunInTerminal(cmd, vtermCmd)
 		}
