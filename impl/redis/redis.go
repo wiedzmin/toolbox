@@ -17,10 +17,13 @@ type Client struct {
 }
 
 func NewRedisLocal() (*Client, error) {
+	l := logger.Sugar()
 	pool, err := radix.NewPool("tcp", "127.0.0.1:6379", 1)
 	if err != nil {
+		l.Warnw("[NewRedisLocal]", "err", err)
 		return nil, err
 	}
+	l.Debugw("[NewRedisLocal]", "pool", pool)
 	return &Client{pool}, nil
 }
 
