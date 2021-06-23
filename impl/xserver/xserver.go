@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/jezek/xgb"
 	"github.com/jezek/xgb/xproto"
 	"github.com/jezek/xgbutil"
 	"github.com/jezek/xgbutil/ewmh"
@@ -19,7 +20,8 @@ func init() {
 }
 
 type X struct {
-	conn *xgbutil.XUtil
+	connXU  *xgbutil.XUtil
+	connXGB *xgb.Conn
 }
 
 type WindowQuery struct {
@@ -114,21 +116,22 @@ func prepareWindowQuery(query WindowQuery) WindowQuery {
 
 func NewX() (*X, error) {
 	l := logger.Sugar()
-	conn, err := xgbutil.NewConn()
+	connXgb, err := xgb.NewConn()
+	connXu, err := xgbutil.NewConnXgb(connXgb)
 	if err != nil {
 		l.Warnw("[NewX]", "err", err)
 		return nil, err
 	}
-	l.Debugw("[NewX]", "conn", fmt.Sprintf("%v", conn))
-	return &X{conn}, nil
+	l.Debugw("[NewX]", "connXu", fmt.Sprintf("%v", connXu), "connXgb", fmt.Sprintf("%v", connXgb))
+	return &X{connXU: connXu, connXGB: connXgb}, nil
 }
 
 func (x *X) GetCurrentWindowName() (*string, error) {
-	active, err := ewmh.ActiveWindowGet(x.conn)
+	active, err := ewmh.ActiveWindowGet(x.connXU)
 	if err != nil {
 		return nil, err
 	}
-	windowName, err := ewmh.WmNameGet(x.conn, active)
+	windowName, err := ewmh.WmNameGet(x.connXU, active)
 	return &windowName, err
 }
 
@@ -136,12 +139,12 @@ func (x *X) FindWindow(query WindowQuery) (*xproto.Window, error) {
 	l := logger.Sugar()
 	query = prepareWindowQuery(query)
 	l.Debugw("[FindWindow]", "query", query)
-	windows, err := ewmh.ClientListGet(x.conn)
+	windows, err := ewmh.ClientListGet(x.connXU)
 	if err != nil {
 		return nil, err
 	}
 	for _, win := range windows {
-		if query.MatchWindow(x.conn, win) {
+		if query.MatchWindow(x.connXU, win) {
 			return &win, nil
 		}
 	}
