@@ -218,7 +218,7 @@ func (s *Unit) ShowStatus(tmuxSession, vtermCmd string) error {
 
 // ShowStatus shows unit's journal in form of `journalctl` output
 func (s *Unit) ShowJournal(follow bool, tmuxSession, vtermCmd string) error {
-	cmd := fmt.Sprintf("sh -c '%s'", jctlCmd(s.User, follow, s.Name))
+	cmd := fmt.Sprintf("sh -c '%s'; read", jctlCmd(s.User, follow, s.Name))
 	title := fmt.Sprintf("journal :: %s", s.Name)
 	if follow {
 		cmd = fmt.Sprintf("sh -c '%s'; read", jctlCmd(s.User, follow, s.Name))
