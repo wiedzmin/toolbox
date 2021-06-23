@@ -200,6 +200,14 @@ func doShow(cmd, title, tmuxSession, vtermCmd string) error {
 	return nil
 }
 
+// Show shows unit's settings
+func (s *Unit) Show(tmuxSession, vtermCmd string) error {
+	cmd := fmt.Sprintf("sh -c '%s'; read", sysctlCmd(s.User, "show", s.Name))
+	title := fmt.Sprintf("show :: %s", s.Name)
+
+	return doShow(cmd, title, tmuxSession, vtermCmd)
+}
+
 // ShowStatus shows unit's status in form of `systemctl status` output
 func (s *Unit) ShowStatus(tmuxSession, vtermCmd string) error {
 	cmd := fmt.Sprintf("sh -c '%s'; read", sysctlCmd(s.User, "status", s.Name))
