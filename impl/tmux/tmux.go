@@ -37,7 +37,11 @@ func GetSession(name string, create, attach bool) (*Session, error) {
 	}
 	if len(*out) > 0 {
 		if create {
-			_, err := shell.ShellCmd(fmt.Sprintf("tmux switch-client -t %s", name), nil, nil, false, false)
+			_, err := shell.ShellCmd(fmt.Sprintf("tmux new-session -d -s %s", name), nil, nil, false, false)
+			if err != nil {
+				return nil, err
+			}
+			_, err = shell.ShellCmd(fmt.Sprintf("tmux switch-client -t %s", name), nil, nil, false, false)
 			if err != nil {
 				return nil, err
 			}
