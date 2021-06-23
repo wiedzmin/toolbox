@@ -18,6 +18,10 @@ func init() {
 	logger = impl.NewLogger()
 }
 
+type X struct {
+	conn *xgbutil.XUtil
+}
+
 type WindowQuery struct {
 	Name           string
 	nameRegexp     *regexp.Regexp
@@ -108,58 +112,48 @@ func prepareWindowQuery(query WindowQuery) WindowQuery {
 	return query
 }
 
-func GetCurrentWindowName(X *xgbutil.XUtil) (*string, error) {
-	var err error
-	if X == nil {
-		X, err = xgbutil.NewConn()
-		if err != nil {
-			return nil, err
-		}
+func NewX() (*X, error) {
+	l := logger.Sugar()
+	conn, err := xgbutil.NewConn()
+	if err != nil {
+		l.Warnw("[NewX]", "err", err)
+		return nil, err
 	}
-	active, err := ewmh.ActiveWindowGet(X)
+	l.Debugw("[NewX]", "conn", fmt.Sprintf("%v", conn))
+	return &X{conn}, nil
+}
+
+func (x *X) GetCurrentWindowName() (*string, error) {
+	active, err := ewmh.ActiveWindowGet(x.conn)
 	if err != nil {
 		return nil, err
 	}
-	windowName, err := ewmh.WmNameGet(X, active)
+	windowName, err := ewmh.WmNameGet(x.conn, active)
 	return &windowName, err
 }
 
-func FindWindow(X *xgbutil.XUtil, query WindowQuery) (*xproto.Window, error) {
+func (x *X) FindWindow(query WindowQuery) (*xproto.Window, error) {
 	l := logger.Sugar()
-	var err error
-	if X == nil {
-		X, err = xgbutil.NewConn()
-		if err != nil {
-			return nil, err
-		}
-	}
 	query = prepareWindowQuery(query)
 	l.Debugw("[FindWindow]", "query", query)
-	windows, err := ewmh.ClientListGet(X)
+	windows, err := ewmh.ClientListGet(x.conn)
 	if err != nil {
 		return nil, err
 	}
 	for _, win := range windows {
-		if query.MatchWindow(X, win) {
+		if query.MatchWindow(x.conn, win) {
 			return &win, nil
 		}
 	}
 	return nil, ErrWindowNotFound{query}
 }
 
-func SetActiveWindow(X *xgbutil.XUtil, query WindowQuery) error {
+func (x *X) SetActiveWindow(query WindowQuery) error {
 	l := logger.Sugar()
-	var err error
-	if X == nil {
-		X, err = xgbutil.NewConn()
-		if err != nil {
-			return err
-		}
-	}
-	win, err := FindWindow(X, query)
+	win, err := x.FindWindow(query)
 	l.Debugw("[SetActiveWindow]", "win", win, "err", err)
 	if err != nil {
 		return err
 	}
-	return ewmh.ActiveWindowSet(X, *win)
+	return ewmh.ActiveWindowSet(x.conn, *win)
 }

@@ -54,7 +54,11 @@ func acquireUrl() (*url.URL, error) {
 		}
 	}
 
-	windowName, err := xserver.GetCurrentWindowName(nil)
+	x, err := xserver.NewX()
+	if err != nil {
+		return nil, err
+	}
+	windowName, err := x.GetCurrentWindowName()
 	l.Debugw("[acquireUrl]", "windowName", windowName, "err", err)
 	if err != nil {
 		return nil, err
