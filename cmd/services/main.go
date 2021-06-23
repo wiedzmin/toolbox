@@ -76,6 +76,7 @@ func perform(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	// FIXME: ensure sort order
 	operation, err := ui.GetSelectionRofi(OPERATIONS, "perform")
 	if err != nil {
 		return err
