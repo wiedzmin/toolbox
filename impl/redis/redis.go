@@ -1,6 +1,8 @@
 package redis
 
 import (
+	"strconv"
+
 	"github.com/mediocregopher/radix/v3"
 	"github.com/wiedzmin/toolbox/impl"
 	"go.uber.org/zap"
@@ -81,4 +83,22 @@ func (r *Client) KeyExists(key string) bool {
 		}
 	}
 	return false
+}
+
+func (r *Client) AppendToList(key string, value string) error {
+	l := logger.Sugar()
+	l.Debugw("[PushToList]", "key", key, "value", value)
+	return r.conn.Do(radix.Cmd(nil, "RPUSH", key, value))
+}
+
+func (r *Client) GetList(key string, offset, limit int) ([]string, error) {
+	l := logger.Sugar()
+	l.Debugw("[GetList]", "key", key, "offset", offset, "limit", limit)
+	var result []string
+	err := r.conn.Do(radix.Cmd(&result, "LRANGE", key, strconv.Itoa(offset), strconv.Itoa(limit)))
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+
 }
