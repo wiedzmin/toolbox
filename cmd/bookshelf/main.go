@@ -10,7 +10,10 @@ import (
 	"github.com/wiedzmin/toolbox/impl/redis"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/ui"
+	"go.uber.org/zap"
 )
+
+var logger *zap.Logger
 
 func perform(ctx *cli.Context) error {
 	var result []string
@@ -76,9 +79,12 @@ func createCLI() *cli.App {
 }
 
 func main() {
+	logger = impl.NewLogger()
+	defer logger.Sync()
+	l := logger.Sugar()
 	app := createCLI()
 	err := app.Run(os.Args)
 	if err != nil {
-		fmt.Println(err)
+		l.Errorw("[main]", "err", err)
 	}
 }

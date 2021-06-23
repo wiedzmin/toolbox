@@ -172,10 +172,11 @@ func createCLI() *cli.App {
 func main() {
 	logger = impl.NewLogger()
 	defer logger.Sync()
+	l := logger.Sugar()
 	impl.EnsureBinary("fd", *logger)
 	app := createCLI()
 	err := app.Run(os.Args)
 	if err != nil {
-		fmt.Println(err)
+		l.Errorw("[main]", "err", err)
 	}
 }

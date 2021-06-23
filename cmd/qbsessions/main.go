@@ -10,7 +10,10 @@ import (
 	"github.com/wiedzmin/toolbox/impl/browsers/qutebrowser"
 	"github.com/wiedzmin/toolbox/impl/fs"
 	"github.com/wiedzmin/toolbox/impl/ui"
+	"go.uber.org/zap"
 )
+
+var logger *zap.Logger
 
 func saveSession(name *string) error {
 	sessionName := fmt.Sprintf("session-%s", impl.CommonNowTimestamp())
@@ -169,9 +172,12 @@ func createCLI() *cli.App {
 }
 
 func main() {
+	logger = impl.NewLogger()
+	defer logger.Sync()
+	l := logger.Sugar()
 	app := createCLI()
 	err := app.Run(os.Args)
 	if err != nil {
-		fmt.Println(err)
+		l.Errorw("[main]", "err", err)
 	}
 }

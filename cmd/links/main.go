@@ -15,6 +15,8 @@ import (
 	"go.uber.org/zap"
 )
 
+var logger *zap.Logger
+
 type orgLink struct {
 	Link  string
 	Title string
@@ -32,8 +34,6 @@ func (l orgLink) String() string {
 	}
 	return result
 }
-
-var logger *zap.Logger
 
 func acquireUrl() (*url.URL, error) {
 	var uri *url.URL
