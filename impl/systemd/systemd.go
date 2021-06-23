@@ -30,6 +30,30 @@ func init() {
 	logger = impl.NewLogger()
 }
 
+func (u Unit) OwnerString() string {
+	if u.User {
+		return "user"
+	}
+	return "system"
+}
+
+func (u Unit) String() string {
+	return fmt.Sprintf("%s [%s]", u.Name, u.OwnerString())
+}
+
+func UnitFromString(s string) Unit {
+	var result Unit
+	unitChunks := strings.Split(s, " ")
+	result.Name = unitChunks[0]
+	switch strings.Trim(unitChunks[1], "[]") {
+	case "user":
+		result.User = true
+	case "system":
+		result.User = false
+	}
+	return result
+}
+
 func sysctlCmd(user bool, cmd, name string) string {
 	var tokens []string
 	if user {
