@@ -151,12 +151,29 @@ func (x *X) FindWindow(query WindowQuery) (*xproto.Window, error) {
 	return nil, ErrWindowNotFound{query}
 }
 
-func (x *X) SetActiveWindow(query WindowQuery) error {
+func (x *X) BringWindowAbove(query WindowQuery) error {
 	l := logger.Sugar()
 	win, err := x.FindWindow(query)
-	l.Debugw("[SetActiveWindow]", "win", win, "err", err)
+	l.Debugw("[BringWindowAbove]", "win", win, "err", err)
 	if err != nil {
 		return err
 	}
-	return ewmh.ActiveWindowSet(x.conn, *win)
+	winDesktop, err := ewmh.WmDesktopGet(x.connXU, *win)
+	if err != nil {
+		return err
+	}
+	curDesktop, err := ewmh.CurrentDesktopGet(x.connXU)
+	l.Debugw("[BringWindowAbove]", "winDesktop", winDesktop, "curDesktop", curDesktop)
+	err = ewmh.CurrentDesktopSet(x.connXU, winDesktop)
+	if err != nil {
+		return err
+	}
+	// NOTE: Using a workaround.
+	// Instead of just ewmh.ActiveWindowSet which has no effect.
+	xproto.SetInputFocus(x.connXGB, xproto.InputFocusParent, *win, xproto.TimeCurrentTime)
+	err = ewmh.WmStateReq(x.connXU, *win, ewmh.StateToggle, "_NET_WM_STATE_ABOVE")
+	if err != nil {
+		return err
+	}
+	return nil
 }
