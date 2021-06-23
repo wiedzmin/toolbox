@@ -17,7 +17,9 @@ const redisKeyName = "system/services"
 var (
 	OPERATIONS = []string{
 		"stop",
+		"stop/follow",
 		"restart",
+		"restart/follow",
 		"show",
 		"journal",
 		"journal/follow",
@@ -87,11 +89,37 @@ func perform(ctx *cli.Context) error {
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error stopping `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
+	case "stop/follow":
+		err = unit.Stop()
+		if err != nil {
+			l.Errorw("[perform]", "err", err)
+			ui.NotifyCritical("[services]", fmt.Sprintf("Error stopping `%s`:\n\n%s", unit.Name, err.Error()))
+			return err
+		}
+		err = unit.ShowJournal(true, ctx.String("tmux-session"), ctx.String("term-command"))
+		if err != nil {
+			l.Errorw("[perform]", "err", err)
+			ui.NotifyCritical("[services]", fmt.Sprintf("Error following journal for `%s`:\n\n%s", unit.Name, err.Error()))
+			return err
+		}
 	case "restart":
 		err = unit.Restart()
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error restarting `%s`:\n\n%s", unit.Name, err.Error()))
+			return err
+		}
+	case "restart/follow":
+		err = unit.Restart()
+		if err != nil {
+			l.Errorw("[perform]", "err", err)
+			ui.NotifyCritical("[services]", fmt.Sprintf("Error restarting `%s`:\n\n%s", unit.Name, err.Error()))
+			return err
+		}
+		err = unit.ShowJournal(true, ctx.String("tmux-session"), ctx.String("term-command"))
+		if err != nil {
+			l.Errorw("[perform]", "err", err)
+			ui.NotifyCritical("[services]", fmt.Sprintf("Error following journal for `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
 	case "show":
