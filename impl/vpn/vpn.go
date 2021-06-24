@@ -29,6 +29,14 @@ var (
 	r      *redis.Client
 )
 
+type ServiceNotFound struct {
+	Name string
+}
+
+func (e ServiceNotFound) Error() string {
+	return fmt.Sprintf("service `%s` not found", e.Name)
+}
+
 func init() {
 	logger = impl.NewLogger()
 	impl.EnsureBinary("nmcli", *logger)
