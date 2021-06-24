@@ -94,7 +94,7 @@ func CollectFiles(path string, fullPath bool, regexpsWhitelist []string) ([]stri
 			match := false
 			for _, rc := range regexpsWhitelistRe {
 				if rc.MatchString(fi.Name()) {
-					l.Debugw("[CollectFiles]", "matched", fi.Name(), rc)
+					l.Debugw("[CollectFiles]", "matched", fi.Name(), "regexp", rc)
 					match = true
 					break
 				}
