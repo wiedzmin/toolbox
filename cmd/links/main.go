@@ -58,16 +58,16 @@ func acquireUrl() (*url.URL, error) {
 	if err != nil {
 		return nil, err
 	}
-	windowName, err := x.GetCurrentWindowName()
-	l.Debugw("[acquireUrl]", "windowName", windowName, "err", err)
+	windowTraits, err := x.GetWindowTraits(nil)
+	l.Debugw("[acquireUrl]", "windowTraits", windowTraits, "err", err)
 	if err != nil {
 		return nil, err
 	}
-	uri, err = url.ParseRequestURI(*windowName)
+	uri, err = url.ParseRequestURI(windowTraits.Title)
 	l.Debugw("[acquireUrl]", "uri (from window name)", uri, "err", err)
 	if err != nil {
 		ui.NotifyCritical("[scrape]", "Non-URL content in active window name, giving up")
-		return nil, impl.ErrInvalidUrl{*windowName}
+		return nil, impl.ErrInvalidUrl{windowTraits.Title}
 	}
 
 	return nil, impl.ErrInvalidUrl{}

@@ -34,6 +34,12 @@ type WindowQuery struct {
 	Fuzzy          bool
 }
 
+type WindowTraits struct {
+	Title    string
+	Class    string
+	Instance string
+}
+
 type ErrWindowNotFound struct {
 	Query WindowQuery
 }
@@ -46,17 +52,9 @@ func (q WindowQuery) Empty() bool {
 	return q.Name == "" && q.Class == "" && q.Instance == ""
 }
 
-func (q WindowQuery) MatchWindow(X *xgbutil.XUtil, win xproto.Window) bool {
+func (q WindowQuery) MatchWindow(t WindowTraits) bool {
 	if q.Empty() {
 		return false
-	}
-	var wmClassData *icccm.WmClass
-	var err error
-	if q.Class != "" || q.Instance != "" {
-		wmClassData, err = icccm.WmClassGet(X, win)
-		if err != nil {
-			return false
-		}
 	}
 	match := true
 	if q.Name != "" {
@@ -64,11 +62,7 @@ func (q WindowQuery) MatchWindow(X *xgbutil.XUtil, win xproto.Window) bool {
 			if q.nameRegexp == nil {
 				return false
 			} else {
-				windowName, err := ewmh.WmNameGet(X, win)
-				if err != nil {
-					return false
-				}
-				if !q.nameRegexp.MatchString(windowName) {
+				if !q.nameRegexp.MatchString(t.Title) {
 					return false
 				}
 			}
@@ -79,7 +73,7 @@ func (q WindowQuery) MatchWindow(X *xgbutil.XUtil, win xproto.Window) bool {
 			if q.classRegexp == nil {
 				return false
 			} else {
-				if !q.classRegexp.MatchString(wmClassData.Class) {
+				if !q.classRegexp.MatchString(t.Class) {
 					return false
 				}
 			}
@@ -90,7 +84,7 @@ func (q WindowQuery) MatchWindow(X *xgbutil.XUtil, win xproto.Window) bool {
 			if q.instanceRegexp == nil {
 				return false
 			} else {
-				if !q.instanceRegexp.MatchString(wmClassData.Instance) {
+				if !q.instanceRegexp.MatchString(t.Instance) {
 					return false
 				}
 			}
@@ -126,13 +120,30 @@ func NewX() (*X, error) {
 	return &X{connXU: connXu, connXGB: connXgb}, nil
 }
 
-func (x *X) GetCurrentWindowName() (*string, error) {
-	active, err := ewmh.ActiveWindowGet(x.connXU)
+func (x *X) GetWindowTraits(win *xproto.Window) (*WindowTraits, error) {
+	var window xproto.Window
+	var err error
+	if win == nil {
+		window, err = ewmh.ActiveWindowGet(x.connXU)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		window = *win
+	}
+	title, err := ewmh.WmNameGet(x.connXU, window)
 	if err != nil {
 		return nil, err
 	}
-	windowName, err := ewmh.WmNameGet(x.connXU, active)
-	return &windowName, err
+	wmClassData, err := icccm.WmClassGet(x.connXU, window)
+	if err != nil {
+		return nil, err
+	}
+	return &WindowTraits{
+		Title:    title,
+		Class:    wmClassData.Class,
+		Instance: wmClassData.Instance,
+	}, nil
 }
 
 func (x *X) FindWindow(query WindowQuery) (*xproto.Window, error) {
@@ -144,7 +155,11 @@ func (x *X) FindWindow(query WindowQuery) (*xproto.Window, error) {
 		return nil, err
 	}
 	for _, win := range windows {
-		if query.MatchWindow(x.connXU, win) {
+		traits, err := x.GetWindowTraits(&win)
+		if err != nil {
+			return nil, err
+		}
+		if query.MatchWindow(*traits) {
 			return &win, nil
 		}
 	}
