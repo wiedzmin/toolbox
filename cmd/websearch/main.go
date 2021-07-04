@@ -65,7 +65,6 @@ func perform(ctx *cli.Context) error {
 					browserCmd = ctx.String("fallback-browser")
 				}
 			}
-			l.Debugw("[perform]", "browserCmd", browserCmd)
 			var searchTerm string
 			if ctx.Bool("prompt") {
 				searchTerm, err = ui.GetSelectionDmenu([]string{}, fmt.Sprintf("%s | term", key), 1, ctx.String("selector-font"))
@@ -82,6 +81,7 @@ func perform(ctx *cli.Context) error {
 				searchTerm = *result
 			}
 			if searchTerm != "" {
+				l.Debugw("[perform]", "browserCmd", browserCmd, "url", url)
 				_, err := shell.ShellCmd(fmt.Sprintf("%s '%s%s'", browserCmd, url,
 					strings.ReplaceAll(searchTerm, " ", "+")), nil, nil, false, false)
 				if err != nil {
