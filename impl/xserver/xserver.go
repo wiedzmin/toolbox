@@ -38,6 +38,7 @@ type WindowTraits struct {
 	Title    string
 	Class    string
 	Instance string
+	Role     string
 }
 
 type ErrWindowNotFound struct {
