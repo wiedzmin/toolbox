@@ -144,6 +144,7 @@ func main() {
 	logger = impl.NewLogger()
 	defer logger.Sync()
 	l := logger.Sugar()
+	impl.EnsureBinary("xsel", *logger)
 	app := createCLI()
 	err := app.Run(os.Args)
 	if err != nil {
