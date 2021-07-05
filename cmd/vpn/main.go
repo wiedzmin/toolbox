@@ -33,30 +33,30 @@ func perform(ctx *cli.Context) error {
 		}
 		return nil
 	}
-	vpnsMeta, err := vpn.GetMetadata()
+	services, err := vpn.ServicesFromRedis("net/vpn_meta")
 	if err != nil {
 		return err
 	}
 	if ctx.Bool("stop-all") {
-		err = vpn.StopRunning(nil, vpnsMeta, true)
+		err = services.StopRunning(nil, true)
 		if err != nil {
 			return err
 		}
 		return nil
 	}
 	if ctx.String("start") != "" {
-		vpnMeta, ok := vpnsMeta[ctx.String("start")]
-		if !ok {
+		service := services.Get(ctx.String("start"))
+		if service == nil {
 			return vpn.ServiceNotFound{ctx.String("start")}
 		}
-		return vpn.StartService(ctx.String("start"), vpnMeta, true)
+		return service.Start(true)
 	}
 	if ctx.String("stop") != "" {
-		vpnMeta, ok := vpnsMeta[ctx.String("stop")]
-		if !ok {
+		service := services.Get(ctx.String("stop"))
+		if service == nil {
 			return vpn.ServiceNotFound{ctx.String("stop")}
 		}
-		return vpn.StopService(ctx.String("stop"), vpnMeta, true)
+		return service.Stop(true)
 	}
 
 	return nil

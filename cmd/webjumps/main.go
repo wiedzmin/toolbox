@@ -42,19 +42,19 @@ func perform(ctx *cli.Context) error {
 		l.Errorw("[main]", "failed to get webjump metadata for", key)
 	} else {
 		if vpnName, ok := webjumpMeta.Path("vpn").Data().(string); ok {
-			vpnsMeta, err := vpn.GetMetadata()
+			services, err := vpn.ServicesFromRedis("net/vpn_meta")
 			if err != nil {
 				return err
 			}
-			var vpnStartMeta map[string]string
-			if vpnStartMeta, ok = vpnsMeta[vpnName]; !ok {
-				ui.NotifyCritical("[VPN]", fmt.Sprintf("Cannot find '%s' service", vpnName))
-				return err
+			service := services.Get(vpnName)
+			if service != nil {
+				services.StopRunning([]string{vpnName}, true)
+				service.Start(true)
 			} else {
-				vpn.StopRunning([]string{vpnName}, vpnsMeta, true)
-				vpn.StartService(vpnName, vpnStartMeta, true)
+				ui.NotifyCritical("[VPN]", fmt.Sprintf("Cannot find '%s' service", vpnName))
+				return vpn.ServiceNotFound{vpnName}
 			}
-			l.Debugw("[perform]", "vpnName", vpnName, "vpnStartMeta", vpnStartMeta, "vpnsMeta", vpnsMeta)
+			l.Debugw("[perform]", "vpnName", vpnName, "vpnMeta", service)
 		}
 		if url, ok := webjumpMeta.Path("url").Data().(string); ok {
 			l.Debugw("[perform]", "url", url)

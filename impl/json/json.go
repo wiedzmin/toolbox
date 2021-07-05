@@ -19,19 +19,3 @@ func GetMapByPath(data []byte, path string) (map[string]*gabs.Container, error) 
 	}
 	return entries, err
 }
-
-func StringifyFlatMap(object *gabs.Container) (map[string]string, error) {
-	result := make(map[string]string)
-	items, err := object.S().ChildrenMap()
-	if err != nil {
-		return nil, err
-	}
-	for key, val := range items {
-		valStr, ok := val.Data().(string)
-		if !ok {
-			continue
-		}
-		result[key] = valStr
-	}
-	return result, nil
-}
