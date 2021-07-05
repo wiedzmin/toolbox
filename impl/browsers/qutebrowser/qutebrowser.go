@@ -3,6 +3,7 @@ package qutebrowser
 import (
 	"bufio"
 	"crypto/md5"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -10,13 +11,18 @@ import (
 	"os/user"
 	"strings"
 
-	"github.com/Jeffail/gabs"
 	"github.com/wiedzmin/toolbox/impl"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 )
 
 type SessionFormat int8
+
+type Request struct {
+	Commands        []string `json:"args"`
+	targetArg       string   `json:"target_arg"`
+	protocolVersion int      `json:"protocol_version"`
+}
 
 const (
 	SESSION_FORMAT_YAML     SessionFormat = 0
@@ -98,19 +104,14 @@ func RawSessionsPath() (*string, error) {
 	return &result, nil
 }
 
-func CommandsJSON(commands []string) string {
-	l := logger.Sugar()
-	l.Debugw("[CommandsJSON]", "commands", commands)
-	jsonObj := gabs.New()
-
-	jsonObj.Array("args")
-	for _, cmd := range commands {
-		jsonObj.ArrayAppend(cmd, "args")
+func (r *Request) Marshal() ([]byte, error) {
+	r.protocolVersion = 1
+	r.targetArg = ""
+	bytes, err := json.Marshal(r)
+	if err != nil {
+		return nil, err
 	}
-	jsonObj.Set("", "target_arg")
-	jsonObj.Set(1, "protocol_version")
-
-	return jsonObj.String()
+	return bytes, nil
 }
 
 func LoadSession(path string) (*SessionLayout, error) {

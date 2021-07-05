@@ -24,10 +24,15 @@ func saveSession(name *string) error {
 	if err != nil {
 		return err
 	}
-	err = impl.SendToUnixSocket(*socketPath, qutebrowser.CommandsJSON([]string{
+	r := qutebrowser.Request{Commands: []string{
 		fmt.Sprintf(":session-save --quiet %s", sessionName),
 		":session-save --quiet",
-	}))
+	}}
+	rb, err := r.Marshal()
+	if err != nil {
+		return err
+	}
+	err = impl.SendToUnixSocket(*socketPath, rb)
 	if _, ok := err.(impl.FileErrNotExist); ok {
 		ui.NotifyCritical("[qutebrowser]", fmt.Sprintf("cannot access socket at `%s`\nIs qutebrowser running?", *socketPath))
 		os.Exit(0)

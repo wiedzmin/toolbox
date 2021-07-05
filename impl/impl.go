@@ -42,7 +42,7 @@ func CommonNowTimestamp() string {
 	return fmt.Sprintf("%02d-%02d-%d-%02d-%02d-%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
 }
 
-func SendToUnixSocket(socket, data string) error {
+func SendToUnixSocket(socket string, data []byte) error {
 	if _, err := os.Stat(socket); os.IsNotExist(err) {
 		return FileErrNotExist{}
 	}
@@ -51,7 +51,8 @@ func SendToUnixSocket(socket, data string) error {
 	if err != nil {
 		return err
 	}
-	_, err = c.Write([]byte(fmt.Sprintf("%s\n", data)))
+	data = append(data, '\n')
+	_, err = c.Write(data)
 	return err
 }
 

@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	github.com/0xAX/notificator v0.0.0-20191016112426-3962a5ea8da1
-	github.com/Jeffail/gabs v1.4.0
 	github.com/anaskhan96/soup v1.2.4
 	github.com/jezek/xgb v0.0.0-20210312150743-0e0f116e1240
 	github.com/jezek/xgbutil v0.0.0-20210302171758-530099784e66 // indirect
