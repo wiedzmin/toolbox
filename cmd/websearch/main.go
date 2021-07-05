@@ -7,8 +7,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
-	"github.com/wiedzmin/toolbox/impl/json"
-	"github.com/wiedzmin/toolbox/impl/redis"
+	"github.com/wiedzmin/toolbox/impl/bookmarks"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/vpn"
@@ -19,47 +18,39 @@ var logger *zap.Logger
 
 func perform(ctx *cli.Context) error {
 	l := logger.Sugar()
-	r, err := redis.NewRedisLocal()
+	searchengines, err := bookmarks.WebjumpsFromRedis("nav/searchengines")
 	if err != nil {
 		return err
 	}
-	searchenginesData, err := r.GetValue("nav/searchengines")
-	if err != nil {
-		return err
-	}
-	searchenginesMeta, err := json.GetMapByPath(searchenginesData, "")
-	var keys []string
-	for key, _ := range searchenginesMeta {
-		keys = append(keys, key)
-	}
-	l.Debugw("[perform]", "keys", keys)
-
-	key, err := ui.GetSelectionRofi(keys, "search with")
+	key, err := ui.GetSelectionRofi(searchengines.Keys(), "search with")
 	l.Debugw("[perform]", "key", key, "err", err)
 	if err != nil {
 		return err
 	}
-	if searchengineMeta, ok := searchenginesMeta[key]; !ok {
+	if searchengine := searchengines.Get(key); searchengine == nil {
 		l.Errorw("[perform]", "failed to get searchengine metadata for", key)
 	} else {
-		if vpnName, ok := searchengineMeta.Path("vpn").Data().(string); ok {
+		if searchengine.VPN != "" {
 			services, err := vpn.ServicesFromRedis("net/vpn_meta")
 			if err != nil {
 				return err
 			}
-			service := services.Get(vpnName)
+			service := services.Get(searchengine.VPN)
 			if service != nil {
-				services.StopRunning([]string{vpnName}, true)
+				services.StopRunning([]string{searchengine.VPN}, true)
 				service.Start(true)
 			} else {
-				ui.NotifyCritical("[VPN]", fmt.Sprintf("Cannot find '%s' service", vpnName))
-				return vpn.ServiceNotFound{vpnName}
+				ui.NotifyCritical("[VPN]", fmt.Sprintf("Cannot find '%s' service", searchengine.VPN))
+				return vpn.ServiceNotFound{searchengine.VPN}
 			}
-			l.Debugw("[perform]", "vpnName", vpnName, "vpnMeta", service, "services", *services)
+			l.Debugw("[perform]", "searchengine.VPN", searchengine.VPN, "vpnMeta", service, "services", *services)
 		}
-		if url, ok := searchengineMeta.Path("url").Data().(string); ok {
-			browserCmd, ok := searchengineMeta.Path("browser").Data().(string)
-			if !ok {
+		if searchengine.URL != "" {
+			l.Debugw("[perform]", "url", searchengine.URL)
+			var browserCmd string
+			if searchengine.Browser != "" {
+				browserCmd = searchengine.Browser
+			} else {
 				browserCmd = ctx.String("browser")
 				if ctx.Bool("use-fallback") {
 					browserCmd = ctx.String("fallback-browser")
@@ -81,8 +72,8 @@ func perform(ctx *cli.Context) error {
 				searchTerm = *result
 			}
 			if searchTerm != "" {
-				l.Debugw("[perform]", "browserCmd", browserCmd, "url", url)
-				_, err := shell.ShellCmd(fmt.Sprintf("%s '%s%s'", browserCmd, url,
+				l.Debugw("[perform]", "browserCmd", browserCmd, "searchengine.URL", searchengine.URL)
+				_, err := shell.ShellCmd(fmt.Sprintf("%s '%s%s'", browserCmd, searchengine.URL,
 					strings.ReplaceAll(searchTerm, " ", "+")), nil, nil, false, false)
 				if err != nil {
 					return err

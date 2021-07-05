@@ -6,8 +6,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
-	"github.com/wiedzmin/toolbox/impl/json"
-	"github.com/wiedzmin/toolbox/impl/redis"
+	"github.com/wiedzmin/toolbox/impl/bookmarks"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/vpn"
@@ -18,62 +17,53 @@ var logger *zap.Logger
 
 func perform(ctx *cli.Context) error {
 	l := logger.Sugar()
-	r, err := redis.NewRedisLocal()
+	webjumps, err := bookmarks.WebjumpsFromRedis("nav/webjumps")
 	if err != nil {
 		return err
 	}
-	webjumpsData, err := r.GetValue("nav/webjumps")
-	if err != nil {
-		return err
-	}
-	webjumpsMeta, err := json.GetMapByPath(webjumpsData, "")
-	var keys []string
-	for key, _ := range webjumpsMeta {
-		keys = append(keys, key)
-	}
-	l.Debugw("[perform]", "keys", keys)
-
-	key, err := ui.GetSelectionRofi(keys, "jump to")
+	key, err := ui.GetSelectionRofi(webjumps.Keys(), "jump to")
 	l.Debugw("[perform]", "key", key, "err", err)
 	if err != nil {
 		return err
 	}
-	if webjumpMeta, ok := webjumpsMeta[key]; !ok {
+	if webjump := webjumps.Get(key); webjump == nil {
 		l.Errorw("[main]", "failed to get webjump metadata for", key)
 	} else {
-		if vpnName, ok := webjumpMeta.Path("vpn").Data().(string); ok {
+		if webjump.VPN != "" {
 			services, err := vpn.ServicesFromRedis("net/vpn_meta")
 			if err != nil {
 				return err
 			}
-			service := services.Get(vpnName)
+			service := services.Get(webjump.VPN)
 			if service != nil {
-				services.StopRunning([]string{vpnName}, true)
+				services.StopRunning([]string{webjump.VPN}, true)
 				service.Start(true)
 			} else {
-				ui.NotifyCritical("[VPN]", fmt.Sprintf("Cannot find '%s' service", vpnName))
-				return vpn.ServiceNotFound{vpnName}
+				ui.NotifyCritical("[VPN]", fmt.Sprintf("Cannot find '%s' service", webjump.VPN))
+				return vpn.ServiceNotFound{webjump.VPN}
 			}
-			l.Debugw("[perform]", "vpnName", vpnName, "vpnMeta", service)
+			l.Debugw("[perform]", "webjump.VPN", webjump.VPN, "vpnMeta", service)
 		}
-		if url, ok := webjumpMeta.Path("url").Data().(string); ok {
-			l.Debugw("[perform]", "url", url)
+		if webjump.URL != "" {
+			l.Debugw("[perform]", "url", webjump.URL)
 			copyURL := ctx.Bool("copy")
 			if copyURL {
-				_, err := shell.ShellCmd("xsel -ib", &url, nil, false, false)
+				_, err := shell.ShellCmd("xsel -ib", &webjump.URL, nil, false, false)
 				if err != nil {
 					return err
 				}
 			} else {
-				browserCmd, ok := webjumpMeta.Path("browser").Data().(string)
-				if !ok {
+				var browserCmd string
+				if webjump.Browser != "" {
+					browserCmd = webjump.Browser
+				} else {
 					browserCmd = ctx.String("browser")
 					if ctx.Bool("use-fallback") {
 						browserCmd = ctx.String("fallback-browser")
 					}
 				}
 				l.Debugw("[perform]", "browserCmd", browserCmd)
-				_, err := shell.ShellCmd(fmt.Sprintf("%s %s", browserCmd, url), nil, nil, false, false)
+				_, err := shell.ShellCmd(fmt.Sprintf("%s %s", browserCmd, webjump.URL), nil, nil, false, false)
 				if err != nil {
 					return err
 				}

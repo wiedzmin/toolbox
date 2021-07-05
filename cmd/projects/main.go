@@ -7,9 +7,8 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
+	"github.com/wiedzmin/toolbox/impl/bookmarks"
 	"github.com/wiedzmin/toolbox/impl/emacs"
-	"github.com/wiedzmin/toolbox/impl/json"
-	"github.com/wiedzmin/toolbox/impl/redis"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/systemd"
 	"github.com/wiedzmin/toolbox/impl/ui"
@@ -20,33 +19,22 @@ var logger *zap.Logger
 
 func open(ctx *cli.Context) error {
 	l := logger.Sugar()
-	r, err := redis.NewRedisLocal()
+	bookmarks, err := bookmarks.BookmarksFromRedis("nav/bookmarks")
 	if err != nil {
 		return err
 	}
-	bookmarksData, err := r.GetValue("nav/bookmarks")
-	if err != nil {
-		return err
-	}
-	bookmarksMeta, err := json.GetMapByPath(bookmarksData, "")
-	var keys []string
-	for key, _ := range bookmarksMeta {
-		keys = append(keys, key)
-	}
-	l.Debugw("[open]", "keys", keys)
-
-	key, err := ui.GetSelectionRofi(keys, "open")
+	key, err := ui.GetSelectionRofi(bookmarks.Keys(), "open")
 	l.Debugw("[open]", "key", key, "err", err)
 	if err != nil {
 		return err
 	}
-	if bookmarkMeta, ok := bookmarksMeta[key]; !ok {
+	if bookmark := bookmarks.Get(key); bookmark == nil {
 		l.Errorw("[open]", "failed to get bookmark metadata for", key)
 	} else {
-		if path, ok := bookmarkMeta.Path("path").Data().(string); !ok {
+		if bookmark.Path == "" {
 			l.Errorw("[open]", "missing bookmark path", key)
 		} else {
-			if _, ok := bookmarkMeta.Path("shell").Data().(string); ok {
+			if bookmark.Shell {
 				l.Errorw("[open]", "open shell", "not implemented")
 			}
 			emacsService := systemd.Unit{Name: "emacs.service", User: true}
@@ -59,13 +47,13 @@ func open(ctx *cli.Context) error {
 				ui.NotifyCritical("[bookmarks]", "Emacs service not running")
 				os.Exit(1)
 			}
-			fi, err := os.Stat(path)
+			fi, err := os.Stat(bookmark.Path)
 			if err != nil {
 				return err
 			}
-			elispCmd := fmt.Sprintf("(dired \"%s\")", path)
+			elispCmd := fmt.Sprintf("(dired \"%s\")", bookmark.Path)
 			if !fi.IsDir() {
-				elispCmd = fmt.Sprintf("(find-file \"%s\")", path)
+				elispCmd = fmt.Sprintf("(find-file \"%s\")", bookmark.Path)
 			}
 			l.Debugw("[open]", "elispCmd", elispCmd)
 			return emacs.SendToServer(elispCmd)
