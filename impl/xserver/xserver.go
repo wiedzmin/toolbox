@@ -31,7 +31,10 @@ type WindowQuery struct {
 	classRegexp    *regexp.Regexp
 	Instance       string
 	instanceRegexp *regexp.Regexp
+	Role           string
+	roleRegexp     *regexp.Regexp
 	Fuzzy          bool
+	prepared       bool
 }
 
 type WindowTraits struct {
@@ -53,60 +56,59 @@ func (q WindowQuery) Empty() bool {
 	return q.Name == "" && q.Class == "" && q.Instance == ""
 }
 
-func (q WindowQuery) MatchWindow(t WindowTraits) bool {
+func (q WindowQuery) MatchTraits(traits WindowTraits) bool {
 	if q.Empty() {
 		return false
 	}
-	match := true
-	if q.Name != "" {
-		if q.Fuzzy {
-			if q.nameRegexp == nil {
-				return false
-			} else {
-				if !q.nameRegexp.MatchString(t.Title) {
-					return false
-				}
-			}
+	if q.Fuzzy {
+		if !q.prepared {
+			q.prepare()
+		}
+		if q.Name != "" && !q.nameRegexp.MatchString(traits.Title) {
+			return false
+		}
+		if q.Class != "" && !q.classRegexp.MatchString(traits.Class) {
+			return false
+		}
+		if q.Instance != "" && !q.instanceRegexp.MatchString(traits.Instance) {
+			return false
+		}
+		if q.Role != "" && !q.roleRegexp.MatchString(traits.Role) {
+			return false
+		}
+	} else {
+		if q.Name != traits.Title {
+			return false
+		}
+		if q.Class != traits.Class {
+			return false
+		}
+		if q.Instance != traits.Instance {
+			return false
+		}
+		if q.Role != traits.Role {
+			return false
 		}
 	}
-	if q.Class != "" {
-		if q.Fuzzy {
-			if q.classRegexp == nil {
-				return false
-			} else {
-				if !q.classRegexp.MatchString(t.Class) {
-					return false
-				}
-			}
-		}
-	}
-	if q.Instance != "" {
-		if q.Fuzzy {
-			if q.instanceRegexp == nil {
-				return false
-			} else {
-				if !q.instanceRegexp.MatchString(t.Instance) {
-					return false
-				}
-			}
-		}
-	}
-	return match
+	return true
 }
 
-func prepareWindowQuery(query WindowQuery) WindowQuery {
-	if query.Fuzzy {
-		if query.Name != "" {
-			query.nameRegexp = regexp.MustCompile(query.Name)
+func (q WindowQuery) prepare() {
+	if q.Fuzzy {
+		if q.Name != "" {
+			q.nameRegexp = regexp.MustCompile(q.Name)
 		}
-		if query.Class != "" {
-			query.classRegexp = regexp.MustCompile(query.Class)
+		if q.Class != "" {
+			q.classRegexp = regexp.MustCompile(q.Class)
 		}
-		if query.Instance != "" {
-			query.instanceRegexp = regexp.MustCompile(query.Instance)
+		if q.Instance != "" {
+			q.instanceRegexp = regexp.MustCompile(q.Instance)
+		}
+		if q.Role != "" {
+			q.roleRegexp = regexp.MustCompile(q.Role)
 		}
 	}
-	return query
+	q.prepared = true
 }
 
 func NewX() (*X, error) {
@@ -149,7 +151,6 @@ func (x *X) GetWindowTraits(win *xproto.Window) (*WindowTraits, error) {
 
 func (x *X) FindWindow(query WindowQuery) (*xproto.Window, error) {
 	l := logger.Sugar()
-	query = prepareWindowQuery(query)
 	l.Debugw("[FindWindow]", "query", query)
 	windows, err := ewmh.ClientListGet(x.connXU)
 	if err != nil {
@@ -160,7 +161,7 @@ func (x *X) FindWindow(query WindowQuery) (*xproto.Window, error) {
 		if err != nil {
 			return nil, err
 		}
-		if query.MatchWindow(*traits) {
+		if query.MatchTraits(*traits) {
 			return &win, nil
 		}
 	}
