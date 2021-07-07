@@ -1,6 +1,7 @@
 package xserver
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 
@@ -10,13 +11,23 @@ import (
 	"github.com/jezek/xgbutil/ewmh"
 	"github.com/jezek/xgbutil/icccm"
 	"github.com/wiedzmin/toolbox/impl"
+	"github.com/wiedzmin/toolbox/impl/redis"
 	"go.uber.org/zap"
 )
 
-var logger *zap.Logger
+var (
+	logger *zap.Logger
+	r      *redis.Client
+)
 
 func init() {
 	logger = impl.NewLogger()
+	var err error
+	r, err = redis.NewRedisLocal()
+	if err != nil {
+		l := logger.Sugar()
+		l.Fatalw("[init]", "failed connecting to Redis", err)
+	}
 }
 
 type X struct {
@@ -42,6 +53,20 @@ type WindowTraits struct {
 	Class    string
 	Instance string
 	Role     string
+}
+
+type WindowRule struct {
+	Class    string `json:"class"`
+	Title    string `json:"title"`
+	Instance string `json:"instance"`
+	Role     string `json:"role"`
+	Desktop  string `json:"desktop"`
+	Activate bool   `json:"activate"`
+}
+
+type WindowRules struct {
+	data   []byte
+	parsed []WindowRule
 }
 
 type ErrWindowNotFound struct {
@@ -193,4 +218,93 @@ func (x *X) BringWindowAbove(query WindowQuery) error {
 		return err
 	}
 	return nil
+}
+
+func NewWindowRules(data []byte) (*WindowRules, error) {
+	var result WindowRules
+	result.data = data
+	err := json.Unmarshal(data, &result.parsed)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func WindowRulesFromRedis(key string) (*WindowRules, error) {
+	rulesData, err := r.GetValue(key)
+	if err != nil {
+		return nil, err
+	}
+	return NewWindowRules(rulesData)
+}
+
+func (wr *WindowRules) List() []WindowRule {
+	return wr.parsed
+}
+
+func (wr *WindowRules) MatchTraits(traits WindowTraits) (*WindowRule, error) {
+	l := logger.Sugar()
+	var result *WindowRule
+	var err error
+	matchedClass, matchedTitle, matchedInstance, matchedRole := false, false, false, false
+	for _, rule := range wr.parsed {
+		l.Debugw("[WindowRules.MatchTraits]====================================================================")
+		if rule.Class != "" {
+			matchedClass, err = regexp.MatchString(rule.Class, traits.Class)
+			l.Debugw("[WindowRules.MatchTraits]", "rule.Class", rule.Class, "traits.Class", traits.Class, "matchedClass", matchedClass)
+			if err != nil {
+				l.Warnw("[WindowRules.MatchTraits]", "err", err)
+				return nil, err
+			}
+			if !matchedClass {
+				continue
+			}
+		} else {
+			matchedClass = true
+		}
+		if rule.Title != "" {
+			matchedTitle, err = regexp.MatchString(rule.Title, traits.Title)
+			l.Debugw("[WindowRules.MatchTraits]", "rule.Title", rule.Title, "traits.Title", traits.Title, "matchedTitle", matchedTitle)
+			if err != nil {
+				l.Warnw("[WindowRules.MatchTraits]", "err", err)
+				return nil, err
+			}
+			if !matchedTitle {
+				continue
+			}
+		} else {
+			matchedTitle = true
+		}
+		if rule.Instance != "" {
+			matchedInstance, err = regexp.MatchString(rule.Instance, traits.Instance)
+			l.Debugw("[WindowRules.MatchTraits]", "rule.Instance", rule.Instance, "traits.Instance", traits.Instance, "matchedInstance", matchedInstance)
+			if err != nil {
+				l.Warnw("[WindowRules.MatchTraits]", "err", err)
+				return nil, err
+			}
+			if !matchedInstance {
+				continue
+			}
+		} else {
+			matchedInstance = true
+		}
+		if rule.Role != "" {
+			matchedRole, err = regexp.MatchString(rule.Role, traits.Role)
+			l.Debugw("[WindowRules.MatchTraits]", "rule.Role", rule.Role, "traits.Role", traits.Role, "matchedRole", matchedRole)
+			if err != nil {
+				l.Warnw("[WindowRules.MatchTraits]", "err", err)
+				return nil, err
+			}
+			if !matchedRole {
+				continue
+			}
+		} else {
+			matchedRole = true
+		}
+		if matchedClass && matchedTitle && matchedInstance && matchedRole {
+			result = &rule
+			break
+		}
+	}
+	return result, nil
 }
