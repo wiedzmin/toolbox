@@ -69,6 +69,11 @@ type WindowRules struct {
 	parsed []WindowRule
 }
 
+type Workspaces struct {
+	data   []byte
+	parsed []string
+}
+
 type ErrWindowNotFound struct {
 	Query WindowQuery
 }
@@ -307,4 +312,27 @@ func (wr *WindowRules) MatchTraits(traits WindowTraits) (*WindowRule, error) {
 		}
 	}
 	return result, nil
+}
+
+// TODO: consider code generation usage
+func NewWorkspaces(data []byte) (*Workspaces, error) {
+	var result Workspaces
+	result.data = data
+	err := json.Unmarshal(data, &result.parsed)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func WorkspacesFromRedis(key string) (*Workspaces, error) {
+	workspacesData, err := r.GetValue(key)
+	if err != nil {
+		return nil, err
+	}
+	return NewWorkspaces(workspacesData)
+}
+
+func (w *Workspaces) List() []string {
+	return w.parsed
 }
