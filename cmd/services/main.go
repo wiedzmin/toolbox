@@ -18,6 +18,7 @@ var (
 	OPERATIONS = []string{
 		"stop",
 		"stop/follow",
+		"kill",
 		"restart",
 		"restart/follow",
 		"show",
@@ -88,6 +89,13 @@ func perform(ctx *cli.Context) error {
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error stopping `%s`:\n\n%s", unit.Name, err.Error()))
+			return err
+		}
+	case "kill":
+		err = unit.Kill()
+		if err != nil {
+			l.Errorw("[perform]", "err", err)
+			ui.NotifyCritical("[services]", fmt.Sprintf("Error killing `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
 	case "stop/follow":
