@@ -54,13 +54,17 @@ func UnitFromString(s string) Unit {
 	return result
 }
 
-func sysctlCmd(user bool, cmd, name string) string {
+func sysctlCmd(user bool, cmd, name string, args ...string) string {
 	var tokens []string
 	if user {
-		tokens = []string{"systemctl", "--user", cmd, name}
+		tokens = []string{"systemctl", "--user", cmd}
 	} else {
-		tokens = []string{"systemctl", cmd, name}
+		tokens = []string{"systemctl", cmd}
 	}
+	for _, arg := range args {
+		tokens = append(tokens, arg)
+	}
+	tokens = append(tokens, name)
 	var result strings.Builder
 	for _, t := range tokens {
 		result.WriteString(fmt.Sprintf("%s ", t))
