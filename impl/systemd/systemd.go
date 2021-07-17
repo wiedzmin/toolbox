@@ -111,6 +111,13 @@ func (s *Unit) Stop() error {
 	return err
 }
 
+// Kill kills unit
+func (s *Unit) Kill() error {
+	// TODO: unit absence should be treated as success
+	_, err := shell.ShellCmd(sysctlCmd(s.User, "kill", s.Name, "--signal=SIGKILL"), nil, nil, false, false)
+	return err
+}
+
 // Enable enables unit
 func (s *Unit) Enable() error {
 	_, err := shell.ShellCmd(sysctlCmd(s.User, "enable", s.Name), nil, nil, false, false)
