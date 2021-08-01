@@ -15,7 +15,7 @@ import (
 var logger *zap.Logger
 
 func perform(ctx *cli.Context) error {
-	result, err := fs.CollectFilesRecursive(ctx.String("root"), strings.Split(ctx.String("exts"), ","))
+	result, err := fs.CollectFilesRecursive(ctx.String("root"), strings.Split(ctx.String("exts"), ","), false)
 	if err != nil {
 		return err
 	}

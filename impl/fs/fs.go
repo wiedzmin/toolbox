@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"syscall"
 	"time"
 
@@ -111,14 +112,19 @@ func CollectFiles(path string, fullPath bool, regexpsWhitelist []string) ([]stri
 	return result, nil
 }
 
-func CollectFilesRecursive(path string, regexpsWhitelist []string) ([]string, error) {
+func CollectFilesRecursive(path string, regexpsWhitelist []string, trimPrefix bool) ([]string, error) {
 	var result []string
 	var regexpsWhitelistRe []regexp.Regexp
+	var acceptAll bool
 	l := logger.Sugar()
 	l.Debugw("[CollectFilesRecursive]", "path", path, "regexpsWhitelist", regexpsWhitelist)
-	for _, re := range regexpsWhitelist {
-		rc := regexp.MustCompile(re)
-		regexpsWhitelistRe = append(regexpsWhitelistRe, *rc)
+	if regexpsWhitelist != nil {
+		for _, re := range regexpsWhitelist {
+			rc := regexp.MustCompile(re)
+			regexpsWhitelistRe = append(regexpsWhitelistRe, *rc)
+		}
+	} else {
+		acceptAll = true
 	}
 	err := filepath.Walk(path,
 		func(pathentry string, info os.FileInfo, err error) error {
@@ -134,7 +140,10 @@ func CollectFilesRecursive(path string, regexpsWhitelist []string) ([]string, er
 						break
 					}
 				}
-				if match {
+				if match || acceptAll {
+					if trimPrefix {
+						pathentry = strings.TrimPrefix(pathentry, path+"/")
+					}
 					result = append(result, pathentry)
 				}
 			}
