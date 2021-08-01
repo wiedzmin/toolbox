@@ -1,9 +1,7 @@
 package tmuxp
 
 import (
-	"errors"
 	"fmt"
-	"os/user"
 	"strings"
 
 	"github.com/wiedzmin/toolbox/impl"
@@ -33,19 +31,12 @@ func init() {
 	logger = impl.NewLogger()
 }
 
-func SessionsRootDefault() (*string, error) {
-	l := logger.Sugar()
-	userInfo, err := user.Current()
-	l.Debugw("[SessionsRootDefault]", "userInfo", userInfo)
+func SessionsRootDefault() *string {
+	path, err := impl.AtHomedir(".tmuxp")
 	if err != nil {
-		return nil, err
+		return nil
 	}
-	if userInfo.HomeDir == "" {
-		return nil, errors.New("current user has no home directory")
-	}
-	result := fmt.Sprintf("%s/.tmuxp", userInfo.HomeDir)
-	l.Debugw("[SessionsRootDefault]", "root", result)
-	return &result, nil
+	return path
 }
 
 func CollectSessions(root string) ([]Session, error) {

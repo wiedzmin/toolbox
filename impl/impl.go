@@ -1,10 +1,13 @@
 package impl
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"os"
 	"os/exec"
+	"os/user"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -14,6 +17,14 @@ const (
 	EnvPrefix       = "TB"
 	DEBUG_FLAG_NAME = "DEBUG_MODE" // NOTE: not only for `toolbox`
 )
+
+var (
+	logger *zap.Logger
+)
+
+func init() {
+	logger = NewLogger()
+}
 
 type ErrInvalidUrl struct {
 	Content string
@@ -37,6 +48,42 @@ type ErrNotImplemented struct {
 
 func (e ErrNotImplemented) Error() string {
 	return fmt.Sprintf("'%s' not implemented", e.Token)
+}
+
+func AtHomedir(suffix string) (*string, error) {
+	l := logger.Sugar()
+	userInfo, err := user.Current()
+	l.Debugw("[AtHomedir]", "userInfo", userInfo)
+	if err != nil {
+		l.Warnw("[AtHomedir]", "err", err)
+		return nil, err
+	}
+	if userInfo.HomeDir == "" {
+		err := errors.New("current user has no home directory")
+		l.Warnw("[AtHomedir]", "err", err)
+		return nil, err
+	}
+	result := fmt.Sprintf("%s/%s", userInfo.HomeDir, strings.TrimPrefix(suffix, "/"))
+	l.Debugw("[AtHomedir]", "result", result)
+	return &result, nil
+}
+
+func AtRunUser(suffix string) (*string, error) {
+	l := logger.Sugar()
+	userInfo, err := user.Current()
+	l.Debugw("[AtRunUser]", "userInfo", userInfo)
+	if err != nil {
+		l.Warnw("[AtRunUser]", "err", err)
+		return nil, err
+	}
+	if userInfo.Uid == "" {
+		err := errors.New("current user has empty UID")
+		l.Warnw("[AtRunUser]", "err", err)
+		return nil, err
+	}
+	result := fmt.Sprintf("/run/user/%s/%s", userInfo.Uid, strings.TrimPrefix(suffix, "/"))
+	l.Debugw("[AtRunUser]", "result", result)
+	return &result, nil
 }
 
 func CommonNowTimestamp() string {

@@ -1,10 +1,6 @@
 package firefox
 
 import (
-	"errors"
-	"fmt"
-	"os/user"
-
 	"github.com/wiedzmin/toolbox/impl"
 	"go.uber.org/zap"
 )
@@ -22,17 +18,10 @@ func init() {
 	logger = impl.NewLogger()
 }
 
-func RawSessionsPath() (*string, error) {
-	l := logger.Sugar()
-	userInfo, err := user.Current()
-	l.Debugw("[RawSessionsPath]", "userInfo", userInfo)
+func RawSessionsPath() *string {
+	path, err := impl.AtHomedir(".mozilla/firefox/profile.default/sessionstore-backups")
 	if err != nil {
-		return nil, err
+		return nil
 	}
-	if userInfo.HomeDir == "" {
-		return nil, errors.New("current user has no home directory")
-	}
-	result := fmt.Sprintf("%s/.mozilla/firefox/profile.default/sessionstore-backups", userInfo.HomeDir)
-	l.Debugw("[RawSessionsPath]", "result", result)
-	return &result, nil
+	return path
 }

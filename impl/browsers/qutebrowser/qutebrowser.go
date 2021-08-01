@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"crypto/md5"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -89,19 +88,12 @@ func SocketPath() (*string, error) {
 	return &result, nil
 }
 
-func RawSessionsPath() (*string, error) {
-	l := logger.Sugar()
-	userInfo, err := user.Current()
-	l.Debugw("[RawSessionsPath]", "userInfo", userInfo)
+func RawSessionsPath() *string {
+	path, err := impl.AtHomedir(".local/share/qutebrowser/sessions")
 	if err != nil {
-		return nil, err
+		return nil
 	}
-	if userInfo.HomeDir == "" {
-		return nil, errors.New("current user has no home directory")
-	}
-	result := fmt.Sprintf("%s/.local/share/qutebrowser/sessions", userInfo.HomeDir)
-	l.Debugw("[RawSessionsPath]", "sessions path", result)
-	return &result, nil
+	return path
 }
 
 func (r *Request) Marshal() ([]byte, error) {

@@ -2,7 +2,6 @@ package emacs
 
 import (
 	"fmt"
-	"os/user"
 
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/shell"
@@ -16,15 +15,7 @@ func init() {
 }
 
 func SocketPath() (*string, error) {
-	l := logger.Sugar()
-	userInfo, err := user.Current()
-	l.Debugw("[SocketPath]", "userInfo", userInfo, "err", err)
-	if err != nil {
-		return nil, err
-	}
-	result := fmt.Sprintf("/run/user/%s/emacs/server", userInfo.Uid)
-	l.Debugw("[SocketPath]", "socket path", result)
-	return &result, nil
+	return impl.AtRunUser("emacs/server")
 }
 
 func SendToServer(elisp string) error {

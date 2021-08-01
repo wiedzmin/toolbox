@@ -62,9 +62,9 @@ func exportSession(sessionsPath, sessionName, exportPath string, format qutebrow
 }
 
 func perform(ctx *cli.Context) error {
-	sessionsPath, err := qutebrowser.RawSessionsPath()
-	if err != nil {
-		return err
+	sessionsPath := qutebrowser.RawSessionsPath()
+	if sessionsPath == nil {
+		return impl.FileErrNotExist{"<qutebrowser raw sessions default root>"}
 	}
 	if ctx.Bool("save") {
 		return saveSession(nil)
