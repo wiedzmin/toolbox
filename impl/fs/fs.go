@@ -135,7 +135,7 @@ func CollectFilesRecursive(path string, regexpsWhitelist []string, trimPrefix bo
 				match := false
 				for _, rc := range regexpsWhitelistRe {
 					if rc.MatchString(info.Name()) {
-						l.Debugw("[CollectFiles]", "matched", info.Name(), rc)
+						l.Debugw("[CollectFiles]", "matched", info.Name(), "rc", rc)
 						match = true
 						break
 					}
