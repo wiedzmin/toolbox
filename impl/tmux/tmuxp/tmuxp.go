@@ -56,7 +56,7 @@ func CollectSessions(root string) ([]Session, error) {
 	}
 	var result []Session
 	for _, f := range sessionFiles {
-		l.Debugw("[SessionsRootDefault]", "session", f)
+		l.Debugw("[CollectSessions]", "session", f)
 		result = append(result, Session{
 			Name: strings.Split(f, ".")[0],
 			Path: fmt.Sprintf("%s/%s", root, f),
