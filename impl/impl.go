@@ -23,10 +23,12 @@ func (e ErrInvalidUrl) Error() string {
 	return "invalid url found"
 }
 
-type FileErrNotExist struct{}
+type FileErrNotExist struct {
+	Path string
+}
 
 func (e FileErrNotExist) Error() string {
-	return "file/dir does not exist"
+	return fmt.Sprintf("file/dir '%s' does not exist", e.Path)
 }
 
 type ErrNotImplemented struct {
