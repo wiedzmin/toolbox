@@ -51,7 +51,7 @@ func open(ctx *cli.Context) error {
 			if err != nil {
 				return err
 			}
-			elispCmd := fmt.Sprintf("(dired \"%s\")", bookmark.Path)
+			elispCmd := fmt.Sprintf("(open-project \"%s\")", bookmark.Path)
 			if !fi.IsDir() {
 				elispCmd = fmt.Sprintf("(find-file \"%s\")", bookmark.Path)
 			}
@@ -94,7 +94,7 @@ func search(ctx *cli.Context) error {
 		ui.NotifyCritical("[search repos]", "Emacs service not running")
 		os.Exit(1)
 	}
-	elispCmd := fmt.Sprintf("(dired \"%s\")", path)
+	elispCmd := fmt.Sprintf("(open-project \"%s\")", path)
 	l.Debugw("[search]", "elispCmd", elispCmd)
 	return emacs.SendToServer(elispCmd)
 }
