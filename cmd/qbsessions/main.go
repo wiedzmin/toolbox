@@ -70,7 +70,7 @@ func perform(ctx *cli.Context) error {
 		return saveSession(nil)
 	}
 	if ctx.Bool("save-named") {
-		name, err := ui.GetSelectionDmenu([]string{}, "save as", 1, ctx.String("selector-font"))
+		name, err := ui.GetSelectionRofi([]string{}, "save as")
 		if err != nil {
 			return err
 		}

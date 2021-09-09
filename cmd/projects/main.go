@@ -64,7 +64,7 @@ func open(ctx *cli.Context) error {
 
 func search(ctx *cli.Context) error {
 	l := logger.Sugar()
-	searchTerm, err := ui.GetSelectionDmenu([]string{}, "token", 1, ctx.String("selector-font"))
+	searchTerm, err := ui.GetSelectionRofi([]string{}, "token")
 	if err != nil {
 		l.Warnw("[search]", "no keyword provided")
 		ui.NotifyCritical("[search repos]", "no keyword provided")

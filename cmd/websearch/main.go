@@ -58,7 +58,7 @@ func perform(ctx *cli.Context) error {
 			}
 			var searchTerm string
 			if ctx.Bool("prompt") {
-				searchTerm, err = ui.GetSelectionDmenu([]string{}, fmt.Sprintf("%s | term", key), 1, ctx.String("selector-font"))
+				searchTerm, err = ui.GetSelectionRofi([]string{}, fmt.Sprintf("%s | term", key))
 				l.Debugw("[perform]", "searchTerm", searchTerm, "err", err)
 				if err != nil {
 					return err

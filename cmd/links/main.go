@@ -142,7 +142,7 @@ func perform(ctx *cli.Context) error {
 	}
 	ui.NotifyNormal("[scrape]", fmt.Sprintf("scraping from %s", pageUrl.String()))
 
-	sessionName, err := ui.GetSelectionDmenu([]string{}, "save as", 1, ctx.String("selector-font"))
+	sessionName, err := ui.GetSelectionRofi([]string{}, "save as")
 	l.Debugw("[perform]", "sessionName", sessionName, "err", err)
 	pageSoup, err := soup.Get(pageUrl.String())
 	l.Debugw("[perform]", "pageSoup", pageSoup, "err", err)
