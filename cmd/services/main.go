@@ -73,12 +73,12 @@ func perform(ctx *cli.Context) error {
 	}
 
 	units, err := r.GetList(redisKeyName, 0, -1)
-	unitStr, err := ui.GetSelectionRofi(units, "select")
+	unitStr, err := ui.GetSelectionRofi(units, "select", false)
 	if err != nil {
 		return err
 	}
 	// FIXME: ensure sort order
-	operation, err := ui.GetSelectionRofi(OPERATIONS, "perform")
+	operation, err := ui.GetSelectionRofi(OPERATIONS, "perform", false)
 	if err != nil {
 		return err
 	}

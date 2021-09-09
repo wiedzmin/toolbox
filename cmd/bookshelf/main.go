@@ -37,7 +37,7 @@ func perform(ctx *cli.Context) error {
 		}
 	}
 
-	book, err := ui.GetSelectionRofi(result, "open")
+	book, err := ui.GetSelectionRofi(result, "open", true)
 	if err != nil {
 		ui.NotifyNormal("[bookshelf]", "no book selected")
 		return err

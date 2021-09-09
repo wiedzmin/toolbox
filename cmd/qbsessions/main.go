@@ -45,7 +45,7 @@ func selectSession(path string) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	sessionName, err := ui.GetSelectionRofi(files, "export")
+	sessionName, err := ui.GetSelectionRofi(files, "export", false)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func perform(ctx *cli.Context) error {
 		return saveSession(nil)
 	}
 	if ctx.Bool("save-named") {
-		name, err := ui.GetSelectionRofi([]string{}, "save as")
+		name, err := ui.GetSelectionRofi([]string{}, "save as", false)
 		if err != nil {
 			return err
 		}

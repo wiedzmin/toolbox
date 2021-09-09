@@ -30,12 +30,17 @@ func init() {
 }
 
 // GetSelectionRofi returns users choice from list of options, using Rofi selector tool
-func GetSelectionRofi(seq []string, prompt string) (string, error) {
+func GetSelectionRofi(seq []string, prompt string, normalWindow bool) (string, error) {
 	l := logger.Sugar()
 	sort.Strings(seq)
 	seqStr := strings.Join(seq, rofiOptionsSeparator)
-	l.Debugw("[GetSelectionRofi]", "seq", seq, "seqStr", seqStr)
-	result, err := shell.ShellCmd(fmt.Sprintf("rofi -normal-window -dmenu -i -sep '%s' -p '%s'", rofiOptionsSeparator, prompt), &seqStr, nil, true, false)
+	l.Debugw("[GetSelectionRofi]", "seq", seq, "seqStr", seqStr, "normalWindow", normalWindow)
+	normalWindowStr := ""
+	if normalWindow {
+		normalWindowStr = " -normal-window"
+	}
+	result, err := shell.ShellCmd(fmt.Sprintf("rofi%s -dmenu -i -sep '%s' -p '%s'",
+		normalWindowStr, rofiOptionsSeparator, prompt), &seqStr, nil, true, false)
 	return *result, err
 }
 

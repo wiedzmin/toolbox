@@ -22,7 +22,7 @@ func perform(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	key, err := ui.GetSelectionRofi(searchengines.Keys(), "search with")
+	key, err := ui.GetSelectionRofi(searchengines.Keys(), "search with", false)
 	l.Debugw("[perform]", "key", key, "err", err)
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func perform(ctx *cli.Context) error {
 			}
 			var searchTerm string
 			if ctx.Bool("prompt") {
-				searchTerm, err = ui.GetSelectionRofi([]string{}, fmt.Sprintf("%s | term", key))
+				searchTerm, err = ui.GetSelectionRofi([]string{}, fmt.Sprintf("%s | term", key), true)
 				l.Debugw("[perform]", "searchTerm", searchTerm, "err", err)
 				if err != nil {
 					return err

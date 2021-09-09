@@ -21,7 +21,7 @@ func perform(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	key, err := ui.GetSelectionRofi(webjumps.Keys(), "jump to")
+	key, err := ui.GetSelectionRofi(webjumps.Keys(), "jump to", false)
 	l.Debugw("[perform]", "key", key, "err", err)
 	if err != nil {
 		return err

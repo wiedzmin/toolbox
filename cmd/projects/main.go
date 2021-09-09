@@ -23,7 +23,7 @@ func open(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	key, err := ui.GetSelectionRofi(bookmarks.Keys(), "open")
+	key, err := ui.GetSelectionRofi(bookmarks.Keys(), "open", false)
 	l.Debugw("[open]", "key", key, "err", err)
 	if err != nil {
 		return err
@@ -64,7 +64,7 @@ func open(ctx *cli.Context) error {
 
 func search(ctx *cli.Context) error {
 	l := logger.Sugar()
-	searchTerm, err := ui.GetSelectionRofi([]string{}, "token")
+	searchTerm, err := ui.GetSelectionRofi([]string{}, "token", false)
 	if err != nil {
 		l.Warnw("[search]", "no keyword provided")
 		ui.NotifyCritical("[search repos]", "no keyword provided")
@@ -76,7 +76,7 @@ func search(ctx *cli.Context) error {
 		return err
 	}
 	matchingReposSlice := strings.Split(*matchingRepos, "\n")
-	path, err := ui.GetSelectionRofi(matchingReposSlice, "explore")
+	path, err := ui.GetSelectionRofi(matchingReposSlice, "explore", false)
 	if err != nil {
 		l.Warnw("[search]", "no repository provided")
 		ui.NotifyNormal("[search repos]", "no repository selected")

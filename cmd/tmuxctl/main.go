@@ -26,7 +26,7 @@ func perform(ctx *cli.Context) error {
 		sessionsByName[s.Name] = s
 	}
 	sort.Strings(names)
-	sessionName, err := ui.GetSelectionRofi(names, "load")
+	sessionName, err := ui.GetSelectionRofi(names, "load", false)
 	if err != nil {
 		return err
 	}
