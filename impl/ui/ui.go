@@ -39,22 +39,17 @@ func GetSelectionRofi(seq []string, prompt string) (string, error) {
 	return *result, err
 }
 
-func GetSelectionDmenu(seq []string, prompt string, lines int, font string) (string, error) {
+func GetSelectionDmenu(seq []string, prompt string, lines int, withCase bool, font string) (string, error) {
 	l := logger.Sugar()
 	sort.Strings(seq)
 	seqStr := strings.Join(seq, dmenuOptionsSeparator)
-	l.Debugw("[GetSelectionDmenu]", "seq", seq, "seqStr", seqStr)
-	result, err := shell.ShellCmd(fmt.Sprintf("dmenu -i -p '%s' -l %d -fn '%s'", prompt, lines, font),
+	l.Debugw("[GetSelectionDmenu]", "seq", seq, "seqStr", seqStr, "case-sensitive", withCase)
+	caseFlagStr := ""
+	if withCase {
+		caseFlagStr = " -i"
+	}
+	result, err := shell.ShellCmd(fmt.Sprintf("dmenu%s -p '%s' -l %d -fn '%s'", caseFlagStr, prompt, lines, font),
 		&seqStr, nil, true, false)
-	return *result, err
-}
-
-func GetSelectionDmenuWithCase(seq []string, prompt string, lines int, font string) (string, error) {
-	l := logger.Sugar()
-	sort.Strings(seq)
-	seqStr := strings.Join(seq, dmenuOptionsSeparator)
-	l.Debugw("[GetSelectionDmenuWithCase]", "seq", seq, "seqStr", seqStr)
-	result, err := shell.ShellCmd(fmt.Sprintf("dmenu -p %s -l %d -fn %s", prompt, lines, font), &seqStr, nil, true, false)
 	return *result, err
 }
 
