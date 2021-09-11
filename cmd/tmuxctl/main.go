@@ -8,6 +8,7 @@ import (
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/tmux/tmuxp"
 	"github.com/wiedzmin/toolbox/impl/ui"
+	"github.com/wiedzmin/toolbox/impl/xserver/xkb"
 	"go.uber.org/zap"
 )
 
@@ -26,6 +27,7 @@ func perform(ctx *cli.Context) error {
 		sessionsByName[s.Name] = s
 	}
 	sort.Strings(names)
+	xkb.EnsureEnglishKeyboardLayout()
 	sessionName, err := ui.GetSelectionRofi(names, "load", false)
 	if err != nil {
 		return err

@@ -11,6 +11,7 @@ import (
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/vpn"
+	"github.com/wiedzmin/toolbox/impl/xserver/xkb"
 	"go.uber.org/zap"
 )
 
@@ -22,6 +23,7 @@ func perform(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	xkb.EnsureEnglishKeyboardLayout()
 	key, err := ui.GetSelectionRofi(searchengines.Keys(), "search with", false)
 	l.Debugw("[perform]", "key", key, "err", err)
 	if err != nil {

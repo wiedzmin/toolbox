@@ -9,6 +9,7 @@ import (
 	"github.com/wiedzmin/toolbox/impl/redis"
 	"github.com/wiedzmin/toolbox/impl/systemd"
 	"github.com/wiedzmin/toolbox/impl/ui"
+	"github.com/wiedzmin/toolbox/impl/xserver/xkb"
 	"go.uber.org/zap"
 )
 
@@ -73,10 +74,12 @@ func perform(ctx *cli.Context) error {
 	}
 
 	units, err := r.GetList(redisKeyName, 0, -1)
+	xkb.EnsureEnglishKeyboardLayout()
 	unitStr, err := ui.GetSelectionRofi(units, "select", false)
 	if err != nil {
 		return err
 	}
+	xkb.EnsureEnglishKeyboardLayout()
 	// FIXME: ensure sort order
 	operation, err := ui.GetSelectionRofi(OPERATIONS, "perform", false)
 	if err != nil {

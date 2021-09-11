@@ -10,6 +10,7 @@ import (
 	"github.com/wiedzmin/toolbox/impl/browsers/qutebrowser"
 	"github.com/wiedzmin/toolbox/impl/fs"
 	"github.com/wiedzmin/toolbox/impl/ui"
+	"github.com/wiedzmin/toolbox/impl/xserver/xkb"
 	"go.uber.org/zap"
 )
 
@@ -45,6 +46,7 @@ func selectSession(path string) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
+	xkb.EnsureEnglishKeyboardLayout()
 	sessionName, err := ui.GetSelectionRofi(files, "export", false)
 	if err != nil {
 		return nil, err
@@ -70,6 +72,7 @@ func perform(ctx *cli.Context) error {
 		return saveSession(nil)
 	}
 	if ctx.Bool("save-named") {
+		xkb.EnsureEnglishKeyboardLayout()
 		name, err := ui.GetSelectionRofi([]string{}, "save as", false)
 		if err != nil {
 			return err

@@ -12,6 +12,7 @@ import (
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/systemd"
 	"github.com/wiedzmin/toolbox/impl/ui"
+	"github.com/wiedzmin/toolbox/impl/xserver/xkb"
 	"go.uber.org/zap"
 )
 
@@ -23,6 +24,7 @@ func open(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	xkb.EnsureEnglishKeyboardLayout()
 	key, err := ui.GetSelectionRofi(bookmarks.Keys(), "open", false)
 	l.Debugw("[open]", "key", key, "err", err)
 	if err != nil {
@@ -64,6 +66,7 @@ func open(ctx *cli.Context) error {
 
 func search(ctx *cli.Context) error {
 	l := logger.Sugar()
+	xkb.EnsureEnglishKeyboardLayout()
 	searchTerm, err := ui.GetSelectionRofi([]string{}, "token", false)
 	if err != nil {
 		l.Warnw("[search]", "no keyword provided")
@@ -76,6 +79,7 @@ func search(ctx *cli.Context) error {
 		return err
 	}
 	matchingReposSlice := strings.Split(*matchingRepos, "\n")
+	xkb.EnsureEnglishKeyboardLayout()
 	path, err := ui.GetSelectionRofi(matchingReposSlice, "explore", false)
 	if err != nil {
 		l.Warnw("[search]", "no repository provided")
