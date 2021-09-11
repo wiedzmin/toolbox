@@ -73,6 +73,7 @@ func search(ctx *cli.Context) error {
 		ui.NotifyCritical("[search repos]", "no keyword provided")
 		return err
 	}
+	impl.EnsureBinary("fd", *logger)
 	matchingRepos, err := shell.ShellCmd(fmt.Sprintf("fd -t d -d %d %s %s",
 		ctx.Int("depth"), searchTerm, ctx.String("root")), nil, nil, true, false)
 	if err != nil {
@@ -165,7 +166,6 @@ func main() {
 	logger = impl.NewLogger()
 	defer logger.Sync()
 	l := logger.Sugar()
-	impl.EnsureBinary("fd", *logger)
 	app := createCLI()
 	err := app.Run(os.Args)
 	if err != nil {

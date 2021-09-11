@@ -29,6 +29,7 @@ var logger *zap.Logger
 
 func init() {
 	logger = impl.NewLogger()
+	impl.EnsureBinary("tmuxp", *logger)
 }
 
 func SessionsRootDefault() *string {

@@ -25,12 +25,11 @@ func init() {
 		AppName: "toolbox",
 	})
 	logger = impl.NewLogger()
-	impl.EnsureBinary("rofi", *logger)
-	impl.EnsureBinary("dmenu", *logger)
 }
 
 // GetSelectionRofi returns users choice from list of options, using Rofi selector tool
 func GetSelectionRofi(seq []string, prompt string, normalWindow bool) (string, error) {
+	impl.EnsureBinary("rofi", *logger)
 	l := logger.Sugar()
 	sort.Strings(seq)
 	seqStr := strings.Join(seq, rofiOptionsSeparator)
@@ -45,6 +44,7 @@ func GetSelectionRofi(seq []string, prompt string, normalWindow bool) (string, e
 }
 
 func GetSelectionDmenu(seq []string, prompt string, lines int, withCase bool, font string) (string, error) {
+	impl.EnsureBinary("dmenu", *logger)
 	l := logger.Sugar()
 	sort.Strings(seq)
 	seqStr := strings.Join(seq, dmenuOptionsSeparator)

@@ -52,7 +52,6 @@ type Services struct {
 
 func init() {
 	logger = impl.NewLogger()
-	impl.EnsureBinary("nmcli", *logger)
 	var err error
 	r, err = redis.NewRedisLocal()
 	if err != nil {
@@ -101,6 +100,7 @@ func (vm *Services) Get(key string) *Service {
 }
 
 func nmIpsecVpnUp(name string) (bool, error) {
+	impl.EnsureBinary("nmcli", *logger)
 	result, err := shell.ShellCmd(fmt.Sprintf("nmcli con show id %s", name), nil, []string{"LANGUAGE=en_US.en"}, true, false)
 	if err != nil {
 		return false, err

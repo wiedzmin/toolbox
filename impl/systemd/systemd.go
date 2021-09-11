@@ -194,6 +194,7 @@ func doShow(cmd, title, tmuxSession, vtermCmd string) error {
 	l.Debugw("[doShow]", "cmd", cmd, "title", title, "tmuxSession", tmuxSession, "vtermCmd", vtermCmd)
 	if len(vtermCmd) > 0 {
 		if len(tmuxSession) > 0 {
+			impl.EnsureBinary("tmux", *logger)
 			session, err := tmux.GetSession(tmuxSession, false, true)
 			switch err.(type) {
 			case tmux.ErrSessionNotFound:

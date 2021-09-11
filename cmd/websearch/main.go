@@ -66,6 +66,7 @@ func perform(ctx *cli.Context) error {
 					return err
 				}
 			} else {
+				impl.EnsureBinary("xsel", *logger)
 				result, err := shell.ShellCmd("xsel -o", nil, nil, true, false)
 				l.Debugw("[perform]", "clipboard/searchTerm", *result, "err", err)
 				if err != nil {
@@ -137,7 +138,6 @@ func main() {
 	logger = impl.NewLogger()
 	defer logger.Sync()
 	l := logger.Sugar()
-	impl.EnsureBinary("xsel", *logger)
 	app := createCLI()
 	err := app.Run(os.Args)
 	if err != nil {
