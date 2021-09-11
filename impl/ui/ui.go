@@ -22,7 +22,7 @@ var logger *zap.Logger
 func init() {
 	notify = notificator.New(notificator.Options{
 		// DefaultIcon: "icon/default.png",
-		AppName: "webjumps",
+		AppName: "toolbox",
 	})
 	logger = impl.NewLogger()
 	impl.EnsureBinary("rofi", *logger)
