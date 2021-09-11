@@ -28,6 +28,7 @@ func init() {
 		l := logger.Sugar()
 		l.Fatalw("[init]", "failed connecting to Redis", err)
 	}
+	impl.EnsureBinary("xkb-switch", *logger)
 }
 
 type X struct {
