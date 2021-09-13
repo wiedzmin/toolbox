@@ -180,10 +180,18 @@ func (x *X) GetWindowTraits(win *xproto.Window) (*WindowTraits, error) {
 	}, nil
 }
 
+func (x *X) ListWindows() ([]xproto.Window, error) {
+	windows, err := ewmh.ClientListGet(x.connXU)
+	if err != nil {
+		return nil, err
+	}
+	return windows, nil
+}
+
 func (x *X) FindWindow(query WindowQuery) (*xproto.Window, error) {
 	l := logger.Sugar()
 	l.Debugw("[FindWindow]", "query", query)
-	windows, err := ewmh.ClientListGet(x.connXU)
+	windows, err := x.ListWindows()
 	if err != nil {
 		return nil, err
 	}
