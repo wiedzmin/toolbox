@@ -330,7 +330,7 @@ func stopIPSec(name, cmd string, notify bool) error {
 
 func (s *Service) Start(notify bool) error {
 	l := logger.Sugar()
-	l.Debugw("[%s.Start]", "meta", s, "notify", notify)
+	l.Debugw(fmt.Sprintf("[%s.Start]", s.Name), "meta", s, "notify", notify)
 	ui.NotifyNormal("[VPN]", fmt.Sprintf("Starting `%s`...", s.Name))
 	switch s.Type {
 	case "ovpn":
@@ -343,7 +343,7 @@ func (s *Service) Start(notify bool) error {
 
 func (s *Service) Stop(notify bool) error {
 	l := logger.Sugar()
-	l.Debugw("[%s.Stop]", "meta", s, "notify", notify)
+	l.Debugw(fmt.Sprintf("[%s.Stop]", s.Name), "meta", s, "notify", notify)
 	ui.NotifyNormal("[VPN]", fmt.Sprintf("Stopping `%s`...", s.Name))
 	switch s.Type {
 	case "ovpn":
