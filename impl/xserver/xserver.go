@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/jezek/xgb"
 	"github.com/jezek/xgb/xproto"
@@ -12,6 +13,7 @@ import (
 	"github.com/jezek/xgbutil/icccm"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/redis"
+	"github.com/wiedzmin/toolbox/impl/shell"
 	"go.uber.org/zap"
 )
 
@@ -344,4 +346,21 @@ func WorkspacesFromRedis(key string) (*Workspaces, error) {
 
 func (w *Workspaces) List() []string {
 	return w.parsed
+}
+
+func CurrentWorkspaceTitle() (string, error) {
+	var result string
+	impl.EnsureBinary("wmctrl", *logger)
+	out, err := shell.ShellCmd("wmctrl -d", nil, nil, true, true)
+	if err != nil {
+		return "", err
+	}
+	for _, line := range strings.Split(strings.TrimSpace(*out), "\n") {
+		fields := strings.Fields(strings.TrimSpace(line))
+		if strings.TrimSpace(fields[1]) == "*" {
+			result = strings.Join(fields[8:len(fields)], " ")
+			break
+		}
+	}
+	return result, nil
 }
