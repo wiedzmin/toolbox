@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
@@ -10,6 +11,7 @@ import (
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/vpn"
+	"github.com/wiedzmin/toolbox/impl/xserver"
 	"github.com/wiedzmin/toolbox/impl/xserver/xkb"
 	"go.uber.org/zap"
 )
@@ -22,8 +24,25 @@ func perform(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	var keys []string
+	if ctx.Bool("filter-workspace") || ctx.String("workspace") != "" {
+		workspaceTag := ctx.String("workspace")
+		if workspaceTag == "" {
+			title, err := xserver.CurrentWorkspaceTitle()
+			if err != nil {
+				return err
+			}
+			titleFields := strings.Fields(title)
+			workspaceTag = titleFields[len(titleFields)-1]
+		}
+		keys = webjumps.KeysByTag(workspaceTag)
+	}
+	if len(keys) == 0 {
+		keys = webjumps.Keys()
+	}
+
 	xkb.EnsureEnglishKeyboardLayout()
-	key, err := ui.GetSelectionRofi(webjumps.Keys(), "jump to", false)
+	key, err := ui.GetSelectionRofi(keys, "jump to", false)
 	l.Debugw("[perform]", "key", key, "err", err)
 	if err != nil {
 		return err
@@ -108,6 +127,17 @@ func createCLI() *cli.App {
 		&cli.BoolFlag{
 			Name:     "copy",
 			Usage:    "Copy url to clipboard",
+			Required: false,
+		},
+		&cli.BoolFlag{
+			Name:     "filter-workspace",
+			Usage:    "filter tagged jumps by active workspace",
+			Required: false,
+		},
+		&cli.StringFlag{
+			Name:     "workspace",
+			Aliases:  []string{"w"},
+			Usage:    "Force workspace name for filtering tagged jumps",
 			Required: false,
 		},
 		&cli.StringFlag{
