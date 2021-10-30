@@ -2,6 +2,7 @@ package bookmarks
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/wiedzmin/toolbox/impl/redis"
 	"go.uber.org/zap"
@@ -79,6 +80,39 @@ func (j *Webjumps) Keys() []string {
 	var result []string
 	for key := range j.parsed {
 		result = append(result, key)
+	}
+	return result
+}
+
+func (j *Webjumps) KeysByTag(tag string) []string {
+	var result []string
+	for key, meta := range j.parsed {
+		for _, t := range meta.Tags {
+			if strings.Contains(t, tag) {
+				result = append(result, key)
+				break
+			}
+		}
+	}
+	return result
+}
+
+func (j *Webjumps) KeysByBrowser(browser string) []string {
+	var result []string
+	for key, meta := range j.parsed {
+		if strings.Contains(meta.Browser, browser) {
+			result = append(result, key)
+		}
+	}
+	return result
+}
+
+func (j *Webjumps) KeysByVPN(vpn string) []string {
+	var result []string
+	for key, meta := range j.parsed {
+		if strings.Contains(meta.VPN, vpn) {
+			result = append(result, key)
+		}
 	}
 	return result
 }
