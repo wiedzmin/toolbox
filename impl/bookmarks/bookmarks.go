@@ -8,9 +8,10 @@ import (
 )
 
 type Webjump struct {
-	URL     string `json:"url"`
-	Browser string `json:"browser"`
-	VPN     string `json:"vpn"`
+	URL     string   `json:"url"`
+	Browser string   `json:"browser"`
+	VPN     string   `json:"vpn"`
+	Tags    []string `json:"tags"`
 }
 
 type Webjumps struct {
