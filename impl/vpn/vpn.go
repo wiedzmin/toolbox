@@ -2,12 +2,12 @@ package vpn
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/redis"
 	"github.com/wiedzmin/toolbox/impl/shell"
@@ -63,7 +63,7 @@ func init() {
 func NewServices(data []byte) (*Services, error) {
 	var result Services
 	result.data = data
-	err := json.Unmarshal(data, &result.parsed)
+	err := jsoniter.Unmarshal(data, &result.parsed)
 	if err != nil {
 		return nil, err
 	}

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"os"
 	"strings"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/fs"
@@ -19,7 +19,7 @@ func perform(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	jsonData, err := json.Marshal(result)
+	jsonData, err := jsoniter.Marshal(result)
 	if err != nil {
 		return err
 	}

@@ -8,6 +8,7 @@ require (
 	github.com/go-git/go-git/v5 v5.4.2 // indirect
 	github.com/jezek/xgb v0.0.0-20210312150743-0e0f116e1240
 	github.com/jezek/xgbutil v0.0.0-20210302171758-530099784e66 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/mediocregopher/radix/v3 v3.7.0
 	github.com/urfave/cli/v2 v2.3.0
 	go.uber.org/atomic v1.8.0 // indirect

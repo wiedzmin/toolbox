@@ -1,10 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/redis"
@@ -28,7 +28,7 @@ func perform(ctx *cli.Context) error {
 	}
 	for _, data := range ebooks {
 		var ebooks []string
-		err := json.Unmarshal(data, &ebooks)
+		err := jsoniter.Unmarshal(data, &ebooks)
 		if err != nil {
 			return err
 		}

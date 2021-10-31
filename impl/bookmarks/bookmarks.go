@@ -1,9 +1,9 @@
 package bookmarks
 
 import (
-	"encoding/json"
 	"strings"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/wiedzmin/toolbox/impl/redis"
 	"go.uber.org/zap"
 )
@@ -61,7 +61,7 @@ func init() {
 func NewWebjumps(data []byte) (*Webjumps, error) {
 	var result Webjumps
 	result.data = data
-	err := json.Unmarshal(data, &result.parsed)
+	err := jsoniter.Unmarshal(data, &result.parsed)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (j *Webjumps) Get(key string) *Webjump {
 func NewSearchEngines(data []byte) (*SearchEngines, error) {
 	var result SearchEngines
 	result.data = data
-	err := json.Unmarshal(data, &result.parsed)
+	err := jsoniter.Unmarshal(data, &result.parsed)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,7 @@ func (e *SearchEngines) Get(key string) *SearchEngine {
 func NewBookmarks(data []byte) (*Bookmarks, error) {
 	var result Bookmarks
 	result.data = data
-	err := json.Unmarshal(data, &result.parsed)
+	err := jsoniter.Unmarshal(data, &result.parsed)
 	if err != nil {
 		return nil, err
 	}

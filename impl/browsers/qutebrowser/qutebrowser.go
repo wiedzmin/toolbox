@@ -3,13 +3,13 @@ package qutebrowser
 import (
 	"bufio"
 	"crypto/md5"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/user"
 	"strings"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/wiedzmin/toolbox/impl"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
@@ -99,7 +99,7 @@ func RawSessionsPath() *string {
 func (r *Request) Marshal() ([]byte, error) {
 	r.protocolVersion = 1
 	r.targetArg = ""
-	bytes, err := json.Marshal(r)
+	bytes, err := jsoniter.Marshal(r)
 	if err != nil {
 		return nil, err
 	}

@@ -1,7 +1,6 @@
 package xserver
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/jezek/xgbutil"
 	"github.com/jezek/xgbutil/ewmh"
 	"github.com/jezek/xgbutil/icccm"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/redis"
 	"github.com/wiedzmin/toolbox/impl/shell"
@@ -239,7 +239,7 @@ func (x *X) BringWindowAbove(query WindowQuery) error {
 func NewWindowRules(data []byte) (*WindowRules, error) {
 	var result WindowRules
 	result.data = data
-	err := json.Unmarshal(data, &result.parsed)
+	err := jsoniter.Unmarshal(data, &result.parsed)
 	if err != nil {
 		return nil, err
 	}
@@ -329,7 +329,7 @@ func (wr *WindowRules) MatchTraits(traits WindowTraits) (*WindowRule, error) {
 func NewWorkspaces(data []byte) (*Workspaces, error) {
 	var result Workspaces
 	result.data = data
-	err := json.Unmarshal(data, &result.parsed)
+	err := jsoniter.Unmarshal(data, &result.parsed)
 	if err != nil {
 		return nil, err
 	}
