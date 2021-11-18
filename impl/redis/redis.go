@@ -100,5 +100,4 @@ func (r *Client) GetList(key string, offset, limit int) ([]string, error) {
 		return nil, err
 	}
 	return result, nil
-
 }
