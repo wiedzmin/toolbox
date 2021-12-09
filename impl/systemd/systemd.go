@@ -94,46 +94,46 @@ func jctlCmd(user, follow bool, name string) string {
 
 // Restart restarts unit
 func (s *Unit) Restart() error {
-	_, err := shell.ShellCmd(sysctlCmd(s.User, "restart", s.Name), nil, nil, false, false)
+	_, err := shell.ShellCmd(sysctlCmd(s.User, "restart", s.Name), nil, nil, nil, false, false)
 	return err
 }
 
 // Start starts unit
 func (s *Unit) Start() error {
-	_, err := shell.ShellCmd(sysctlCmd(s.User, "start", s.Name), nil, nil, false, false)
+	_, err := shell.ShellCmd(sysctlCmd(s.User, "start", s.Name), nil, nil, nil, false, false)
 	return err
 }
 
 // Stop stops unit
 func (s *Unit) Stop() error {
 	// TODO: unit absence should be treated as success
-	_, err := shell.ShellCmd(sysctlCmd(s.User, "stop", s.Name), nil, nil, false, false)
+	_, err := shell.ShellCmd(sysctlCmd(s.User, "stop", s.Name), nil, nil, nil, false, false)
 	return err
 }
 
 // Kill kills unit
 func (s *Unit) Kill() error {
 	// TODO: unit absence should be treated as success
-	_, err := shell.ShellCmd(sysctlCmd(s.User, "kill", s.Name, "--signal=SIGKILL"), nil, nil, false, false)
+	_, err := shell.ShellCmd(sysctlCmd(s.User, "kill", s.Name, "--signal=SIGKILL"), nil, nil, nil, false, false)
 	return err
 }
 
 // Enable enables unit
 func (s *Unit) Enable() error {
-	_, err := shell.ShellCmd(sysctlCmd(s.User, "enable", s.Name), nil, nil, false, false)
+	_, err := shell.ShellCmd(sysctlCmd(s.User, "enable", s.Name), nil, nil, nil, false, false)
 	return err
 }
 
 // Disable disables unit
 func (s *Unit) Disable() error {
-	_, err := shell.ShellCmd(sysctlCmd(s.User, "disable", s.Name), nil, nil, false, false)
+	_, err := shell.ShellCmd(sysctlCmd(s.User, "disable", s.Name), nil, nil, nil, false, false)
 	return err
 }
 
 // IsActive checks if the unit is active
 func (s *Unit) IsActive() (bool, error) {
 	l := logger.Sugar()
-	out, err := shell.ShellCmd(sysctlCmd(s.User, "is-active", s.Name), nil, nil, true, true)
+	out, err := shell.ShellCmd(sysctlCmd(s.User, "is-active", s.Name), nil, nil, nil, true, true)
 	if err != nil {
 		return false, err
 	}
@@ -154,7 +154,7 @@ func (s *Unit) IsActive() (bool, error) {
 func DaemonReload() error {
 	l := logger.Sugar()
 	l.Debugw("[DaemonReload]")
-	_, err := shell.ShellCmd("pkexec systemctl daemon-reload", nil, nil, false, false)
+	_, err := shell.ShellCmd("pkexec systemctl daemon-reload", nil, nil, nil, false, false)
 	return err
 }
 
@@ -171,7 +171,7 @@ func CollectUnits(system, user bool) ([]Unit, error) {
 	}
 	l.Debugw("[CollectUnits]", "system", system, "user", user)
 	for _, c := range cases {
-		out, err := shell.ShellCmd(c.cmd, nil, nil, true, false)
+		out, err := shell.ShellCmd(c.cmd, nil, nil, nil, true, false)
 		if err != nil {
 			return nil, err
 		}
@@ -245,6 +245,6 @@ func (s *Unit) ShowJournal(follow bool, tmuxSession, vtermCmd string) error {
 
 // TryRestart tries to restart unit
 func (s *Unit) TryRestart() error {
-	_, err := shell.ShellCmd(sysctlCmd(s.User, "try-restart", s.Name), nil, nil, false, false)
+	_, err := shell.ShellCmd(sysctlCmd(s.User, "try-restart", s.Name), nil, nil, nil, false, false)
 	return err
 }

@@ -69,7 +69,7 @@ func perform(ctx *cli.Context) error {
 			l.Debugw("[perform]", "url", webjump.URL)
 			copyURL := ctx.Bool("copy")
 			if copyURL {
-				_, err := shell.ShellCmd("xsel -ib", &webjump.URL, nil, false, false)
+				_, err := shell.ShellCmd("xsel -ib", &webjump.URL, nil, nil, false, false)
 				if err != nil {
 					return err
 				}
@@ -84,7 +84,7 @@ func perform(ctx *cli.Context) error {
 					}
 				}
 				l.Debugw("[perform]", "browserCmd", browserCmd)
-				_, err := shell.ShellCmd(fmt.Sprintf("%s %s", browserCmd, webjump.URL), nil, nil, false, false)
+				_, err := shell.ShellCmd(fmt.Sprintf("%s %s", browserCmd, webjump.URL), nil, nil, nil, false, false)
 				if err != nil {
 					return err
 				}

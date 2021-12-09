@@ -67,7 +67,7 @@ func perform(ctx *cli.Context) error {
 				}
 			} else {
 				impl.EnsureBinary("xsel", *logger)
-				result, err := shell.ShellCmd("xsel -o", nil, nil, true, false)
+				result, err := shell.ShellCmd("xsel -o", nil, nil, nil, true, false)
 				l.Debugw("[perform]", "clipboard/searchTerm", *result, "err", err)
 				if err != nil {
 					return err
@@ -77,7 +77,7 @@ func perform(ctx *cli.Context) error {
 			if searchTerm != "" {
 				l.Debugw("[perform]", "browserCmd", browserCmd, "searchengine.URL", searchengine.URL)
 				_, err := shell.ShellCmd(fmt.Sprintf("%s '%s%s'", browserCmd, searchengine.URL,
-					strings.ReplaceAll(searchTerm, " ", "+")), nil, nil, false, false)
+					strings.ReplaceAll(searchTerm, " ", "+")), nil, nil, nil, false, false)
 				if err != nil {
 					return err
 				}

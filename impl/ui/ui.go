@@ -39,7 +39,7 @@ func GetSelectionRofi(seq []string, prompt string, normalWindow bool) (string, e
 		normalWindowStr = " -normal-window"
 	}
 	result, err := shell.ShellCmd(fmt.Sprintf("rofi%s -dmenu -i -sep '%s' -p '%s'",
-		normalWindowStr, rofiOptionsSeparator, prompt), &seqStr, nil, true, false)
+		normalWindowStr, rofiOptionsSeparator, prompt), &seqStr, nil, nil, true, false)
 	return *result, err
 }
 
@@ -54,7 +54,7 @@ func GetSelectionDmenu(seq []string, prompt string, lines int, withCase bool, fo
 		caseFlagStr = " -i"
 	}
 	result, err := shell.ShellCmd(fmt.Sprintf("dmenu%s -p '%s' -l %d -fn '%s'", caseFlagStr, prompt, lines, font),
-		&seqStr, nil, true, false)
+		&seqStr, nil, nil, true, false)
 	return *result, err
 }
 

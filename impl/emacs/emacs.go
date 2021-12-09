@@ -25,7 +25,7 @@ func SendToServer(elisp string) error {
 	if err != nil {
 		return err
 	}
-	_, err = shell.ShellCmd(fmt.Sprintf("emacsclient -c -s %s -e '%s'", *socketPath, elisp), nil, nil, false, false)
+	_, err = shell.ShellCmd(fmt.Sprintf("emacsclient -c -s %s -e '%s'", *socketPath, elisp), nil, nil, nil, false, false)
 	if err != nil {
 		return err
 	}

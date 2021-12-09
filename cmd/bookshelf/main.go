@@ -44,7 +44,7 @@ func perform(ctx *cli.Context) error {
 	}
 	fmt.Printf("book: %s\n", book)
 	_, err = shell.ShellCmd(fmt.Sprintf("%s \"%s\"", ctx.String("reader-command"), book),
-		nil, nil, false, false)
+		nil, nil, nil, false, false)
 	if err != nil {
 		return err
 	}

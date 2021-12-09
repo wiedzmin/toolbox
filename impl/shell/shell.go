@@ -18,7 +18,7 @@ func init() {
 
 // ShellCmd executes shell commands
 // environment variables are provided as string slice of "<name>=<value>" entries
-func ShellCmd(cmd string, input *string, env []string, needOutput, combineOutput bool) (*string, error) {
+func ShellCmd(cmd string, input *string, path *string, env []string, needOutput, combineOutput bool) (*string, error) {
 	l := logger.Sugar()
 	c := exec.Command("sh", "-c", cmd)
 	c.Env = append(os.Environ(), env...)
@@ -45,6 +45,6 @@ func ShellCmd(cmd string, input *string, env []string, needOutput, combineOutput
 }
 
 func RunInTerminal(cmd, vtermCmd string) error {
-	_, err := ShellCmd(fmt.Sprintf("%s '%s'", vtermCmd, cmd), nil, nil, false, false)
+	_, err := ShellCmd(fmt.Sprintf("%s '%s'", vtermCmd, cmd), nil, nil, nil, false, false)
 	return err
 }

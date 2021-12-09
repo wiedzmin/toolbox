@@ -40,7 +40,7 @@ func acquireUrl() (*url.URL, error) {
 	var uri *url.URL
 	var err error
 	l := logger.Sugar()
-	urlCandidate, err := shell.ShellCmd("xsel -o -b", nil, nil, true, false)
+	urlCandidate, err := shell.ShellCmd("xsel -o -b", nil, nil, nil, true, false)
 	l.Debugw("[acquireUrl]", "urlCandidate", urlCandidate, "err", err)
 	if err != nil {
 		return nil, err

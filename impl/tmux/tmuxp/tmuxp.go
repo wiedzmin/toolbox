@@ -84,6 +84,6 @@ func (s *Session) Load(attach bool) error {
 		cmd = fmt.Sprintf("tmuxp load -y %s", s.Path)
 	}
 	l.Debugw(fmt.Sprintf("[%s.GetSession]", s.Name), "cmd", cmd)
-	_, err := shell.ShellCmd(cmd, nil, nil, false, false)
+	_, err := shell.ShellCmd(cmd, nil, nil, nil, false, false)
 	return err
 }

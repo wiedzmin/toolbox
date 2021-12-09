@@ -30,18 +30,18 @@ func init() {
 func GetSession(name string, create, attach bool) (*Session, error) {
 	l := logger.Sugar()
 	l.Debugw("[GetSession]", "name", name, "create", create, "attach", attach)
-	out, err := shell.ShellCmd(fmt.Sprintf("tmux has-session -t %s", name), nil, nil, true, false)
+	out, err := shell.ShellCmd(fmt.Sprintf("tmux has-session -t %s", name), nil, nil, nil, true, false)
 	l.Debugw("[GetSession]", "out", out, "err", err)
 	if err != nil {
 		return nil, err
 	}
 	if len(*out) > 0 {
 		if create {
-			_, err := shell.ShellCmd(fmt.Sprintf("tmux new-session -d -s %s", name), nil, nil, false, false)
+			_, err := shell.ShellCmd(fmt.Sprintf("tmux new-session -d -s %s", name), nil, nil, nil, false, false)
 			if err != nil {
 				return nil, err
 			}
-			_, err = shell.ShellCmd(fmt.Sprintf("tmux switch-client -t %s", name), nil, nil, false, false)
+			_, err = shell.ShellCmd(fmt.Sprintf("tmux switch-client -t %s", name), nil, nil, nil, false, false)
 			if err != nil {
 				return nil, err
 			}
@@ -74,7 +74,7 @@ func (s *Session) NewWindow(cmd, title, startDirectory string, attach bool) erro
 
 	tmuxCmd := fmt.Sprintf("tmux new-window %s", strings.TrimSpace(argsStr.String()))
 	l.Debugw(fmt.Sprintf("[%s.NewWindow]", s.Name), "tmuxCmd", tmuxCmd)
-	_, err := shell.ShellCmd(tmuxCmd, nil, nil, false, false)
+	_, err := shell.ShellCmd(tmuxCmd, nil, nil, nil, false, false)
 	if err != nil {
 		return err
 	}

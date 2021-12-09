@@ -351,7 +351,7 @@ func (w *Workspaces) List() []string {
 func CurrentWorkspaceTitle() (string, error) {
 	var result string
 	impl.EnsureBinary("wmctrl", *logger)
-	out, err := shell.ShellCmd("wmctrl -d", nil, nil, true, true)
+	out, err := shell.ShellCmd("wmctrl -d", nil, nil, nil, true, true)
 	if err != nil {
 		return "", err
 	}

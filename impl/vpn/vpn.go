@@ -101,7 +101,7 @@ func (vm *Services) Get(key string) *Service {
 
 func nmIpsecVpnUp(name string) (bool, error) {
 	impl.EnsureBinary("nmcli", *logger)
-	result, err := shell.ShellCmd(fmt.Sprintf("nmcli con show id %s", name), nil, []string{"LANGUAGE=en_US.en"}, true, false)
+	result, err := shell.ShellCmd(fmt.Sprintf("nmcli con show id %s", name), nil, nil, []string{"LANGUAGE=en_US.en"}, true, false)
 	if err != nil {
 		return false, err
 	}
@@ -158,7 +158,7 @@ func startOVPN(name, device, cmd string, attempts int, notify bool) error {
 		return nil
 	} else {
 		success := false
-		_, err := shell.ShellCmd(cmd, nil, nil, false, false)
+		_, err := shell.ShellCmd(cmd, nil, nil, nil, false, false)
 		if err == nil {
 			attempt := 0
 			for {
@@ -208,7 +208,7 @@ func startIPSec(name, cmd string, notify bool) error {
 		}
 		return nil
 	} else {
-		result, err := shell.ShellCmd(cmd, nil, []string{"LANGUAGE=en_US.en"}, true, true)
+		result, err := shell.ShellCmd(cmd, nil, nil, []string{"LANGUAGE=en_US.en"}, true, true)
 		if err != nil {
 			if strings.Contains(*result, "is already active") {
 				r.SetValue(fmt.Sprintf("vpn/%s/is_up", name), "yes")
@@ -250,7 +250,7 @@ func stopOVPN(name, device, cmd string, attempts int, notify bool) error {
 		return nil
 	} else {
 		success := false
-		_, err := shell.ShellCmd(cmd, nil, nil, false, false)
+		_, err := shell.ShellCmd(cmd, nil, nil, nil, false, false)
 		if err == nil {
 			attempt := 0
 			for {
@@ -300,7 +300,7 @@ func stopIPSec(name, cmd string, notify bool) error {
 		}
 		return nil
 	} else {
-		result, err := shell.ShellCmd(cmd, nil, []string{"LANGUAGE=en_US.en"}, true, true)
+		result, err := shell.ShellCmd(cmd, nil, nil, []string{"LANGUAGE=en_US.en"}, true, true)
 		if err != nil {
 			if strings.Contains(*result, "not an active") {
 				r.SetValue(fmt.Sprintf("vpn/%s/is_up", name), "no")

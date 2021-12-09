@@ -21,7 +21,7 @@ func init() {
 }
 
 func GetKeyboardLayouts() ([]string, error) {
-	result, err := shell.ShellCmd("xkb-switch -l", nil, nil, true, false)
+	result, err := shell.ShellCmd("xkb-switch -l", nil, nil, nil, true, false)
 	if err != nil {
 		return nil, err
 	}
@@ -30,17 +30,17 @@ func GetKeyboardLayouts() ([]string, error) {
 }
 
 func GetCurrentKeyboardLayout() (*string, error) {
-	result, err := shell.ShellCmd("xkb-switch -p", nil, nil, true, false)
+	result, err := shell.ShellCmd("xkb-switch -p", nil, nil, nil, true, false)
 	return result, err
 }
 
 func SetNextKeyboardLayout() error {
-	_, err := shell.ShellCmd("xkb-switch -n", nil, nil, false, false)
+	_, err := shell.ShellCmd("xkb-switch -n", nil, nil, nil, false, false)
 	return err
 }
 
 func SetKeyboardLayoutByName(layout string) error {
-	_, err := shell.ShellCmd(fmt.Sprintf("xkb-switch -s %s", layout), nil, nil, false, false)
+	_, err := shell.ShellCmd(fmt.Sprintf("xkb-switch -s %s", layout), nil, nil, nil, false, false)
 	return err
 }
 

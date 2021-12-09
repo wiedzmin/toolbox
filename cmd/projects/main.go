@@ -75,7 +75,7 @@ func search(ctx *cli.Context) error {
 	}
 	impl.EnsureBinary("fd", *logger)
 	matchingRepos, err := shell.ShellCmd(fmt.Sprintf("fd -t d -d %d %s %s",
-		ctx.Int("depth"), searchTerm, ctx.String("root")), nil, nil, true, false)
+		ctx.Int("depth"), searchTerm, ctx.String("root")), nil, nil, nil, true, false)
 	if err != nil {
 		return err
 	}
