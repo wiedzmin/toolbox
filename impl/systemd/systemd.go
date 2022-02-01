@@ -6,7 +6,7 @@ import (
 
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/shell"
-	"github.com/wiedzmin/toolbox/impl/tmux"
+	"github.com/wiedzmin/toolbox/impl/shell/tmux"
 	"go.uber.org/zap"
 )
 

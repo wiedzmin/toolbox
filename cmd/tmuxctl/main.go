@@ -6,7 +6,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
-	"github.com/wiedzmin/toolbox/impl/tmux/tmuxp"
+	"github.com/wiedzmin/toolbox/impl/shell/tmux/tmuxp"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/xserver/xkb"
 	"go.uber.org/zap"
