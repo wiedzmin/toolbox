@@ -43,14 +43,14 @@ func GetSelectionRofi(seq []string, prompt string, normalWindow bool) (string, e
 	return *result, err
 }
 
-func GetSelectionDmenu(seq []string, prompt string, lines int, withCase bool, font string) (string, error) {
+func GetSelectionDmenu(seq []string, prompt string, lines int, caseInsensitive bool, font string) (string, error) {
 	impl.EnsureBinary("dmenu", *logger)
 	l := logger.Sugar()
 	sort.Strings(seq)
 	seqStr := strings.Join(seq, dmenuOptionsSeparator)
-	l.Debugw("[GetSelectionDmenu]", "seq", seq, "seqStr", seqStr, "case-sensitive", withCase)
+	l.Debugw("[GetSelectionDmenu]", "seq", seq, "seqStr", seqStr, "case-insensitive", caseInsensitive)
 	caseFlagStr := ""
-	if withCase {
+	if caseInsensitive {
 		caseFlagStr = " -i"
 	}
 	result, err := shell.ShellCmd(fmt.Sprintf("dmenu%s -p '%s' -l %d -fn '%s'", caseFlagStr, prompt, lines, font),
