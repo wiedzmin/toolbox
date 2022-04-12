@@ -15,6 +15,7 @@ const (
 	rofiOptionsSeparator  = "\n"
 	dmenuOptionsSeparator = "\n"
 	dmenuSelectionLinesCount = 15
+	selectorTool = "dmenu" // FIXME: make this choice accessible from outside program (i.e. envvars/params/etc.)
 )
 
 var notify *notificator.Notificator
@@ -26,6 +27,18 @@ func init() {
 		AppName: "toolbox",
 	})
 	logger = impl.NewLogger()
+}
+
+// GetSelection returns users choice from list of options, using predefined selector tool
+func GetSelection(seq []string, prompt string, caseInsensitive, normalWindow bool, font string) (string, error) {
+	switch selectorTool {
+	case "rofi":
+		return GetSelectionRofi(seq, prompt, caseInsensitive, normalWindow, font)
+	case "dmenu":
+		return GetSelectionDmenu(seq, prompt, caseInsensitive, normalWindow, font)
+	default:
+		return GetSelectionRofi(seq, prompt, caseInsensitive, normalWindow, font)
+	}
 }
 
 // GetSelectionRofi returns users choice from list of options, using Rofi selector tool
