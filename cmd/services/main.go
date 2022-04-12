@@ -75,13 +75,13 @@ func perform(ctx *cli.Context) error {
 
 	units, err := r.GetList(redisKeyName, 0, -1)
 	xkb.EnsureEnglishKeyboardLayout()
-	unitStr, err := ui.GetSelectionRofi(units, "select", false)
+	unitStr, err := ui.GetSelection(units, "select", true, false, ctx.String("selector-font"))
 	if err != nil {
 		return err
 	}
 	xkb.EnsureEnglishKeyboardLayout()
 	// FIXME: ensure sort order
-	operation, err := ui.GetSelectionRofi(OPERATIONS, "perform", false)
+	operation, err := ui.GetSelection(OPERATIONS, "perform", true, false, ctx.String("selector-font"))
 	if err != nil {
 		return err
 	}

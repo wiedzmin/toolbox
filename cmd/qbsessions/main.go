@@ -41,13 +41,14 @@ func saveSession(name *string) error {
 	return err
 }
 
-func selectSession(path string) (*string, error) {
+func selectSession(ctx *cli.Context, path string) (*string, error) {
 	files, err := fs.CollectFiles(path, false, nil)
 	if err != nil {
 		return nil, err
 	}
 	xkb.EnsureEnglishKeyboardLayout()
-	sessionName, err := ui.GetSelectionRofi(files, "export", false)
+	sessionName, err := ui.GetSelection(files, "export", true, false, ctx.String("selector-font"))
+
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +74,7 @@ func perform(ctx *cli.Context) error {
 	}
 	if ctx.Bool("save-named") {
 		xkb.EnsureEnglishKeyboardLayout()
-		name, err := ui.GetSelectionRofi([]string{}, "save as", false)
+		name, err := ui.GetSelection([]string{}, "save as", true, false, ctx.String("selector-font"))
 		if err != nil {
 			return err
 		}
@@ -87,7 +88,7 @@ func perform(ctx *cli.Context) error {
 		exportFormat = qutebrowser.SESSION_FORMAT_ORG_FLAT
 	}
 	if ctx.Bool("export") {
-		sessionName, err := selectSession(*sessionsPath)
+		sessionName, err := selectSession(ctx, *sessionsPath)
 		if err != nil {
 			return err
 		}

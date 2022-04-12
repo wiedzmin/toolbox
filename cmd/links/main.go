@@ -144,7 +144,7 @@ func perform(ctx *cli.Context) error {
 	ui.NotifyNormal("[scrape]", fmt.Sprintf("scraping from %s", pageUrl.String()))
 
 	xkb.EnsureEnglishKeyboardLayout()
-	sessionName, err := ui.GetSelectionRofi([]string{}, "save as", false)
+	sessionName, err := ui.GetSelection([]string{}, "save as", true, false, ctx.String("selector-font"))
 	l.Debugw("[perform]", "sessionName", sessionName, "err", err)
 	pageSoup, err := soup.Get(pageUrl.String())
 	l.Debugw("[perform]", "pageSoup", pageSoup, "err", err)
