@@ -17,6 +17,7 @@ const (
 	EnvPrefix       = "TB"
 	DEBUG_FLAG_NAME = "DEBUG_MODE" // NOTE: not only for `toolbox`
 	SelectorFontFlagName = "selector-font"
+	SelectorToolFlagName = "selector-tool"
 )
 
 var (

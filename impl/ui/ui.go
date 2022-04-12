@@ -16,7 +16,9 @@ const (
 	rofiOptionsSeparator  = "\n"
 	dmenuOptionsSeparator = "\n"
 	dmenuSelectionLinesCount = 15
-	selectorTool = "dmenu" // FIXME: make this choice accessible from outside program (i.e. envvars/params/etc.)
+
+	SelectorToolFlagName = "selector-tool"
+	SelectorTool = "dmenu"
 )
 
 var notify *notificator.Notificator
@@ -32,13 +34,16 @@ func init() {
 
 // GetSelection returns users choice from list of options, using predefined selector tool
 func GetSelection(ctx *cli.Context, seq []string, prompt string, caseInsensitive, normalWindow bool) (string, error) {
-	switch selectorTool {
+	l := logger.Sugar()
+	tool := ctx.String(SelectorToolFlagName)
+	switch tool {
 	case "rofi":
 		return GetSelectionRofi(seq, prompt, caseInsensitive, normalWindow, ctx.String(impl.SelectorFontFlagName))
 	case "dmenu":
 		return GetSelectionDmenu(seq, prompt, caseInsensitive, normalWindow, ctx.String(impl.SelectorFontFlagName))
 	default:
-		return GetSelectionRofi(seq, prompt, caseInsensitive, normalWindow, ctx.String(impl.SelectorFontFlagName))
+		l.Debugw("[GetSelection]", "tool", tool, "summary", fmt.Sprintf("unknown selector tool '%s'...", tool))
+		return "", fmt.Errorf("unknown selector tool: '%s'", tool)
 	}
 }
 

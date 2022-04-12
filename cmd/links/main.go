@@ -205,6 +205,14 @@ func createCLI() *cli.App {
 			Usage:    "Font to use for selector application, e.g. dmenu, rofi, etc.",
 			Required: false,
 		},
+		&cli.StringFlag{
+			Name:     ui.SelectorToolFlagName,
+			Aliases:  []string{"T"},
+			EnvVars:  []string{impl.EnvPrefix + "_SELECTOR_TOOL"},
+			Value:    ui.SelectorTool,
+			Usage:    "Selector tool to use, e.g. dmenu, rofi, etc.",
+			Required: false,
+		},
 	}
 	app.Action = perform
 	return app
