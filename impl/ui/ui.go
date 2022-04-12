@@ -14,6 +14,7 @@ import (
 const (
 	rofiOptionsSeparator  = "\n"
 	dmenuOptionsSeparator = "\n"
+	dmenuSelectionLinesCount = 15
 )
 
 var notify *notificator.Notificator
@@ -52,6 +53,15 @@ func GetSelectionDmenu(seq []string, prompt string, lines int, caseInsensitive b
 	caseFlagStr := ""
 	if caseInsensitive {
 		caseFlagStr = " -i"
+	}
+	lines := 1
+	seqLen := len(seq)
+	if seqLen > 0 {
+		if seqLen < dmenuSelectionLinesCount{
+			lines = seqLen
+		} else {
+			lines = dmenuSelectionLinesCount
+		}
 	}
 	result, err := shell.ShellCmd(fmt.Sprintf("dmenu%s -p '%s' -l %d -fn '%s'", caseFlagStr, prompt, lines, font),
 		&seqStr, nil, nil, true, false)
