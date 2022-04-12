@@ -28,7 +28,7 @@ func perform(ctx *cli.Context) error {
 	}
 	sort.Strings(names)
 	xkb.EnsureEnglishKeyboardLayout()
-	sessionName, err := ui.GetSelection(names, "load", true, false, ctx.String("selector-font"))
+	sessionName, err := ui.GetSelection(names, "load", true, false, ctx.String(impl.SelectorFontFlagName))
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func createCLI() *cli.App {
 
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
-			Name:     "selector-font",
+			Name:     impl.SelectorFontFlagName,
 			Aliases:  []string{"f"},
 			EnvVars:  []string{impl.EnvPrefix + "_SELECTOR_FONT"},
 			Usage:    "Font to use for selector application, e.g. dmenu, rofi, etc.",

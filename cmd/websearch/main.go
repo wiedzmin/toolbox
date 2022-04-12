@@ -24,7 +24,7 @@ func perform(ctx *cli.Context) error {
 		return err
 	}
 	xkb.EnsureEnglishKeyboardLayout()
-	key, err := ui.GetSelection(searchengines.Keys(), "search with", true, false, ctx.String("selector-font"))
+	key, err := ui.GetSelection(searchengines.Keys(), "search with", true, false, ctx.String(impl.SelectorFontFlagName))
 	l.Debugw("[perform]", "key", key, "err", err)
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func perform(ctx *cli.Context) error {
 			}
 			var searchTerm string
 			if ctx.Bool("prompt") {
-				searchTerm, err = ui.GetSelection([]string{}, fmt.Sprintf("%s | term", key), true, true, ctx.String("selector-font"))
+				searchTerm, err = ui.GetSelection([]string{}, fmt.Sprintf("%s | term", key), true, true, ctx.String(impl.SelectorFontFlagName))
 				l.Debugw("[perform]", "searchTerm", searchTerm, "err", err)
 				if err != nil {
 					return err
@@ -123,7 +123,7 @@ func createCLI() *cli.App {
 			Required: false,
 		},
 		&cli.StringFlag{
-			Name:     "selector-font",
+			Name:     impl.SelectorFontFlagName,
 			Aliases:  []string{"f"},
 			EnvVars:  []string{impl.EnvPrefix + "_SELECTOR_FONT"},
 			Usage:    "Font to use for selector application, e.g. dmenu, rofi, etc.",

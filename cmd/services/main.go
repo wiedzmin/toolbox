@@ -75,13 +75,13 @@ func perform(ctx *cli.Context) error {
 
 	units, err := r.GetList(redisKeyName, 0, -1)
 	xkb.EnsureEnglishKeyboardLayout()
-	unitStr, err := ui.GetSelection(units, "select", true, false, ctx.String("selector-font"))
+	unitStr, err := ui.GetSelection(units, "select", true, false, ctx.String(impl.SelectorFontFlagName))
 	if err != nil {
 		return err
 	}
 	xkb.EnsureEnglishKeyboardLayout()
 	// FIXME: ensure sort order
-	operation, err := ui.GetSelection(OPERATIONS, "perform", true, false, ctx.String("selector-font"))
+	operation, err := ui.GetSelection(OPERATIONS, "perform", true, false, ctx.String(impl.SelectorFontFlagName))
 	if err != nil {
 		return err
 	}
@@ -197,7 +197,7 @@ func createCLI() *cli.App {
 			Required: true,
 		},
 		&cli.StringFlag{
-			Name:     "selector-font",
+			Name:     impl.SelectorFontFlagName,
 			Aliases:  []string{"f"},
 			EnvVars:  []string{impl.EnvPrefix + "_SELECTOR_FONT"},
 			Usage:    "Font to use for selector application, e.g. dmenu, rofi, etc.",

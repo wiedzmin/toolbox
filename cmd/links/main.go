@@ -144,7 +144,7 @@ func perform(ctx *cli.Context) error {
 	ui.NotifyNormal("[scrape]", fmt.Sprintf("scraping from %s", pageUrl.String()))
 
 	xkb.EnsureEnglishKeyboardLayout()
-	sessionName, err := ui.GetSelection([]string{}, "save as", true, false, ctx.String("selector-font"))
+	sessionName, err := ui.GetSelection([]string{}, "save as", true, false, ctx.String(impl.SelectorFontFlagName))
 	l.Debugw("[perform]", "sessionName", sessionName, "err", err)
 	pageSoup, err := soup.Get(pageUrl.String())
 	l.Debugw("[perform]", "pageSoup", pageSoup, "err", err)
@@ -199,7 +199,7 @@ func createCLI() *cli.App {
 			Required: true,
 		},
 		&cli.StringFlag{
-			Name:     "selector-font",
+			Name:     impl.SelectorFontFlagName,
 			Aliases:  []string{"f"},
 			EnvVars:  []string{impl.EnvPrefix + "_SELECTOR_FONT"},
 			Usage:    "Font to use for selector application, e.g. dmenu, rofi, etc.",

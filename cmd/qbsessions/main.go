@@ -47,7 +47,7 @@ func selectSession(ctx *cli.Context, path string) (*string, error) {
 		return nil, err
 	}
 	xkb.EnsureEnglishKeyboardLayout()
-	sessionName, err := ui.GetSelection(files, "export", true, false, ctx.String("selector-font"))
+	sessionName, err := ui.GetSelection(files, "export", true, false, ctx.String(impl.SelectorFontFlagName))
 
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func perform(ctx *cli.Context) error {
 	}
 	if ctx.Bool("save-named") {
 		xkb.EnsureEnglishKeyboardLayout()
-		name, err := ui.GetSelection([]string{}, "save as", true, false, ctx.String("selector-font"))
+		name, err := ui.GetSelection([]string{}, "save as", true, false, ctx.String(impl.SelectorFontFlagName))
 		if err != nil {
 			return err
 		}
@@ -169,7 +169,7 @@ func createCLI() *cli.App {
 			Required: false,
 		},
 		&cli.StringFlag{
-			Name:     "selector-font",
+			Name:     impl.SelectorFontFlagName,
 			Aliases:  []string{"f"},
 			EnvVars:  []string{impl.EnvPrefix + "_SELECTOR_FONT"},
 			Usage:    "Font to use for selector application, e.g. dmenu, rofi, etc.",

@@ -42,7 +42,7 @@ func perform(ctx *cli.Context) error {
 	}
 
 	xkb.EnsureEnglishKeyboardLayout()
-	key, err := ui.GetSelection(keys, "jump to", true, false, ctx.String("selector-font"))
+	key, err := ui.GetSelection(keys, "jump to", true, false, ctx.String(impl.SelectorFontFlagName))
 	l.Debugw("[perform]", "key", key, "err", err)
 	if err != nil {
 		return err
@@ -141,7 +141,7 @@ func createCLI() *cli.App {
 			Required: false,
 		},
 		&cli.StringFlag{
-			Name:     "selector-font",
+			Name:     impl.SelectorFontFlagName,
 			Aliases:  []string{"f"},
 			EnvVars:  []string{impl.EnvPrefix + "_SELECTOR_FONT"},
 			Usage:    "Font to use for selector application, e.g. dmenu, rofi, etc.",

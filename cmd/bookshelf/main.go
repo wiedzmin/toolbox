@@ -37,7 +37,7 @@ func perform(ctx *cli.Context) error {
 		}
 	}
 
-	book, err := ui.GetSelection(result, "open", true, true, ctx.String("selector-font"))
+	book, err := ui.GetSelection(result, "open", true, true, ctx.String(impl.SelectorFontFlagName))
 	if err != nil {
 		ui.NotifyNormal("[bookshelf]", "no book selected")
 		return err
@@ -67,7 +67,7 @@ func createCLI() *cli.App {
 			Required: true,
 		},
 		&cli.StringFlag{
-			Name:     "selector-font",
+			Name:     impl.SelectorFontFlagName,
 			Aliases:  []string{"f"},
 			EnvVars:  []string{impl.EnvPrefix + "_SELECTOR_FONT"},
 			Usage:    "Font to use for selector application, e.g. dmenu, rofi, etc.",

@@ -25,7 +25,7 @@ func open(ctx *cli.Context) error {
 		return err
 	}
 	xkb.EnsureEnglishKeyboardLayout()
-	key, err := ui.GetSelection(bookmarks.Keys(), "open", true, false, ctx.String("selector-font"))
+	key, err := ui.GetSelection(bookmarks.Keys(), "open", true, false, ctx.String(impl.SelectorFontFlagName))
 	l.Debugw("[open]", "key", key, "err", err)
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func open(ctx *cli.Context) error {
 func search(ctx *cli.Context) error {
 	l := logger.Sugar()
 	xkb.EnsureEnglishKeyboardLayout()
-	searchTerm, err := ui.GetSelection([]string{}, "token", true, false, ctx.String("selector-font"))
+	searchTerm, err := ui.GetSelection([]string{}, "token", true, false, ctx.String(impl.SelectorFontFlagName))
 	if err != nil {
 		l.Warnw("[search]", "no keyword provided")
 		ui.NotifyCritical("[search repos]", "no keyword provided")
@@ -81,7 +81,7 @@ func search(ctx *cli.Context) error {
 	}
 	matchingReposSlice := strings.Split(*matchingRepos, "\n")
 	xkb.EnsureEnglishKeyboardLayout()
-	path, err := ui.GetSelection(matchingReposSlice, "explore", true, false, ctx.String("selector-font"))
+	path, err := ui.GetSelection(matchingReposSlice, "explore", true, false, ctx.String(impl.SelectorFontFlagName))
 	if err != nil {
 		l.Warnw("[search]", "no repository provided")
 		ui.NotifyNormal("[search repos]", "no repository selected")
@@ -152,7 +152,7 @@ func createCLI() *cli.App {
 			Required: false,
 		},
 		&cli.StringFlag{
-			Name:     "selector-font",
+			Name:     impl.SelectorFontFlagName,
 			Aliases:  []string{"f"},
 			EnvVars:  []string{impl.EnvPrefix + "_SELECTOR_FONT"},
 			Usage:    "Font to use for selector application, e.g. dmenu, rofi, etc.",
