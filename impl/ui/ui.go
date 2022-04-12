@@ -29,22 +29,27 @@ func init() {
 }
 
 // GetSelectionRofi returns users choice from list of options, using Rofi selector tool
-func GetSelectionRofi(seq []string, prompt string, normalWindow bool) (string, error) {
+func GetSelectionRofi(seq []string, prompt string, caseInsensitive, normalWindow bool, font string/*ignored*/) (string, error) {
 	impl.EnsureBinary("rofi", *logger)
 	l := logger.Sugar()
 	sort.Strings(seq)
 	seqStr := strings.Join(seq, rofiOptionsSeparator)
 	l.Debugw("[GetSelectionRofi]", "seq", seq, "seqStr", seqStr, "normalWindow", normalWindow)
+	caseFlagStr := ""
+	if caseInsensitive {
+		caseFlagStr = " -i"
+	}
 	normalWindowStr := ""
 	if normalWindow {
 		normalWindowStr = " -normal-window"
 	}
-	result, err := shell.ShellCmd(fmt.Sprintf("rofi%s -dmenu -i -sep '%s' -p '%s'",
-		normalWindowStr, rofiOptionsSeparator, prompt), &seqStr, nil, nil, true, false)
+	result, err := shell.ShellCmd(fmt.Sprintf("rofi%s -dmenu%s -sep '%s' -p '%s'",
+		normalWindowStr, caseFlagStr, rofiOptionsSeparator, prompt), &seqStr, nil, nil, true, false)
 	return *result, err
 }
 
-func GetSelectionDmenu(seq []string, prompt string, lines int, caseInsensitive bool, font string) (string, error) {
+// GetSelectionDmenu returns users choice from list of options, using Dmenu selector tool
+func GetSelectionDmenu(seq []string, prompt string, caseInsensitive, normalWindow/*ignored*/ bool, font string) (string, error) {
 	impl.EnsureBinary("dmenu", *logger)
 	l := logger.Sugar()
 	sort.Strings(seq)
