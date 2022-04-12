@@ -47,7 +47,7 @@ func selectSession(ctx *cli.Context, path string) (*string, error) {
 		return nil, err
 	}
 	xkb.EnsureEnglishKeyboardLayout()
-	sessionName, err := ui.GetSelection(files, "export", true, false, ctx.String(impl.SelectorFontFlagName))
+	sessionName, err := ui.GetSelection(ctx, files, "export", true, false)
 
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func perform(ctx *cli.Context) error {
 	}
 	if ctx.Bool("save-named") {
 		xkb.EnsureEnglishKeyboardLayout()
-		name, err := ui.GetSelection([]string{}, "save as", true, false, ctx.String(impl.SelectorFontFlagName))
+		name, err := ui.GetSelection(ctx, []string{}, "save as", true, false)
 		if err != nil {
 			return err
 		}

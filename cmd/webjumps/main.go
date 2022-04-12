@@ -42,7 +42,7 @@ func perform(ctx *cli.Context) error {
 	}
 
 	xkb.EnsureEnglishKeyboardLayout()
-	key, err := ui.GetSelection(keys, "jump to", true, false, ctx.String(impl.SelectorFontFlagName))
+	key, err := ui.GetSelection(ctx, keys, "jump to", true, false)
 	l.Debugw("[perform]", "key", key, "err", err)
 	if err != nil {
 		return err

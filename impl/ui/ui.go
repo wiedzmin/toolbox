@@ -8,6 +8,7 @@ import (
 	"github.com/0xAX/notificator"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/shell"
+	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 )
 
@@ -30,14 +31,14 @@ func init() {
 }
 
 // GetSelection returns users choice from list of options, using predefined selector tool
-func GetSelection(seq []string, prompt string, caseInsensitive, normalWindow bool, font string) (string, error) {
+func GetSelection(ctx *cli.Context, seq []string, prompt string, caseInsensitive, normalWindow bool) (string, error) {
 	switch selectorTool {
 	case "rofi":
-		return GetSelectionRofi(seq, prompt, caseInsensitive, normalWindow, font)
+		return GetSelectionRofi(seq, prompt, caseInsensitive, normalWindow, ctx.String(impl.SelectorFontFlagName))
 	case "dmenu":
-		return GetSelectionDmenu(seq, prompt, caseInsensitive, normalWindow, font)
+		return GetSelectionDmenu(seq, prompt, caseInsensitive, normalWindow, ctx.String(impl.SelectorFontFlagName))
 	default:
-		return GetSelectionRofi(seq, prompt, caseInsensitive, normalWindow, font)
+		return GetSelectionRofi(seq, prompt, caseInsensitive, normalWindow, ctx.String(impl.SelectorFontFlagName))
 	}
 }
 

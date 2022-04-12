@@ -37,7 +37,7 @@ func perform(ctx *cli.Context) error {
 		}
 	}
 
-	book, err := ui.GetSelection(result, "open", true, true, ctx.String(impl.SelectorFontFlagName))
+	book, err := ui.GetSelection(ctx, result, "open", true, true)
 	if err != nil {
 		ui.NotifyNormal("[bookshelf]", "no book selected")
 		return err

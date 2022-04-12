@@ -25,7 +25,7 @@ func open(ctx *cli.Context) error {
 		return err
 	}
 	xkb.EnsureEnglishKeyboardLayout()
-	key, err := ui.GetSelection(bookmarks.Keys(), "open", true, false, ctx.String(impl.SelectorFontFlagName))
+	key, err := ui.GetSelection(ctx, bookmarks.Keys(), "open", true, false)
 	l.Debugw("[open]", "key", key, "err", err)
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func open(ctx *cli.Context) error {
 func search(ctx *cli.Context) error {
 	l := logger.Sugar()
 	xkb.EnsureEnglishKeyboardLayout()
-	searchTerm, err := ui.GetSelection([]string{}, "token", true, false, ctx.String(impl.SelectorFontFlagName))
+	searchTerm, err := ui.GetSelection(ctx, []string{}, "token", true, false)
 	if err != nil {
 		l.Warnw("[search]", "no keyword provided")
 		ui.NotifyCritical("[search repos]", "no keyword provided")
@@ -81,7 +81,7 @@ func search(ctx *cli.Context) error {
 	}
 	matchingReposSlice := strings.Split(*matchingRepos, "\n")
 	xkb.EnsureEnglishKeyboardLayout()
-	path, err := ui.GetSelection(matchingReposSlice, "explore", true, false, ctx.String(impl.SelectorFontFlagName))
+	path, err := ui.GetSelection(ctx, matchingReposSlice, "explore", true, false)
 	if err != nil {
 		l.Warnw("[search]", "no repository provided")
 		ui.NotifyNormal("[search repos]", "no repository selected")
