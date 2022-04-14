@@ -41,6 +41,8 @@ func GetSelection(ctx *cli.Context, seq []string, prompt string, caseInsensitive
 		return GetSelectionRofi(seq, prompt, caseInsensitive, normalWindow, ctx.String(impl.SelectorFontFlagName))
 	case "dmenu":
 		return GetSelectionDmenu(seq, prompt, caseInsensitive, normalWindow, ctx.String(impl.SelectorFontFlagName))
+	case "bemenu":
+		return GetSelectionBemenu(seq, prompt, caseInsensitive, normalWindow, ctx.String(impl.SelectorFontFlagName))
 	default:
 		l.Debugw("[GetSelection]", "tool", tool, "summary", fmt.Sprintf("unknown selector tool '%s'...", tool))
 		return "", fmt.Errorf("unknown selector tool: '%s'", tool)
@@ -88,6 +90,31 @@ func GetSelectionDmenu(seq []string, prompt string, caseInsensitive, normalWindo
 		}
 	}
 	result, err := shell.ShellCmd(fmt.Sprintf("dmenu%s -p '%s' -l %d -fn '%s'", caseFlagStr, prompt, lines, font),
+		&seqStr, nil, nil, true, false)
+	return *result, err
+}
+
+// GetSelectionBemenu returns users choice from list of options, using Bemenu selector tool
+func GetSelectionBemenu(seq []string, prompt string, caseInsensitive, normalWindow/*ignored*/ bool, font string) (string, error) {
+	impl.EnsureBinary("bemenu", *logger)
+	l := logger.Sugar()
+	sort.Strings(seq)
+	seqStr := strings.Join(seq, dmenuOptionsSeparator)
+	l.Debugw("[GetSelectionBemenu]", "seq", seq, "seqStr", seqStr, "case-insensitive", caseInsensitive)
+	caseFlagStr := ""
+	if caseInsensitive {
+		caseFlagStr = " -i"
+	}
+	lines := 1
+	seqLen := len(seq)
+	if seqLen > 0 {
+		if seqLen < dmenuSelectionLinesCount{
+			lines = seqLen
+		} else {
+			lines = dmenuSelectionLinesCount
+		}
+	}
+	result, err := shell.ShellCmd(fmt.Sprintf("bemenu%s -p '%s' -l %d -fn '%s'", caseFlagStr, prompt, lines, font),
 		&seqStr, nil, nil, true, false)
 	return *result, err
 }
