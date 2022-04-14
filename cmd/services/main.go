@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
@@ -13,7 +14,10 @@ import (
 	"go.uber.org/zap"
 )
 
-const redisKeyName = "system/services"
+const (
+	redisKeyName = "system/services"
+	redisKeyNameFlat = "system/services/flat"
+)
 
 var (
 	OPERATIONS = []string{
@@ -31,23 +35,32 @@ var (
 	r      *redis.Client
 )
 
-func ensureUnitsCache() error {
+func ensureUnitsCache(ctx *cli.Context) error {
+	var units []systemd.Unit
+	var err error
 	l := logger.Sugar()
-	if !r.KeyExists(redisKeyName) {
+	flat := ctx.Bool("flat")
+	l.Debugw("[ensureUnitsCache]", "flat", flat)
+	if !r.KeyExists(redisKeyName) || !r.KeyExists(redisKeyNameFlat) && flat {
 		l.Debugw("[ensureUnitsCache]", "units cache", "does not exist, populating")
-		units, err := systemd.CollectUnits(true, true)
+		units, err = systemd.CollectUnits(true, true)
 		l.Debugw("[ensureUnitsCache]", "found units", len(units))
 		if err != nil {
 			return err
 		}
-		for _, u := range units {
-			err = r.AppendToList(redisKeyName, u.String())
-			if err != nil {
-				return err
-			}
-		}
 	} else {
 		l.Debugw("[ensureUnitsCache]", "units cache", "exists, moving on")
+		return nil
+	}
+	ui.NotifyNormal("[services]", "populating cache, please wait...")
+	for _, u := range units {
+		err = r.AppendToList(redisKeyName, u.String())
+		if err != nil {
+			return err
+		}
+		for _, op := range OPERATIONS {
+			err = r.AppendToList(redisKeyNameFlat, fmt.Sprintf("%s / %s", u.String(), op))
+		}
 	}
 
 	return nil
@@ -65,27 +78,48 @@ func perform(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
+		err = r.DeleteValue(redisKeyNameFlat)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 
-	err = ensureUnitsCache()
+	err = ensureUnitsCache(ctx)
 	if err != nil {
 		return err
 	}
 
-	units, err := r.GetList(redisKeyName, 0, -1)
+	var entries []string
+	var redisKey string
+	if ctx.Bool("flat") {
+		redisKey = redisKeyNameFlat
+	} else {
+		redisKey = redisKeyName
+	}
+	entries, err = r.GetList(redisKey, 0, -1)
 	xkb.EnsureEnglishKeyboardLayout()
-	unitStr, err := ui.GetSelection(ctx, units, "select", true, false)
+	entry, err := ui.GetSelection(ctx, entries, "select", true, false)
 	if err != nil {
 		return err
 	}
 	xkb.EnsureEnglishKeyboardLayout()
-	// FIXME: ensure sort order
-	operation, err := ui.GetSelection(ctx, OPERATIONS, "perform", true, false)
-	if err != nil {
-		return err
+	var operation string
+	var unit systemd.Unit
+
+	if ctx.Bool("flat") {
+		entryChunks := strings.Split(entry, "/")
+		// FIXME: ensure sort order
+		unit = systemd.UnitFromString(strings.Trim(entryChunks[0], " "))
+		operation = strings.Trim(entryChunks[1], " ")
+	} else {
+		unit = systemd.UnitFromString(entry)
+		// FIXME: ensure sort order
+		operation, err = ui.GetSelection(ctx, OPERATIONS, "perform", true, false)
+		if err != nil {
+			return err
+		}
 	}
-	unit := systemd.UnitFromString(unitStr)
 	switch operation {
 	case "stop":
 		err = unit.Stop()
@@ -180,6 +214,12 @@ func createCLI() *cli.App {
 			Name:     "invalidate-cache",
 			Aliases:  []string{"i"},
 			Usage:    "Whether to invalidate services metadata cache",
+			Required: false,
+		},
+		&cli.BoolFlag{
+			Name:     "flat",
+			Aliases:  []string{"F"},
+			Usage:    "Whether to display cartesian product of units and ops for faster fuzzy selection",
 			Required: false,
 		},
 		&cli.StringFlag{
