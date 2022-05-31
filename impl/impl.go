@@ -44,6 +44,14 @@ func (e FileErrNotExist) Error() string {
 	return fmt.Sprintf("file/dir '%s' does not exist", e.Path)
 }
 
+type FileFormatError struct {
+	Content string
+}
+
+func (e FileFormatError) Error() string {
+	return fmt.Sprintf("file format error: %s", e.Content)
+}
+
 type ErrNotImplemented struct {
 	Token string
 }
