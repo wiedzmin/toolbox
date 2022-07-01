@@ -92,6 +92,8 @@ func jctlCmd(user, follow bool, name string) string {
 	return r
 }
 
+// TODO: IDEA: make timers on status-changing operations, which would issue notification after some timeout asking to wait a bit more
+
 // Restart restarts unit
 func (s *Unit) Restart() error {
 	_, err := shell.ShellCmd(sysctlCmd(s.User, "restart", s.Name), nil, nil, nil, false, false)
