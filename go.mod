@@ -10,6 +10,7 @@ require (
 	github.com/jezek/xgbutil v0.0.0-20210302171758-530099784e66
 	github.com/json-iterator/go v1.1.12
 	github.com/mediocregopher/radix/v3 v3.7.0
+	github.com/pierrec/lz4/v4 v4.1.14 // indirect
 	github.com/urfave/cli/v2 v2.3.0
 	go.uber.org/atomic v1.8.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
