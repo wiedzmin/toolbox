@@ -24,6 +24,7 @@ func init() {
 	logger = impl.NewLogger()
 }
 
+// RawSessionsPath returns path where raw jsonlz4 sessions are stored
 func RawSessionsPath() *string {
 	path, err := impl.AtHomedir(".mozilla/firefox/profile.default/sessionstore-backups")
 	if err != nil {
@@ -32,6 +33,7 @@ func RawSessionsPath() *string {
 	return path
 }
 
+// GetSessionData returns decompressed session data, given path to "jsonlz4"-compressed session
 func GetSessionData(sessionFilename string) ([]byte, error) {
 	sessionFile, err := os.Open(sessionFilename)
 	if err != nil {
