@@ -16,6 +16,7 @@ const (
 	SESSION_FORMAT_JSON SessionFormat = 0
 	SESSION_FORMAT_ORG  SessionFormat = 1
 	MOZ_LZ_MAGIC_HEADER               = "mozLz40\x00"
+	SessionstoreSubpath               = ".mozilla/firefox/profile.default/sessionstore-backups"
 )
 
 var logger *zap.Logger
@@ -26,7 +27,7 @@ func init() {
 
 // RawSessionsPath returns path where raw jsonlz4 sessions are stored
 func RawSessionsPath() *string {
-	path, err := impl.AtHomedir(".mozilla/firefox/profile.default/sessionstore-backups")
+	path, err := impl.AtHomedir(SessionstoreSubpath)
 	if err != nil {
 		return nil
 	}

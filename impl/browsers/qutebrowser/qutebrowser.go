@@ -27,6 +27,7 @@ const (
 	SESSION_FORMAT_YAML     SessionFormat = 0
 	SESSION_FORMAT_ORG      SessionFormat = 1
 	SESSION_FORMAT_ORG_FLAT SessionFormat = 2
+	SessionstoreSubpath                   = ".local/share/qutebrowser/sessions"
 )
 
 var (
@@ -89,7 +90,7 @@ func SocketPath() (*string, error) {
 }
 
 func RawSessionsPath() *string {
-	path, err := impl.AtHomedir(".local/share/qutebrowser/sessions")
+	path, err := impl.AtHomedir(SessionstoreSubpath)
 	if err != nil {
 		return nil
 	}
