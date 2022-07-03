@@ -1,0 +1,4 @@
+* dependent libs / previous art
+** docker
+*** https://pkg.go.dev/github.com/docker/docker/client#section-readme
+*** https://habr.com/ru/post/449038/
