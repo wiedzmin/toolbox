@@ -1,10 +1,12 @@
 package firefox
 
 import (
+	"bufio"
 	"encoding/binary"
 	"fmt"
 	"os"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pierrec/lz4/v4"
 	"github.com/wiedzmin/toolbox/impl"
 	"go.uber.org/zap"
@@ -22,6 +24,24 @@ const (
 
 var logger *zap.Logger
 
+type SessionLayout struct {
+	Windows []Window `json:"windows"`
+}
+
+type Window struct {
+	Tabs []Tab `json:"tabs"`
+}
+
+type Tab struct {
+	History []Page `json:"entries"`
+}
+
+type Page struct {
+	URL         string `json:"url"`
+	Title       string `json:"title"`
+	OriginalURI string `json:"originalURI"`
+}
+
 func init() {
 	logger = impl.NewLogger()
 }
@@ -35,8 +55,8 @@ func RawSessionsPath() *string {
 	return path
 }
 
-// GetSessionData returns decompressed session data, given path to "jsonlz4"-compressed session
-func GetSessionData(sessionFilename string) ([]byte, error) {
+// getSessionData returns decompressed session data, given path to "jsonlz4"-compressed session
+func getSessionData(sessionFilename string) ([]byte, error) {
 	sessionFile, err := os.Open(sessionFilename)
 	if err != nil {
 		return nil, err
@@ -70,4 +90,85 @@ func GetSessionData(sessionFilename string) ([]byte, error) {
 	}
 
 	return dstData, nil
+}
+
+// LoadSession is used for loading, decompressing and unmarshalling session data
+func LoadSession(path string) (*SessionLayout, error) {
+	l := logger.Sugar()
+	l.Debugw("[LoadSession]", "path", path)
+	var session SessionLayout
+	deflated, err := getSessionData(path)
+	if err != nil {
+		return nil, err
+	}
+	err = jsoniter.Unmarshal(deflated, &session)
+	if err != nil {
+		return nil, err
+	}
+	return &session, nil
+}
+
+// DumpSession dumps session data in one of predefined formats
+func DumpSession(path string, data *SessionLayout, format SessionFormat, withHistory bool) error {
+	l := logger.Sugar()
+	l.Debugw("[DumpSession]", "path", path, "data", data, "format", format, "withHistory", withHistory)
+	if data == nil {
+		return fmt.Errorf("empty session")
+	}
+	file, err := os.OpenFile(path, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	writer := bufio.NewWriter(file)
+	defer writer.Flush()
+	switch format {
+	case SESSION_FORMAT_JSON: // NOTE: tab history dropping is not yet implemented here
+		b, err := jsoniter.Marshal(data)
+		if err != nil {
+			return err
+		}
+		_, err = writer.Write(b)
+		if err != nil {
+			return err
+		}
+	case SESSION_FORMAT_ORG:
+		index := 1
+		var result []string
+		for _, w := range data.Windows {
+			result = append(result, (fmt.Sprintf("* window %d", index)))
+			for _, t := range w.Tabs {
+				for _, p := range t.History {
+					l.Debugw("[DumpSession]", "url", p.URL)
+					result = append(result, (fmt.Sprintf("** %s", p.URL)))
+					if !withHistory {
+						l.Debugw("[DumpSession]", "warning", "dropped history")
+						break
+					}
+				}
+			}
+			index = index + 1
+		}
+		for _, line := range result {
+			_, _ = writer.WriteString(fmt.Sprintf("%s\n", line))
+		}
+	case SESSION_FORMAT_ORG_FLAT:
+		var result []string
+		for _, w := range data.Windows {
+			for _, t := range w.Tabs {
+				for _, p := range t.History {
+					l.Debugw("[DumpSession]", "url", p.URL)
+					result = append(result, (fmt.Sprintf("** %s", p.URL)))
+					if !withHistory {
+						l.Debugw("[DumpSession]", "warning", "dropped history")
+						break
+					}
+				}
+			}
+		}
+		for _, line := range result {
+			_, _ = writer.WriteString(fmt.Sprintf("%s\n", line))
+		}
+	}
+	return nil
 }
