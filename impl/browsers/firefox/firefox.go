@@ -140,16 +140,19 @@ func DumpSession(path string, data *SessionLayout, format SessionFormat, withHis
 		for _, w := range data.Windows {
 			result = append(result, (fmt.Sprintf("* window %d", index)))
 			for _, t := range w.Tabs {
+				orgStars := "**"
 				for _, p := range t.History {
 					l.Debugw("[DumpSession]", "url", p.URL)
 					// NOTE: workaround for pasting url into fresh Tridactyl window
 					if strings.HasPrefix(p.URL, "moz-extension") {
 						continue
 					}
-					result = append(result, (fmt.Sprintf("** %s", p.URL)))
+					result = append(result, (fmt.Sprintf("%s %s", orgStars, p.URL)))
 					if !withHistory {
 						l.Debugw("[DumpSession]", "warning", "dropped history")
 						break
+					} else {
+						orgStars = "***"
 					}
 				}
 			}
@@ -162,16 +165,19 @@ func DumpSession(path string, data *SessionLayout, format SessionFormat, withHis
 		var result []string
 		for _, w := range data.Windows {
 			for _, t := range w.Tabs {
+				orgStars := "*"
 				for _, p := range t.History {
 					l.Debugw("[DumpSession]", "url", p.URL)
 					// NOTE: workaround for pasting url into fresh Tridactyl window
 					if strings.HasPrefix(p.URL, "moz-extension") {
 						continue
 					}
-					result = append(result, (fmt.Sprintf("* %s", p.URL)))
+					result = append(result, (fmt.Sprintf("%s %s", orgStars, p.URL)))
 					if !withHistory {
 						l.Debugw("[DumpSession]", "warning", "dropped history")
 						break
+					} else {
+						orgStars = "**"
 					}
 				}
 			}
