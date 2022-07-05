@@ -7,6 +7,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/browsers/firefox"
+	"github.com/wiedzmin/toolbox/impl/fs"
 	"github.com/wiedzmin/toolbox/impl/ui"
 )
 
@@ -15,7 +16,16 @@ func dump(ctx *cli.Context) error {
 	if sessionsPath == nil {
 		return fmt.Errorf("error getting firefox sessions path root")
 	}
-	session, err := firefox.LoadSession(fmt.Sprintf("%s/recovery.jsonlz4", *sessionsPath))
+
+	// TODO: check/investigate cases, where we really need "previous.jsonlz4" here
+	sourceSessionPreviousFile := fmt.Sprintf("%s/previous.jsonlz4", *sessionsPath)
+	sourceSessionRecoveryFile := fmt.Sprintf("%s/recovery.jsonlz4", *sessionsPath)
+	sourceSessionFile := sourceSessionPreviousFile
+	if fs.FileExists(sourceSessionRecoveryFile) {
+		sourceSessionFile = sourceSessionRecoveryFile
+	}
+
+	session, err := firefox.LoadSession(sourceSessionFile)
 	if err != nil {
 		return err
 	}
