@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"os"
+	"strings"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pierrec/lz4/v4"
@@ -132,6 +133,7 @@ func DumpSession(path string, data *SessionLayout, format SessionFormat, withHis
 		if err != nil {
 			return err
 		}
+	// FIXME: try to generalize Tridactyl workaround(s) below
 	case SESSION_FORMAT_ORG:
 		index := 1
 		var result []string
@@ -140,6 +142,10 @@ func DumpSession(path string, data *SessionLayout, format SessionFormat, withHis
 			for _, t := range w.Tabs {
 				for _, p := range t.History {
 					l.Debugw("[DumpSession]", "url", p.URL)
+					// NOTE: workaround for pasting url into fresh Tridactyl window
+					if strings.HasPrefix(p.URL, "moz-extension") {
+						continue
+					}
 					result = append(result, (fmt.Sprintf("** %s", p.URL)))
 					if !withHistory {
 						l.Debugw("[DumpSession]", "warning", "dropped history")
@@ -158,6 +164,10 @@ func DumpSession(path string, data *SessionLayout, format SessionFormat, withHis
 			for _, t := range w.Tabs {
 				for _, p := range t.History {
 					l.Debugw("[DumpSession]", "url", p.URL)
+					// NOTE: workaround for pasting url into fresh Tridactyl window
+					if strings.HasPrefix(p.URL, "moz-extension") {
+						continue
+					}
 					result = append(result, (fmt.Sprintf("* %s", p.URL)))
 					if !withHistory {
 						l.Debugw("[DumpSession]", "warning", "dropped history")
