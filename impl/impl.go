@@ -98,7 +98,7 @@ func AtRunUser(suffix string) (*string, error) {
 
 func CommonNowTimestamp() string {
 	now := time.Now()
-	return fmt.Sprintf("%02d-%02d-%d-%02d-%02d-%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
+	return fmt.Sprintf("%02d-%02d-%02d-%02d-%02d-%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
 }
 
 func SendToUnixSocket(socket string, data []byte) error {
