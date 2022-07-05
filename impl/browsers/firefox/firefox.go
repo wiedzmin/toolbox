@@ -158,7 +158,7 @@ func DumpSession(path string, data *SessionLayout, format SessionFormat, withHis
 			for _, t := range w.Tabs {
 				for _, p := range t.History {
 					l.Debugw("[DumpSession]", "url", p.URL)
-					result = append(result, (fmt.Sprintf("** %s", p.URL)))
+					result = append(result, (fmt.Sprintf("* %s", p.URL)))
 					if !withHistory {
 						l.Debugw("[DumpSession]", "warning", "dropped history")
 						break
