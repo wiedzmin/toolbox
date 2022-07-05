@@ -110,7 +110,7 @@ func LoadSession(path string) (*SessionLayout, error) {
 }
 
 // DumpSession dumps session data in one of predefined formats
-func DumpSession(path string, data *SessionLayout, format SessionFormat, withHistory bool) error {
+func DumpSession(path string, data *SessionLayout, format SessionFormat, rawUrls, withHistory bool) error {
 	l := logger.Sugar()
 	l.Debugw("[DumpSession]", "path", path, "data", data, "format", format, "withHistory", withHistory)
 	if data == nil {
@@ -147,7 +147,13 @@ func DumpSession(path string, data *SessionLayout, format SessionFormat, withHis
 					if strings.HasPrefix(p.URL, "moz-extension") {
 						continue
 					}
-					result = append(result, (fmt.Sprintf("%s %s", orgStars, p.URL)))
+					var urlData string
+					if rawUrls {
+						urlData = p.URL
+					} else {
+						urlData = fmt.Sprintf("[[%s][%s]]", p.URL, p.Title)
+					}
+					result = append(result, (fmt.Sprintf("%s %s", orgStars, urlData)))
 					if !withHistory {
 						l.Debugw("[DumpSession]", "warning", "dropped history")
 						break
@@ -172,7 +178,13 @@ func DumpSession(path string, data *SessionLayout, format SessionFormat, withHis
 					if strings.HasPrefix(p.URL, "moz-extension") {
 						continue
 					}
-					result = append(result, (fmt.Sprintf("%s %s", orgStars, p.URL)))
+					var urlData string
+					if rawUrls {
+						urlData = p.URL
+					} else {
+						urlData = fmt.Sprintf("[[%s][%s]]", p.URL, p.Title)
+					}
+					result = append(result, (fmt.Sprintf("%s %s", orgStars, urlData)))
 					if !withHistory {
 						l.Debugw("[DumpSession]", "warning", "dropped history")
 						break
