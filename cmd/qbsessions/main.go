@@ -118,6 +118,7 @@ func createCLI() *cli.App {
 	app.Description = "Qbsessions"
 	app.Version = "0.0.1#master"
 
+	// TODO: stabilize rethought [[file:~/workspace/repos/github.com/wiedzmin/toolbox/cmd/ffsessions/main.go::func createCLI() *cli.App {][ffsessions CLI]]  and rework qbsessions' one after it
 	app.Flags = []cli.Flag{
 		&cli.BoolFlag{
 			Name:     "save",

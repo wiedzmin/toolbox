@@ -2,3 +2,7 @@
 ** docker
 *** https://pkg.go.dev/github.com/docker/docker/client#section-readme
 *** https://habr.com/ru/post/449038/
+* points of interest
+** [[file:cmd/qbsessions/main.go::// TODO: add "fix" implementation]]
+** [[file:cmd/qbsessions/main.go::// TODO: stabilize rethought \[\[file:~/workspace/repos/github.com/wiedzmin/toolbox/cmd/ffsessions/main.go::func createCLI() *cli.App {\]\[ffsessions CLI\]\] and rework qbsessions' one after it][rework `qbsessions` CLI]]
+** [[file:impl/browsers/firefox/firefox.go::// FIXME: try to generalize Tridactyl workaround(s) below][handle "moz-extension" gracefully]]
