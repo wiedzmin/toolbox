@@ -7,6 +7,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
+	"github.com/wiedzmin/toolbox/impl/browsers"
 	"github.com/wiedzmin/toolbox/impl/browsers/qutebrowser"
 	"github.com/wiedzmin/toolbox/impl/fs"
 	"github.com/wiedzmin/toolbox/impl/ui"
@@ -41,20 +42,6 @@ func saveSession(name *string) error {
 	return err
 }
 
-func selectSession(ctx *cli.Context, path string) (*string, error) {
-	files, err := fs.CollectFiles(path, false, nil)
-	if err != nil {
-		return nil, err
-	}
-	xkb.EnsureEnglishKeyboardLayout()
-	sessionName, err := ui.GetSelection(ctx, files, "export", true, false)
-
-	if err != nil {
-		return nil, err
-	}
-	return &sessionName, nil
-}
-
 func exportSession(sessionsPath, sessionName, exportPath string, format qutebrowser.SessionFormat) error {
 	session, err := qutebrowser.LoadSession(fmt.Sprintf("%s/%s", sessionsPath, sessionName))
 	if err != nil {
@@ -81,14 +68,14 @@ func perform(ctx *cli.Context) error {
 		return saveSession(&name)
 	}
 	if ctx.Bool("rotate") {
-		return fs.RotateOlderThan(*sessionsPath, fmt.Sprintf("%dm", ctx.Int("keep-minutes")), &qutebrowser.RegexTimedSessionName)
+		return fs.RotateOlderThan(*sessionsPath, fmt.Sprintf("%dm", ctx.Int("keep-minutes")), &browsers.RegexTimedSessionName)
 	}
 	exportFormat := qutebrowser.SESSION_FORMAT_ORG
 	if ctx.Bool("flat") {
 		exportFormat = qutebrowser.SESSION_FORMAT_ORG_FLAT
 	}
 	if ctx.Bool("export") {
-		sessionName, err := selectSession(ctx, *sessionsPath)
+		sessionName, err := browsers.SelectSession(ctx, *sessionsPath, "export")
 		if err != nil {
 			return err
 		}
