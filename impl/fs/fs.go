@@ -23,7 +23,7 @@ func init() {
 
 func FilesOlderThan(path, olderThan string, fullPath bool, regexWhitelist *string) ([]string, error) {
 	l := logger.Sugar()
-	l.Debugw("[FilesOlderThan]", "path", path, "olderThan", olderThan, "fullPath", fullPath, "regexWhitelist", *regexWhitelist)
+	l.Debugw("[FilesOlderThan]", "path", path, "olderThan", olderThan, "fullPath", fullPath, "regexWhitelist", regexWhitelist)
 	files, err := ioutil.ReadDir(fmt.Sprintf("%s/.", path))
 	l.Debugw("[FilesOlderThan]", "files", files)
 	if err != nil {
