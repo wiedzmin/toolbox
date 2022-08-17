@@ -77,6 +77,7 @@ func RotateOlderThan(path, olderThan string, regexWhitelist *string) error {
 }
 
 func CollectFiles(path string, fullPath bool, regexpsWhitelist []string) ([]string, error) {
+	var acceptAll bool
 	l := logger.Sugar()
 	l.Debugw("[CollectFiles]", "path", path, "fullPath", fullPath, "regexpsWhitelist", regexpsWhitelist)
 	files, err := ioutil.ReadDir(fmt.Sprintf("%s/.", path))
@@ -86,9 +87,13 @@ func CollectFiles(path string, fullPath bool, regexpsWhitelist []string) ([]stri
 	}
 	var result []string
 	var regexpsWhitelistRe []regexp.Regexp
-	for _, re := range regexpsWhitelist {
-		rc := regexp.MustCompile(re)
-		regexpsWhitelistRe = append(regexpsWhitelistRe, *rc)
+	if regexpsWhitelist != nil {
+		for _, re := range regexpsWhitelist {
+			rc := regexp.MustCompile(re)
+			regexpsWhitelistRe = append(regexpsWhitelistRe, *rc)
+		}
+	} else {
+		acceptAll = true
 	}
 	for _, fi := range files {
 		if !fi.IsDir() {
@@ -100,7 +105,7 @@ func CollectFiles(path string, fullPath bool, regexpsWhitelist []string) ([]stri
 					break
 				}
 			}
-			if match {
+			if match || acceptAll {
 				if fullPath {
 					result = append(result, fmt.Sprintf("%s/%s", path, fi.Name()))
 				} else {

@@ -13,8 +13,7 @@ var (
 
 // SelectSession collects session files and allows selecting one
 func SelectSession(ctx *cli.Context, path, prompt string) (*string, error) {
-	// TODO: should we use "org" session type here or somewhere else among the call stack?
-	files, err := fs.CollectFiles(path, false, []string{"org$"})
+	files, err := fs.CollectFiles(path, false, nil)
 	if err != nil {
 		return nil, err
 	}
