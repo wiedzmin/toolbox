@@ -6,10 +6,15 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
+	"github.com/wiedzmin/toolbox/impl/browsers"
 	"github.com/wiedzmin/toolbox/impl/browsers/firefox"
+	"github.com/wiedzmin/toolbox/impl/emacs"
 	"github.com/wiedzmin/toolbox/impl/fs"
 	"github.com/wiedzmin/toolbox/impl/ui"
+	"go.uber.org/zap"
 )
+
+var logger *zap.Logger
 
 func dump(ctx *cli.Context) error {
 	sessionsPath := firefox.RawSessionsPath()
@@ -58,6 +63,37 @@ func dump(ctx *cli.Context) error {
 		ctx.Bool("raw"),
 		ctx.Bool("keep-tabs-history"),
 	)
+}
+
+func edit(ctx *cli.Context) error {
+	l := logger.Sugar()
+	sessionName, err := browsers.SelectSession(ctx, ctx.String("dumps-path"), "edit") // FIXME: consider reworking context usage
+	l.Debugw("[edit]", "sessionName", sessionName, "err", err)
+	if err != nil {
+		return err
+	}
+	return emacs.SendToServer(fmt.Sprintf("(find-file \"%s/%s\")", ctx.String("dumps-path"), *sessionName))
+}
+
+func remove(ctx *cli.Context) error {
+	l := logger.Sugar()
+	sessionName, err := browsers.SelectSession(ctx, ctx.String("dumps-path"), "remove") // FIXME: consider reworking context usage
+	l.Debugw("[remove]", "sessionName", sessionName, "err", err)
+	if err != nil {
+		return err
+	}
+	sessionPath := fmt.Sprintf("%s/%s", ctx.String("dumps-path"), *sessionName)
+	err = os.Remove(sessionPath)
+	if err != nil {
+		return err
+	}
+	l.Debugw("[remove]", "removed", sessionPath)
+	ui.NotifyNormal("[ffsessions]", fmt.Sprintf("Removed %s", sessionPath))
+	return nil
+}
+
+func rotate(ctx *cli.Context) error {
+	return fs.RotateOlderThan(ctx.String("dumps-path"), fmt.Sprintf("%dm", ctx.Int("keep-minutes")), nil)
 }
 
 func createCLI() *cli.App {
@@ -109,6 +145,35 @@ func createCLI() *cli.App {
 				},
 			},
 		},
+		{
+			Name:   "edit",
+			Usage:  "select and edit one of saved sessions",
+			Action: edit,
+		},
+		{
+			Name:   "remove",
+			Usage:  "select and remove one of saved sessions",
+			Action: remove,
+		},
+		{
+			Name:   "rotate",
+			Usage:  "rotate saved sessions",
+			Action: rotate,
+			Flags: []cli.Flag{
+				&cli.IntFlag{ // FIXME: implement
+					Name:     "keep-count",
+					Usage:    "Number of last sessions to keep",
+					Required: false,
+				},
+				&cli.IntFlag{
+					Name:     "keep-minutes",
+					Aliases:  []string{"k"},
+					EnvVars:  []string{impl.EnvPrefix + "_FIREFOX_SESSIONS_KEEP_MINUTES"},
+					Usage:    "Rotate sessions older than it",
+					Required: true,
+				},
+			},
+		},
 	}
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
@@ -136,9 +201,12 @@ func createCLI() *cli.App {
 }
 
 func main() {
+	logger = impl.NewLogger()
+	defer logger.Sync()
+	l := logger.Sugar()
 	app := createCLI()
 	err := app.Run(os.Args)
 	if err != nil {
-		fmt.Println(err)
+		l.Errorw("[main]", "err", err)
 	}
 }
