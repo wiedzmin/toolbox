@@ -1,6 +1,8 @@
 package impl
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
@@ -135,4 +137,10 @@ func EnsureBinary(name string, logger zap.Logger) {
 		os.Exit(1)
 	}
 	l.Debugw("[EnsureBinary]", name, path)
+}
+
+func GetSHA1(text string) string {
+	h := sha1.New()
+	h.Write([]byte(text))
+	return hex.EncodeToString(h.Sum(nil))
 }
