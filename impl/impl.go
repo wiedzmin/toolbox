@@ -144,3 +144,11 @@ func GetSHA1(text string) string {
 	h.Write([]byte(text))
 	return hex.EncodeToString(h.Sum(nil))
 }
+
+func MapToText(m map[string]string, delimiter string) string {
+	var lines []string
+	for key, value := range m {
+		lines = append(lines, fmt.Sprintf("%s%s%s", key, delimiter, value))
+	}
+	return strings.Join(lines, "\n")
+}
