@@ -1,7 +1,9 @@
 package ui
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -117,6 +119,40 @@ func GetSelectionBemenu(seq []string, prompt string, caseInsensitive, normalWind
 	result, err := shell.ShellCmd(fmt.Sprintf("bemenu%s -p '%s' -l %d -fn '%s'", caseFlagStr, prompt, lines, font),
 		&seqStr, nil, nil, true, false)
 	return *result, err
+}
+
+// ShowTextDialog runs textbox dialog window, then places provided text into it
+func ShowTextDialog(text, title string) error {
+	l := logger.Sugar()
+	impl.EnsureBinary("yad", *logger)
+	l.Debugw("[ShowTextDialog]", "text", text)
+
+	titleChunk := ""
+	if title != "" {
+		titleChunk = fmt.Sprintf("--title %s ", title)
+	}
+
+	dataPath := fmt.Sprintf("/tmp/dialog_text_%s", impl.GetSHA1(text))
+	file, err := os.OpenFile(dataPath, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0777)
+	if err != nil {
+		return err
+	}
+	writer := bufio.NewWriter(file)
+
+	_, err = writer.Write([]byte(text))
+	if err != nil {
+		return err
+	}
+	writer.Flush()
+	file.Close()
+
+	_, err = shell.ShellCmd(fmt.Sprintf("yad --filename %s %s--text-info", dataPath, titleChunk),
+		nil, nil, nil, false, false)
+	if err != nil {
+		return err
+	}
+
+	return os.Remove(dataPath)
 }
 
 // TODO: make selector function for fzf, see example(s): https://junegunn.kr/2016/02/using-fzf-in-your-program
