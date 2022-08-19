@@ -152,3 +152,11 @@ func MapToText(m map[string]string, delimiter string) string {
 	}
 	return strings.Join(lines, "\n")
 }
+
+func ShorterString(s string, l int) string {
+	if len(s) > l {
+		return fmt.Sprintf("%s...", strings.TrimRight(s[:l], " "))
+	} else {
+		return strings.TrimRight(s, " ")
+	}
+}
