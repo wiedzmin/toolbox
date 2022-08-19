@@ -175,6 +175,7 @@ func (x *X) GetWindowTraits(win *xproto.Window) (*WindowTraits, error) {
 	if err != nil {
 		return nil, err
 	}
+	// TODO: try to implement WM_WINDOW_ROLE retrieval
 	return &WindowTraits{
 		Title:    title,
 		Class:    wmClassData.Class,
