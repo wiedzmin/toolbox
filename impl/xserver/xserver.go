@@ -365,3 +365,30 @@ func CurrentWorkspaceTitle() (string, error) {
 	}
 	return result, nil
 }
+
+func HeadsFingerprint() (map[string]string, []string, error) {
+	impl.EnsureBinary("xrandr", *logger)
+	headEDIDs := make(map[string]string)
+	xrandrOutput, err := shell.ShellCmd("xrandr --prop", nil, nil, nil, true, false)
+	if err != nil {
+		return nil, nil, err
+	}
+	xrandrOutputSlice := strings.Split(*xrandrOutput, "\n")
+	var head, edid string
+	var headNames []string
+	for i, line := range xrandrOutputSlice {
+		if strings.Contains(line, " connected ") {
+			head = strings.Fields(line)[0]
+			headNames = append(headNames, head)
+		}
+		if strings.Contains(line, "EDID:") {
+			edid = strings.ReplaceAll(strings.ReplaceAll(strings.Join(xrandrOutputSlice[i+1:i+9], ""), "\n", ""), "\t", "")
+		}
+		if head != "" && edid != "" {
+			headEDIDs[head] = edid
+			head = ""
+			edid = ""
+		}
+	}
+	return headEDIDs, headNames, nil
+}
