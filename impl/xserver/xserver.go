@@ -58,6 +58,18 @@ type WindowTraits struct {
 	Role     string
 }
 
+func (t WindowTraits) AsMap() map[string]string {
+	return map[string]string{
+		"title":    t.Title,
+		"class":    t.Class,
+		"instance": t.Instance,
+	}
+}
+
+func (t WindowTraits) ListNames() []string {
+	return []string{"title", "class", "instance"}
+}
+
 type WindowRule struct {
 	Class    string `json:"class"`
 	Title    string `json:"title"`
