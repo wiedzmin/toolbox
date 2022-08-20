@@ -28,7 +28,7 @@ var (
 
 func perform(ctx *cli.Context) error {
 	l := logger.Sugar()
-	files, err := fs.CollectFiles(ctx.String("root"), false, nil, nil)
+	files, err := fs.CollectFiles(ctx.String("root"), false, false, nil, nil)
 	if err != nil {
 		return err
 	}

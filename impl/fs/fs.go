@@ -76,9 +76,9 @@ func RotateOlderThan(path, olderThan string, regexWhitelist *string) error {
 	return nil
 }
 
-func CollectFiles(path string, emitFullPath bool, regexpsWhitelist, regexpsBlacklist []string) ([]string, error) {
+func CollectFiles(path string, emitFullPath bool, allowDirs bool, regexpsWhitelist, regexpsBlacklist []string) ([]string, error) {
 	l := logger.Sugar()
-	l.Debugw("[CollectFiles]", "path", path, "emitFullPath", emitFullPath, "regexpsWhitelist", regexpsWhitelist)
+	l.Debugw("[CollectFiles]", "path", path, "emitFullPath", emitFullPath, "regexpsWhitelist", regexpsWhitelist, "regexpsBlacklist", regexpsBlacklist)
 	files, err := ioutil.ReadDir(fmt.Sprintf("%s/.", path))
 	l.Debugw("[CollectFiles]", "files", files)
 	if err != nil {
@@ -109,7 +109,7 @@ func CollectFiles(path string, emitFullPath bool, regexpsWhitelist, regexpsBlack
 
 	if acceptAll {
 		for _, fi := range files {
-			if !fi.IsDir() {
+			if !fi.IsDir() || allowDirs {
 				if emitFullPath {
 					result = append(result, fmt.Sprintf("%s/%s", path, fi.Name()))
 				} else {
@@ -119,7 +119,7 @@ func CollectFiles(path string, emitFullPath bool, regexpsWhitelist, regexpsBlack
 		}
 	} else if regexpsWhitelist != nil {
 		for _, fi := range files {
-			if !fi.IsDir() {
+			if !fi.IsDir() || allowDirs {
 				if impl.MatchAnyRegexp(fi.Name(), regexpsWhitelistRe) {
 					if emitFullPath {
 						result = append(result, fmt.Sprintf("%s/%s", path, fi.Name()))
@@ -131,7 +131,7 @@ func CollectFiles(path string, emitFullPath bool, regexpsWhitelist, regexpsBlack
 		}
 	} else if regexpsBlacklist != nil {
 		for _, fi := range files {
-			if !fi.IsDir() {
+			if !fi.IsDir() || allowDirs {
 				if !impl.MatchAnyRegexp(fi.Name(), regexpsBlacklistRe) {
 					if emitFullPath {
 						result = append(result, fmt.Sprintf("%s/%s", path, fi.Name()))
@@ -146,7 +146,7 @@ func CollectFiles(path string, emitFullPath bool, regexpsWhitelist, regexpsBlack
 	return result, nil
 }
 
-func CollectFilesRecursive(path string, regexpsWhitelist, regexpsBlacklist []string, trimPrefix bool) ([]string, error) {
+func CollectFilesRecursive(path string, allowDirs bool, regexpsWhitelist, regexpsBlacklist []string, trimPrefix bool) ([]string, error) {
 	l := logger.Sugar()
 	l.Debugw("[CollectFilesRecursive]", "path", path, "regexpsWhitelist", regexpsWhitelist, "regexpsBlacklist", regexpsBlacklist)
 
@@ -177,7 +177,7 @@ func CollectFilesRecursive(path string, regexpsWhitelist, regexpsBlacklist []str
 			if err != nil {
 				return err
 			}
-			if !fi.IsDir() {
+			if !fi.IsDir() || allowDirs {
 				if acceptAll {
 					if trimPrefix {
 						pathentry = strings.TrimPrefix(pathentry, path+"/")
