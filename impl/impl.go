@@ -165,7 +165,9 @@ func ShorterString(s string, l int) string {
 func MatchAnyRegexp(s string, regexps []regexp.Regexp) bool {
 	l := logger.Sugar()
 	match := false
+	l.Debugw("[MatchAnyRegexp]", "string", s)
 	for _, rc := range regexps {
+		l.Debugw("[MatchAnyRegexp]", "trying regexp", rc)
 		if rc.MatchString(s) {
 			l.Debugw("[MatchAnyRegexp]", "matched", s, "regexp", rc)
 			match = true
