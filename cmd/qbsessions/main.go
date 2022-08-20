@@ -82,7 +82,7 @@ func perform(ctx *cli.Context) error {
 		return exportSession(*sessionsPath, *sessionName, ctx.String("export-path"), exportFormat)
 	}
 	if ctx.Bool("export-all") {
-		files, err := fs.CollectFiles(*sessionsPath, false, nil)
+		files, err := fs.CollectFiles(*sessionsPath, false, nil, nil)
 		if err != nil {
 			return err
 		}

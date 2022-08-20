@@ -13,7 +13,7 @@ var (
 
 // SelectSession collects session files and allows selecting one
 func SelectSession(ctx *cli.Context, path, prompt string) (*string, error) {
-	files, err := fs.CollectFiles(path, false, nil)
+	files, err := fs.CollectFiles(path, false, nil, nil)
 	if err != nil {
 		return nil, err
 	}

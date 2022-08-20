@@ -42,7 +42,7 @@ func SessionsRootDefault() *string {
 
 func CollectSessions(root string) ([]Session, error) {
 	l := logger.Sugar()
-	sessionFiles, err := fs.CollectFiles(root, false, []string{SESSION_FILE_SUFFIX})
+	sessionFiles, err := fs.CollectFiles(root, false, []string{SESSION_FILE_SUFFIX}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func GetSession(root, name string) (*Session, error) {
 		regexp = fmt.Sprintf("%s/%s", name, SESSION_FILE_SUFFIX)
 	}
 	l.Debugw("[GetSession]", "root", root, "name", name, "regexp", regexp)
-	sessionFiles, err := fs.CollectFiles(root, false, []string{regexp})
+	sessionFiles, err := fs.CollectFiles(root, false, []string{regexp}, nil)
 	if err != nil {
 		return nil, err
 	}
