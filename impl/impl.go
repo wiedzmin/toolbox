@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"regexp"
 	"strings"
 	"time"
 
@@ -159,4 +160,17 @@ func ShorterString(s string, l int) string {
 	} else {
 		return strings.TrimRight(s, " ")
 	}
+}
+
+func MatchAnyRegexp(s string, regexps []regexp.Regexp) bool {
+	l := logger.Sugar()
+	match := false
+	for _, rc := range regexps {
+		if rc.MatchString(s) {
+			l.Debugw("[MatchAnyRegexp]", "matched", s, "regexp", rc)
+			match = true
+			break
+		}
+	}
+	return match
 }
