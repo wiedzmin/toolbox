@@ -97,6 +97,15 @@ func AtRunUser(suffix string) (*string, error) {
 	return &result, nil
 }
 
+func AtDotConfig(suffix string) (*string, error) {
+	userInfo, err := fetchUserinfo()
+	if err != nil {
+		return nil, err
+	}
+	result := fmt.Sprintf("%s/.config/%s", userInfo.HomeDir, strings.TrimPrefix(suffix, "/"))
+	return &result, nil
+}
+
 func CommonNowTimestamp() string {
 	now := time.Now()
 	return fmt.Sprintf("%02d-%02d-%02d-%02d-%02d-%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
