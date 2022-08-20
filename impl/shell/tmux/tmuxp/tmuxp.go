@@ -33,7 +33,7 @@ func init() {
 }
 
 func SessionsRootDefault() *string {
-	path, err := impl.AtHomedir(".tmuxp")
+	path, err := fs.AtHomedir(".tmuxp")
 	if err != nil {
 		return nil
 	}

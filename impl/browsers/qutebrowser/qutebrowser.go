@@ -11,6 +11,7 @@ import (
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/wiedzmin/toolbox/impl"
+	"github.com/wiedzmin/toolbox/impl/fs"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 )
@@ -87,7 +88,7 @@ func SocketPath() (*string, error) {
 }
 
 func RawSessionsPath() *string {
-	path, err := impl.AtHomedir(SessionstoreSubpath)
+	path, err := fs.AtHomedir(SessionstoreSubpath)
 	if err != nil {
 		return nil
 	}

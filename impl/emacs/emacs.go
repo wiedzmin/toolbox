@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/wiedzmin/toolbox/impl"
+	"github.com/wiedzmin/toolbox/impl/fs"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"go.uber.org/zap"
 )
@@ -15,7 +16,7 @@ func init() {
 }
 
 func SocketPath() (*string, error) {
-	return impl.AtRunUser("emacs/server")
+	return fs.AtRunUser("emacs/server")
 }
 
 func SendToServer(elisp string) error {

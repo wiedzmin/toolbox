@@ -10,6 +10,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pierrec/lz4/v4"
 	"github.com/wiedzmin/toolbox/impl"
+	"github.com/wiedzmin/toolbox/impl/fs"
 	"go.uber.org/zap"
 )
 
@@ -49,7 +50,7 @@ func init() {
 
 // RawSessionsPath returns path where raw jsonlz4 sessions are stored
 func RawSessionsPath() *string {
-	path, err := impl.AtHomedir(SessionstoreSubpath)
+	path, err := fs.AtHomedir(SessionstoreSubpath)
 	if err != nil {
 		return nil
 	}

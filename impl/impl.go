@@ -63,7 +63,7 @@ func (e ErrNotImplemented) Error() string {
 	return fmt.Sprintf("'%s' not implemented", e.Token)
 }
 
-func fetchUserinfo() (*user.User, error) {
+func FetchUserinfo() (*user.User, error) {
 	l := logger.Sugar()
 	userInfo, err := user.Current()
 	if err != nil {
@@ -77,33 +77,6 @@ func fetchUserinfo() (*user.User, error) {
 	}
 	l.Debugw("[fetchUserinfo]", "userInfo", userInfo)
 	return userInfo, nil
-}
-
-func AtHomedir(suffix string) (*string, error) {
-	userInfo, err := fetchUserinfo()
-	if err != nil {
-		return nil, err
-	}
-	result := fmt.Sprintf("%s/%s", userInfo.HomeDir, strings.TrimPrefix(suffix, "/"))
-	return &result, nil
-}
-
-func AtRunUser(suffix string) (*string, error) {
-	userInfo, err := fetchUserinfo()
-	if err != nil {
-		return nil, err
-	}
-	result := fmt.Sprintf("/run/user/%s/%s", userInfo.Uid, strings.TrimPrefix(suffix, "/"))
-	return &result, nil
-}
-
-func AtDotConfig(suffix string) (*string, error) {
-	userInfo, err := fetchUserinfo()
-	if err != nil {
-		return nil, err
-	}
-	result := fmt.Sprintf("%s/.config/%s", userInfo.HomeDir, strings.TrimPrefix(suffix, "/"))
-	return &result, nil
 }
 
 func CommonNowTimestamp() string {
