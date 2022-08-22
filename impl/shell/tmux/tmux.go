@@ -9,6 +9,10 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	SessionFlagName = "tmux-session"
+)
+
 type Session struct {
 	Name string
 }

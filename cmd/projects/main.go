@@ -10,6 +10,7 @@ import (
 	"github.com/wiedzmin/toolbox/impl/bookmarks"
 	"github.com/wiedzmin/toolbox/impl/emacs"
 	"github.com/wiedzmin/toolbox/impl/shell"
+	"github.com/wiedzmin/toolbox/impl/shell/tmux"
 	"github.com/wiedzmin/toolbox/impl/systemd"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/xserver/xkb"
@@ -145,7 +146,7 @@ func createCLI() *cli.App {
 	}
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
-			Name:     "tmux-session",
+			Name:     tmux.SessionFlagName,
 			Aliases:  []string{"t"},
 			EnvVars:  []string{impl.EnvPrefix + "_TMUX_SESSION"},
 			Usage:    "Default TMUX session to use",

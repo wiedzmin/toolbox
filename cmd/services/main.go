@@ -8,6 +8,8 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/redis"
+	"github.com/wiedzmin/toolbox/impl/shell"
+	"github.com/wiedzmin/toolbox/impl/shell/tmux"
 	"github.com/wiedzmin/toolbox/impl/systemd"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/xserver/xkb"
@@ -142,7 +144,7 @@ func perform(ctx *cli.Context) error {
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error stopping `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
-		err = unit.ShowJournal(true, ctx.String("tmux-session"), ctx.String("term-command"))
+		err = unit.ShowJournal(true, ctx.String(tmux.SessionFlagName), ctx.String(shell.TerminalCommandFlagName))
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error following journal for `%s`:\n\n%s", unit.Name, err.Error()))
@@ -162,35 +164,35 @@ func perform(ctx *cli.Context) error {
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error restarting `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
-		err = unit.ShowJournal(true, ctx.String("tmux-session"), ctx.String("term-command"))
+		err = unit.ShowJournal(true, ctx.String(tmux.SessionFlagName), ctx.String(shell.TerminalCommandFlagName))
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error following journal for `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
 	case "show":
-		err = unit.Show(ctx.String("tmux-session"), ctx.String("term-command"))
+		err = unit.Show(ctx.String(tmux.SessionFlagName), ctx.String(shell.TerminalCommandFlagName))
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error showing `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
 	case "journal":
-		err = unit.ShowJournal(false, ctx.String("tmux-session"), ctx.String("term-command"))
+		err = unit.ShowJournal(false, ctx.String(tmux.SessionFlagName), ctx.String(shell.TerminalCommandFlagName))
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error showing journal for `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
 	case "journal/follow":
-		err = unit.ShowJournal(true, ctx.String("tmux-session"), ctx.String("term-command"))
+		err = unit.ShowJournal(true, ctx.String(tmux.SessionFlagName), ctx.String(shell.TerminalCommandFlagName))
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error following journal for `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
 	case "status":
-		err = unit.ShowStatus(ctx.String("tmux-session"), ctx.String("term-command"))
+		err = unit.ShowStatus(ctx.String(tmux.SessionFlagName), ctx.String(shell.TerminalCommandFlagName))
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error showing status for `%s`:\n\n%s", unit.Name, err.Error()))
@@ -223,14 +225,14 @@ func createCLI() *cli.App {
 			Required: false,
 		},
 		&cli.StringFlag{
-			Name:     "tmux-session",
+			Name:     tmux.SessionFlagName,
 			Aliases:  []string{"t"},
 			EnvVars:  []string{impl.EnvPrefix + "_TMUX_SESSION"},
 			Usage:    "Default TMUX session to use",
 			Required: false,
 		},
 		&cli.StringFlag{
-			Name:     "term-command",
+			Name:     shell.TerminalCommandFlagName,
 			Aliases:  []string{"c"},
 			EnvVars:  []string{impl.EnvPrefix + "_TERMINAL_CMD"},
 			Usage:    "Terminal command to use as a Tmux fallback option",

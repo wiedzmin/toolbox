@@ -10,6 +10,10 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	TerminalCommandFlagName = "term-command"
+)
+
 var logger *zap.Logger
 
 func init() {
