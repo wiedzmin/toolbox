@@ -200,7 +200,7 @@ func doShow(cmd, title, tmuxSession, vtermCmd string) error {
 			session, err := tmux.GetSession(tmuxSession, false, true)
 			switch err.(type) {
 			case tmux.ErrSessionNotFound:
-				return shell.RunInTerminal(cmd, vtermCmd)
+				return shell.RunInBareTerminal(cmd, vtermCmd)
 			default:
 				if err != nil {
 					return err
@@ -209,7 +209,7 @@ func doShow(cmd, title, tmuxSession, vtermCmd string) error {
 			}
 			return nil
 		} else {
-			return shell.RunInTerminal(cmd, vtermCmd)
+			return shell.RunInBareTerminal(cmd, vtermCmd)
 		}
 	} else {
 		return impl.ErrNotImplemented{Token: "ShowTextDialog"}

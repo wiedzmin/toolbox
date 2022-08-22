@@ -48,7 +48,7 @@ func ShellCmd(cmd string, input *string, cwd *string, env []string, needOutput, 
 	}
 }
 
-func RunInTerminal(cmd, vtermCmd string) error {
+func RunInBareTerminal(cmd, vtermCmd string) error {
 	_, err := ShellCmd(fmt.Sprintf("%s '%s'", vtermCmd, cmd), nil, nil, nil, false, false)
 	return err
 }
