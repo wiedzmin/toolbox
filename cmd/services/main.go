@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	redisKeyName = "system/services"
+	redisKeyName     = "system/services"
 	redisKeyNameFlat = "system/services/flat"
 )
 
