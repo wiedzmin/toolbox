@@ -2,10 +2,10 @@ package tmux
 
 import (
 	"fmt"
+	"os/exec"
 	"strings"
 
 	"github.com/wiedzmin/toolbox/impl"
-	"github.com/wiedzmin/toolbox/impl/shell"
 	"go.uber.org/zap"
 )
 
@@ -34,18 +34,22 @@ func init() {
 func GetSession(name string, create, attach bool) (*Session, error) {
 	l := logger.Sugar()
 	l.Debugw("[GetSession]", "name", name, "create", create, "attach", attach)
-	out, err := shell.ShellCmd(fmt.Sprintf("tmux has-session -t %s", name), nil, nil, nil, true, false)
+	c := exec.Command("sh", "-c", fmt.Sprintf("tmux has-session -t %s", name))
+	out, err := c.Output()
+	outStr := strings.TrimRight(string(out), "\n")
 	l.Debugw("[GetSession]", "out", out, "err", err)
 	if err != nil {
 		return nil, err
 	}
-	if len(*out) > 0 {
+	if len(outStr) > 0 {
 		if create {
-			_, err := shell.ShellCmd(fmt.Sprintf("tmux new-session -d -s %s", name), nil, nil, nil, false, false)
+			c = exec.Command("sh", "-c", fmt.Sprintf("tmux new-session -d -s %s", name))
+			err := c.Run()
 			if err != nil {
 				return nil, err
 			}
-			_, err = shell.ShellCmd(fmt.Sprintf("tmux switch-client -t %s", name), nil, nil, nil, false, false)
+			c = exec.Command("sh", "-c", fmt.Sprintf("tmux switch-client -t %s", name))
+			err = c.Run()
 			if err != nil {
 				return nil, err
 			}
@@ -78,7 +82,8 @@ func (s *Session) NewWindow(cmd, title, startDirectory string, attach bool) erro
 
 	tmuxCmd := fmt.Sprintf("tmux new-window %s", strings.TrimSpace(argsStr.String()))
 	l.Debugw(fmt.Sprintf("[%s.NewWindow]", s.Name), "tmuxCmd", tmuxCmd)
-	_, err := shell.ShellCmd(tmuxCmd, nil, nil, nil, false, false)
+	c := exec.Command("sh", "-c", tmuxCmd)
+	err := c.Run()
 	if err != nil {
 		return err
 	}
