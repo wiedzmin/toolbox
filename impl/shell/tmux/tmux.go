@@ -75,6 +75,7 @@ func (s *Session) NewWindow(cmd, title, startDirectory string, attach bool) erro
 	if len(startDirectory) > 0 {
 		args = append(args, fmt.Sprintf("-c %s", startDirectory))
 	}
+	// TODO: elaborate/ensure `transient` commands proper handling, i.e. those who need "; read" thereafter
 	args = append(args, fmt.Sprintf("\"%s\"", cmd))
 	for _, arg := range args {
 		argsStr.WriteString(fmt.Sprintf("%s ", arg))
