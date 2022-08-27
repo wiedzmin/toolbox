@@ -6,15 +6,22 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
+	"github.com/wiedzmin/toolbox/impl/shell/tmux"
 	"go.uber.org/zap"
 )
 
 const (
 	TerminalCommandFlagName = "term-command"
+	TerminalBackendFlagName = "term-backend"
 )
 
-var logger *zap.Logger
+var (
+	logger                *zap.Logger
+	KittySocketEnvVarName = fmt.Sprintf("%s_KITTY_SOCKET", impl.EnvPrefix)
+)
+
 type ErrInvalidCmd struct {
 	Cmd string
 }
@@ -64,6 +71,57 @@ func ShellCmd(cmd string, input *string, cwd *string, env []string, needOutput, 
 	} else {
 		err := c.Run()
 		return nil, err
+	}
+}
+
+func RunInTerminal(ctx *cli.Context, cmd, title string) error {
+	l := logger.Sugar()
+	backend := ctx.String(TerminalBackendFlagName)
+	vtermCmd := ctx.String(TerminalCommandFlagName)
+	if len(vtermCmd) == 0 && backend != "kitty" {
+		return ErrInvalidCmd{Cmd: vtermCmd}
+	}
+	switch backend {
+	case "kitty":
+		return RunInKitty(cmd, title)
+	case "tmux":
+		session := ctx.String("tmux-session")
+		return RunInTmux(cmd, session, title, vtermCmd)
+	default:
+		l.Debugw("[OpenInTerminal]", "backend", backend, "summary", fmt.Sprintf("unknown terminal backend '%s'...", backend))
+		return RunInBareTerminal(cmd, vtermCmd)
+	}
+}
+
+func RunInKitty(cmd, title string) error {
+	impl.EnsureBinary("kitty", *logger)
+	socket := os.Getenv(KittySocketEnvVarName)
+	if socket == "" {
+		return ErrNoEnvVar{Name: KittySocketEnvVarName}
+	}
+	_, err := ShellCmd(fmt.Sprintf("kitty @ --to %s launch --type os-window sh -c \"%s\"", socket, cmd), nil, nil, nil, false, false)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func RunInTmux(cmd, title, session, vtermCmd string) error {
+	if len(session) > 0 {
+		impl.EnsureBinary("tmux", *logger)
+		session, err := tmux.GetSession(session, false, true)
+		switch err.(type) {
+		case tmux.ErrSessionNotFound:
+			return RunInBareTerminal(cmd, vtermCmd)
+		default:
+			if err != nil {
+				return err
+			}
+			return session.NewWindow(cmd, title, "", true)
+		}
+		return nil
+	} else {
+		return RunInBareTerminal(cmd, vtermCmd)
 	}
 }
 
