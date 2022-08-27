@@ -144,7 +144,7 @@ func perform(ctx *cli.Context) error {
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error stopping `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
-		err = unit.ShowJournal(true, ctx.String(tmux.SessionFlagName), ctx.String(shell.TerminalCommandFlagName))
+		err = unit.ShowJournal(ctx, true)
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error following journal for `%s`:\n\n%s", unit.Name, err.Error()))
@@ -164,35 +164,35 @@ func perform(ctx *cli.Context) error {
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error restarting `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
-		err = unit.ShowJournal(true, ctx.String(tmux.SessionFlagName), ctx.String(shell.TerminalCommandFlagName))
+		err = unit.ShowJournal(ctx, true)
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error following journal for `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
 	case "show":
-		err = unit.Show(ctx.String(tmux.SessionFlagName), ctx.String(shell.TerminalCommandFlagName))
+		err = unit.Show(ctx)
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error showing `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
 	case "journal":
-		err = unit.ShowJournal(false, ctx.String(tmux.SessionFlagName), ctx.String(shell.TerminalCommandFlagName))
+		err = unit.ShowJournal(ctx, false)
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error showing journal for `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
 	case "journal/follow":
-		err = unit.ShowJournal(true, ctx.String(tmux.SessionFlagName), ctx.String(shell.TerminalCommandFlagName))
+		err = unit.ShowJournal(ctx, true)
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error following journal for `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
 	case "status":
-		err = unit.ShowStatus(ctx.String(tmux.SessionFlagName), ctx.String(shell.TerminalCommandFlagName))
+		err = unit.ShowStatus(ctx)
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error showing status for `%s`:\n\n%s", unit.Name, err.Error()))
@@ -236,6 +236,13 @@ func createCLI() *cli.App {
 			Aliases:  []string{"c"},
 			EnvVars:  []string{impl.EnvPrefix + "_TERMINAL_CMD"},
 			Usage:    "Terminal command to use as a Tmux fallback option",
+			Required: true,
+		},
+		&cli.StringFlag{
+			Name:     shell.TerminalBackendFlagName,
+			Aliases:  []string{"b"},
+			EnvVars:  []string{impl.EnvPrefix + "_VT_ORG_TOOL"},
+			Usage:    "Terminal specialized backend token, i.e. `tmux`, `kitty` and maybe others",
 			Required: true,
 		},
 		&cli.StringFlag{

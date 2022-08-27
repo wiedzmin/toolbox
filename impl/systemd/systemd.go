@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/shell"
-	"github.com/wiedzmin/toolbox/impl/shell/tmux"
 	"go.uber.org/zap"
 )
 
@@ -191,58 +191,22 @@ func CollectUnits(system, user bool) ([]Unit, error) {
 	return units, nil
 }
 
-func doShow(cmd, title, tmuxSession, vtermCmd string) error {
-	l := logger.Sugar()
-	l.Debugw("[doShow]", "cmd", cmd, "title", title, "tmuxSession", tmuxSession, "vtermCmd", vtermCmd)
-	if len(vtermCmd) > 0 {
-		if len(tmuxSession) > 0 {
-			impl.EnsureBinary("tmux", *logger)
-			session, err := tmux.GetSession(tmuxSession, false, true)
-			switch err.(type) {
-			case tmux.ErrSessionNotFound:
-				return shell.RunInBareTerminal(cmd, vtermCmd)
-			default:
-				if err != nil {
-					return err
-				}
-				return session.NewWindow(cmd, title, "", true)
-			}
-			return nil
-		} else {
-			return shell.RunInBareTerminal(cmd, vtermCmd)
-		}
-	} else {
-		return impl.ErrNotImplemented{Token: "ShowTextDialog"}
-	}
-	return nil
-}
-
 // Show shows unit's settings
-func (s *Unit) Show(tmuxSession, vtermCmd string) error {
-	cmd := fmt.Sprintf("sh -c '%s'; read", sysctlCmd(s.User, "show", s.Name))
-	title := fmt.Sprintf("show :: %s", s.Name)
-
-	return doShow(cmd, title, tmuxSession, vtermCmd)
+func (s *Unit) Show(ctx *cli.Context) error {
+	return shell.RunInTerminal(ctx, sysctlCmd(s.User, "show", s.Name), fmt.Sprintf("show :: %s", s.Name))
 }
 
 // ShowStatus shows unit's status in form of `systemctl status` output
-func (s *Unit) ShowStatus(tmuxSession, vtermCmd string) error {
-	cmd := fmt.Sprintf("sh -c '%s'; read", sysctlCmd(s.User, "status", s.Name))
-	title := fmt.Sprintf("status :: %s", s.Name)
-
-	return doShow(cmd, title, tmuxSession, vtermCmd)
+func (s *Unit) ShowStatus(ctx *cli.Context) error {
+	return shell.RunInTerminal(ctx, sysctlCmd(s.User, "status", s.Name), fmt.Sprintf("status :: %s", s.Name))
 }
 
 // ShowStatus shows unit's journal in form of `journalctl` output
-func (s *Unit) ShowJournal(follow bool, tmuxSession, vtermCmd string) error {
-	cmd := fmt.Sprintf("sh -c '%s'; read", jctlCmd(s.User, follow, s.Name))
-	title := fmt.Sprintf("journal :: %s", s.Name)
+func (s *Unit) ShowJournal(ctx *cli.Context, follow bool) error {
 	if follow {
-		cmd = fmt.Sprintf("sh -c '%s'; read", jctlCmd(s.User, follow, s.Name))
-		title = fmt.Sprintf("journal/follow :: %s", s.Name)
+		return shell.RunInTerminal(ctx, jctlCmd(s.User, follow, s.Name), fmt.Sprintf("journal/follow :: %s", s.Name))
 	}
-
-	return doShow(cmd, title, tmuxSession, vtermCmd)
+	return shell.RunInTerminal(ctx, jctlCmd(s.User, follow, s.Name), fmt.Sprintf("journal :: %s", s.Name))
 }
 
 // TryRestart tries to restart unit
