@@ -201,7 +201,7 @@ func (s *Unit) ShowStatus(ctx *cli.Context) error {
 	return shell.RunInTerminal(ctx, sysctlCmd(s.User, "status", s.Name), fmt.Sprintf("status :: %s", s.Name))
 }
 
-// ShowStatus shows unit's journal in form of `journalctl` output
+// ShowJournal shows unit's journal in form of `journalctl` output
 func (s *Unit) ShowJournal(ctx *cli.Context, follow bool) error {
 	if follow {
 		return shell.RunInTerminal(ctx, jctlCmd(s.User, follow, s.Name), fmt.Sprintf("journal/follow :: %s", s.Name))
