@@ -69,6 +69,6 @@ func ShellCmd(cmd string, input *string, cwd *string, env []string, needOutput, 
 
 func RunInBareTerminal(cmd, vtermCmd string) error {
 	// TODO: elaborate/ensure `transient` commands proper handling, i.e. those who need "; read" thereafter
-	_, err := ShellCmd(fmt.Sprintf("%s '%s'", vtermCmd, cmd), nil, nil, nil, false, false)
+	_, err := ShellCmd(fmt.Sprintf("%s \"sh -c %s\"", vtermCmd, cmd), nil, nil, nil, false, false)
 	return err
 }
