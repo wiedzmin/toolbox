@@ -15,6 +15,21 @@ const (
 )
 
 var logger *zap.Logger
+type ErrInvalidCmd struct {
+	Cmd string
+}
+
+func (e ErrInvalidCmd) Error() string {
+	return fmt.Sprintf("invalid shell command: '%s'", e.Cmd)
+}
+
+type ErrNoEnvVar struct {
+	Name string
+}
+
+func (e ErrNoEnvVar) Error() string {
+	return fmt.Sprintf("no value found for: %s", e.Name)
+}
 
 func init() {
 	logger = impl.NewLogger()
