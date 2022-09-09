@@ -40,7 +40,7 @@ func (r *Client) GetValue(key string) ([]byte, error) {
 	return result, nil
 }
 
-func (r *Client) GetValuesFuzzy(pattern string) (map[string][]byte, error) {
+func (r *Client) GetValuesMapFuzzy(pattern string) (map[string][]byte, error) {
 	l := logger.Sugar()
 	result := make(map[string][]byte)
 	sc := radix.NewScanner(r.conn, radix.ScanOpts{Command: "SCAN", Pattern: pattern})

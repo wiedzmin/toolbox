@@ -22,7 +22,7 @@ func perform(ctx *cli.Context) error {
 		return err
 	}
 	if ctx.Bool("status") {
-		statuses, err := r.GetValuesFuzzy("vpn/*/is_up")
+		statuses, err := r.GetValuesMapFuzzy("vpn/*/is_up")
 		if err == nil {
 			for key, value := range statuses {
 				result = append(result, fmt.Sprintf("%s: %s", strings.Split(key, "/")[1], string(value)))

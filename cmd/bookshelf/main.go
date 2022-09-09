@@ -21,7 +21,7 @@ func perform(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	ebooks, err := r.GetValuesFuzzy("content/*/ebooks")
+	ebooks, err := r.GetValuesMapFuzzy("content/*/ebooks")
 	if err != nil {
 		ui.NotifyCritical("[bookshelf]", "Failed to fetch ebooks data")
 		os.Exit(1)
