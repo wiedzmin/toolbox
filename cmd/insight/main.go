@@ -16,6 +16,7 @@ import (
 var logger *zap.Logger
 
 func docs(ctx *cli.Context) error {
+	l := logger.Sugar()
 	var result []string
 	r, err := redis.NewRedisLocal()
 	if err != nil {
@@ -26,7 +27,9 @@ func docs(ctx *cli.Context) error {
 		ui.NotifyCritical("[insight]", "Failed to fetch docs data")
 		os.Exit(1)
 	}
-	for _, data := range docs {
+	l.Debugw("[insight]", "docs", docs)
+	for key, data := range docs {
+		l.Debugw("[insight]", "key", key, "data", data)
 		var docs []string
 		err := jsoniter.Unmarshal(data, &docs)
 		if err != nil {
@@ -52,6 +55,7 @@ func docs(ctx *cli.Context) error {
 }
 
 func ebooks(ctx *cli.Context) error {
+	l := logger.Sugar()
 	var result []string
 	r, err := redis.NewRedisLocal()
 	if err != nil {
@@ -62,7 +66,9 @@ func ebooks(ctx *cli.Context) error {
 		ui.NotifyCritical("[insight]", "Failed to fetch ebooks data")
 		os.Exit(1)
 	}
-	for _, data := range ebooks {
+	l.Debugw("[insight]", "ebooks", ebooks)
+	for key, data := range ebooks {
+		l.Debugw("[insight]", "key", key, "data", data)
 		var ebooks []string
 		err := jsoniter.Unmarshal(data, &ebooks)
 		if err != nil {
