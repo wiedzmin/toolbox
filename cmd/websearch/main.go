@@ -65,6 +65,8 @@ func perform(ctx *cli.Context) error {
 				if err != nil {
 					return err
 				}
+			} else if ctx.String("term") != "" {
+				searchTerm = ctx.String("term")
 			} else {
 				impl.EnsureBinary("xsel", *logger)
 				result, err := shell.ShellCmd("xsel -o", nil, nil, nil, true, false)
@@ -121,6 +123,11 @@ func createCLI() *cli.App {
 			Name:     "prompt",
 			Usage:    "Prompt for tokens to search",
 			Required: false,
+		},
+		&cli.StringFlag{
+			Name:    "term",
+			Aliases: []string{"t"},
+			Usage:   "Explicitly search `term` with selected search engine",
 		},
 		&cli.StringFlag{
 			Name:     impl.SelectorFontFlagName,
