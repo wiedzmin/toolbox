@@ -22,6 +22,8 @@ const (
 	UNIT_TYPE_SLICE   string = "slice"
 	UNIT_TYPE_SOCKET  string = "socket"
 	UNIT_TYPE_TARGET  string = "target"
+
+	DumpCmdFlagName = "dump-show-cmd"
 )
 
 var logger *zap.Logger
@@ -191,22 +193,36 @@ func CollectUnits(system, user bool) ([]Unit, error) {
 	return units, nil
 }
 
+// TODO: consider adding something similar for non-interactive commands (Start/Stop, etc.)
+func doShow(ctx *cli.Context, cmd, title string) error {
+	dumpCmd := ctx.Bool(DumpCmdFlagName)
+	if dumpCmd {
+		_, err := shell.ShellCmd("xsel -ib", &cmd, nil, nil, false, false)
+		if err != nil {
+			return err
+		}
+	} else {
+		return shell.RunInTerminal(ctx, cmd, title)
+	}
+	return nil
+}
+
 // Show shows unit's settings
 func (s *Unit) Show(ctx *cli.Context) error {
-	return shell.RunInTerminal(ctx, sysctlCmd(s.User, "show", s.Name), fmt.Sprintf("show :: %s", s.Name))
+	return doShow(ctx, sysctlCmd(s.User, "show", s.Name), fmt.Sprintf("show :: %s", s.Name))
 }
 
 // ShowStatus shows unit's status in form of `systemctl status` output
 func (s *Unit) ShowStatus(ctx *cli.Context) error {
-	return shell.RunInTerminal(ctx, sysctlCmd(s.User, "status", s.Name), fmt.Sprintf("status :: %s", s.Name))
+	return doShow(ctx, sysctlCmd(s.User, "status", s.Name), fmt.Sprintf("status :: %s", s.Name))
 }
 
 // ShowJournal shows unit's journal in form of `journalctl` output
 func (s *Unit) ShowJournal(ctx *cli.Context, follow bool) error {
 	if follow {
-		return shell.RunInTerminal(ctx, jctlCmd(s.User, follow, s.Name), fmt.Sprintf("journal/follow :: %s", s.Name))
+		return doShow(ctx, jctlCmd(s.User, follow, s.Name), fmt.Sprintf("journal/follow :: %s", s.Name))
 	}
-	return shell.RunInTerminal(ctx, jctlCmd(s.User, follow, s.Name), fmt.Sprintf("journal :: %s", s.Name))
+	return doShow(ctx, jctlCmd(s.User, follow, s.Name), fmt.Sprintf("journal :: %s", s.Name))
 }
 
 // TryRestart tries to restart unit

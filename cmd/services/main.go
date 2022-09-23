@@ -224,6 +224,12 @@ func createCLI() *cli.App {
 			Usage:    "Whether to display cartesian product of units and ops for faster fuzzy selection",
 			Required: false,
 		},
+		&cli.BoolFlag{
+			Name:     systemd.DumpCmdFlagName,
+			Aliases:  []string{"d"},
+			Usage:    "Do nothing, copy systemd CLI command to clipboard instead",
+			Required: false,
+		},
 		&cli.StringFlag{
 			Name:     tmux.SessionFlagName,
 			Aliases:  []string{"t"},
