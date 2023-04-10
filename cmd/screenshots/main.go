@@ -39,8 +39,7 @@ func perform(ctx *cli.Context) error {
 	} else {
 		var regexpsC []regexp.Regexp
 		for _, re := range dateRegexps { // FIXME: could we precompile regexps earlier?
-			rc := regexp.MustCompile(re)
-			regexpsC = append(regexpsC, *rc)
+			regexpsC = append(regexpsC, *regexp.MustCompile(re))
 		}
 		for _, f := range files {
 			failCount := 0
