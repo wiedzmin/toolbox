@@ -149,6 +149,8 @@ func (s *Unit) IsActive() (bool, error) {
 		return true, nil
 	case "inactive":
 		return false, nil
+	case "activating": // NOTE: immediately after killing, for example
+		return false, nil
 	default:
 		return false, fmt.Errorf("unknown status '%s'", *out)
 	}
