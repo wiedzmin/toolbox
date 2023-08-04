@@ -38,6 +38,7 @@ func open(ctx *cli.Context) error {
 			l.Errorw("[open]", "missing bookmark path", key)
 		} else {
 			if bookmark.Shell {
+				// FIXME: consider not erroring out, think of more useful reaction
 				l.Errorw("[open]", "open shell", "not implemented")
 			}
 			emacsService := systemd.Unit{Name: "emacs.service", User: true}
