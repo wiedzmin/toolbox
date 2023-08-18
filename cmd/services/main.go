@@ -8,7 +8,6 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/redis"
-	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/shell/tmux"
 	"github.com/wiedzmin/toolbox/impl/systemd"
 	"github.com/wiedzmin/toolbox/impl/ui"
@@ -236,20 +235,6 @@ func createCLI() *cli.App {
 			EnvVars:  []string{impl.EnvPrefix + "_TMUX_SESSION"},
 			Usage:    "Default TMUX session to use",
 			Required: false,
-		},
-		&cli.StringFlag{
-			Name:     shell.TerminalCommandFlagName,
-			Aliases:  []string{"c"},
-			EnvVars:  []string{impl.EnvPrefix + "_TERMINAL_CMD"},
-			Usage:    "Terminal command to use as a Tmux fallback option",
-			Required: true,
-		},
-		&cli.StringFlag{
-			Name:     shell.TerminalBackendFlagName,
-			Aliases:  []string{"b"},
-			EnvVars:  []string{impl.EnvPrefix + "_VT_ORG_TOOL"},
-			Usage:    "Terminal specialized backend token, i.e. `tmux`, `kitty` and maybe others",
-			Required: true,
 		},
 		&cli.StringFlag{
 			Name:     impl.SelectorFontFlagName,
