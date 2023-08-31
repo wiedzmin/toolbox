@@ -1,9 +1,11 @@
 package shell
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/urfave/cli/v2"
@@ -15,6 +17,10 @@ import (
 const (
 	TerminalCommandFlagName = "term-command"
 	TerminalBackendFlagName = "term-backend"
+
+	grepMaxFileSize = 65536
+	osMetadataPath  = "/etc/os-release"
+	pkexecPathNixos = "/run/wrappers/bin/pkexec"
 )
 
 var (
@@ -129,4 +135,31 @@ func RunInBareTerminal(cmd, vtermCmd string) error {
 	// TODO: elaborate/ensure `transient` commands proper handling, i.e. those who need "; read" thereafter
 	_, err := ShellCmd(fmt.Sprintf("%s \"sh -c %s\"", vtermCmd, cmd), nil, nil, nil, false, false)
 	return err
+}
+
+func Grep(path, token string) (bool, error) {
+	r, err := regexp.Compile(token)
+	if err != nil {
+		return false, err
+	}
+
+	file, err := os.Open(path)
+	if err != nil {
+		return false, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	buf := make([]byte, grepMaxFileSize)
+	scanner.Buffer(buf, grepMaxFileSize)
+
+	for scanner.Scan() {
+		if r.MatchString(scanner.Text()) {
+			return true, nil
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return false, err
+	}
+	return false, nil
 }
