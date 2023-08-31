@@ -160,7 +160,7 @@ func (s *Unit) IsActive() (bool, error) {
 func DaemonReload() error {
 	l := logger.Sugar()
 	l.Debugw("[DaemonReload]")
-	_, err := shell.ShellCmd("pkexec systemctl daemon-reload", nil, nil, nil, false, false)
+	_, err := shell.ShellCmd(fmt.Sprintf("%s systemctl daemon-reload", shell.PkexecPath()), nil, nil, nil, false, false)
 	return err
 }
 

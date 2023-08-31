@@ -163,3 +163,11 @@ func Grep(path, token string) (bool, error) {
 	}
 	return false, nil
 }
+
+func PkexecPath() string {
+	found, _ := Grep(osMetadataPath, "NixOS")
+	if found {
+		return pkexecPathNixos
+	}
+	return "pkexec"
+}
