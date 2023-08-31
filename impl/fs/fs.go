@@ -254,7 +254,7 @@ func CopyFile(src, dst string) error {
 	return copyFileContents(src, dst)
 }
 
-// FileExists checks if path exists and is reaaly a file
+// FileExists checks if path exists and is really a file
 func FileExists(path string) bool {
 	l := logger.Sugar()
 	fi, err := os.Stat(path)
