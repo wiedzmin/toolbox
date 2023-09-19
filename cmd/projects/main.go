@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -81,13 +82,20 @@ func search(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	matchingReposSlice := strings.Split(*matchingRepos, "\n")
-	xkb.EnsureEnglishKeyboardLayout()
-	path, err := ui.GetSelection(ctx, matchingReposSlice, "explore", true, false)
-	if err != nil {
-		l.Warnw("[search]", "no repository provided")
-		ui.NotifyNormal("[search repos]", "no repository selected")
-		return err
+	var path string
+	if len(*matchingRepos) > 0 {
+ 		matchingReposSlice := strings.Split(*matchingRepos, "\n")
+		xkb.EnsureEnglishKeyboardLayout()
+		path, err = ui.GetSelection(ctx, matchingReposSlice, "explore", true, false) // FIXME: handle "no search results" case, do not show empty `dmenu`
+		if err != nil {
+			l.Warnw("[search]", "no repository provided")
+			ui.NotifyNormal("[search repos]", "no repository selected")
+			return err
+		}
+	} else {
+		l.Debugw("[search]", "error", "no matching repos found")
+		ui.NotifyNormal("[search repos]", "no matching repos found")
+		return errors.New("no matching repos found")
 	}
 
 	emacsService := systemd.Unit{Name: "emacs.service", User: true}
