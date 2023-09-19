@@ -77,9 +77,12 @@ func perform(ctx *cli.Context) error {
 				searchTerm = *result
 			}
 			if searchTerm != "" {
+				searchTermPrepared := strings.ReplaceAll(searchTerm, " ", "+")
+				searchTermPrepared = strings.ReplaceAll(searchTermPrepared, ",", "")
+				searchTermPrepared = strings.ReplaceAll(searchTermPrepared, "'s", "")
 				l.Debugw("[perform]", "browserCmd", browserCmd, "searchengine.URL", searchengine.URL)
 				_, err := shell.ShellCmd(fmt.Sprintf("%s '%s%s'", browserCmd, searchengine.URL,
-					strings.ReplaceAll(searchTerm, " ", "+")), nil, nil, nil, false, false)
+					searchTermPrepared), nil, nil, nil, false, false)
 				if err != nil {
 					return err
 				}
