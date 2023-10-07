@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"os/user"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
@@ -155,4 +156,35 @@ func MatchAnyRegexp(s string, regexps []regexp.Regexp) bool {
 		}
 	}
 	return match
+}
+
+// callerName is a helper function for automatically getting function name for the current call frame
+// "skip" parameter denotes, how many frames up the call stack should be skipped
+func callerName(skip int) string {
+    const unknown = "unknown"
+    pcs := make([]uintptr, 1)
+    n := runtime.Callers(skip+2, pcs)
+    if n < 1 {
+        return unknown
+    }
+    frame, _ := runtime.CallersFrames(pcs).Next()
+    if frame.Function == "" {
+        return unknown
+    }
+    return frame.Function
+}
+
+// FuncDuration measures whole function execution time for debugging purposes
+// `defer impl.FuncDuration("<some function ID>")()` should be the first statement in function being measured
+// if aformentioned function ID is "", actual function name will be guessed from runtime metadata
+func FuncDuration(id string) func() {
+	l := logger.Sugar()
+	functionId := id
+	if functionId == "" {
+		functionId = callerName(1)
+	}
+    start := time.Now()
+    return func() {
+		l.Debugw("[FuncDuration]", "function", functionId, "duration", time.Since(start))
+    }
 }
