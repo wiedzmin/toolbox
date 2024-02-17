@@ -20,8 +20,8 @@ type SessionFormat int8
 
 type Request struct {
 	Commands        []string `json:"args"`
-	targetArg       string   `json:"target_arg"`
-	protocolVersion int      `json:"protocol_version"`
+	TargetArg       string   `json:"target_arg"`
+	ProtocolVersion int      `json:"protocol_version"`
 }
 
 const (
@@ -96,8 +96,8 @@ func RawSessionsPath() *string {
 }
 
 func (r *Request) Marshal() ([]byte, error) {
-	r.protocolVersion = 1
-	r.targetArg = ""
+	r.ProtocolVersion = 1
+	r.TargetArg = ""
 	bytes, err := jsoniter.Marshal(r)
 	if err != nil {
 		return nil, err
