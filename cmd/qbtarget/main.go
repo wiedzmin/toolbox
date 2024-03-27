@@ -2,51 +2,106 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/browsers/qutebrowser"
+	"github.com/wiedzmin/toolbox/impl/redis"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"go.uber.org/zap"
 )
 
-const URL_TARGET_SETTING = "new_instance_open_target"
+const (
+	URL_TARGET_SETTING = "new_instance_open_target"
+	TARGET_KEY_NAME    = "qb_current_url_target"
+	WATCH_FILE         = "/tmp/qbtarget"
+)
 
-var logger *zap.Logger
+var (
+	logger *zap.Logger
+	r      *redis.Client
+)
+
+func getCurrentTarget() (string, error) {
+	l := logger.Sugar()
+	value, err := r.GetValue(TARGET_KEY_NAME)
+	if err != nil {
+		return "", err
+	}
+	target := string(value)
+	if target == "" {
+		target = "unknown"
+	}
+	l.Debugw("[qbtarget.getCurrentTarget]", "key", TARGET_KEY_NAME, "value", target)
+	return target, nil
+}
 
 func perform(ctx *cli.Context) error {
 	l := logger.Sugar()
-	targetParam := ctx.String("target")
-	var target string
-	switch targetParam {
-	case "tab":
-		target = "tab"
-	case "window":
-		target = "window"
-	default:
-		return fmt.Errorf("unknown url target '%s'", targetParam)
-	}
-	socketPath, err := qutebrowser.SocketPath()
-	if err != nil {
-		return err
-	}
-	r := qutebrowser.Request{Commands: []string{
-		fmt.Sprintf(":set %s %s", URL_TARGET_SETTING, target),
-	}}
 
-	l.Debugw("[perform]", "request", r)
-	rb, err := r.Marshal()
-	if err != nil {
-		return err
+	var target string
+
+	if ctx.Bool("notify-status") {
+		target, err := getCurrentTarget()
+		if err != nil {
+			return err
+		}
+		ui.NotifyNormal("[qbtarget]", fmt.Sprintf("url target is `%s`", target))
+		return nil
+	} else {
+		targetParam := ctx.String("target")
+
+		switch targetParam {
+		case "tab":
+			target = "tab"
+		case "window":
+			target = "window"
+		case "":
+			target, err := getCurrentTarget()
+			if err != nil {
+				return err
+			}
+			io.WriteString(os.Stdout, fmt.Sprintf("%s\n", strings.ToUpper(target)))
+			return nil
+		default:
+			return fmt.Errorf("unknown url target '%s'", targetParam)
+		}
+		socketPath, err := qutebrowser.SocketPath()
+		if err != nil {
+			return err
+		}
+		resp := qutebrowser.Request{Commands: []string{
+			fmt.Sprintf(":set %s %s", URL_TARGET_SETTING, target),
+		}}
+
+		l.Debugw("[perform]", "request", r)
+		rb, err := resp.Marshal()
+		if err != nil {
+			return err
+		}
+		err = impl.SendToUnixSocket(*socketPath, rb)
+		if _, ok := err.(impl.FileErrNotExist); ok {
+			ui.NotifyCritical("[qutebrowser]", fmt.Sprintf("cannot access socket at `%s`\nIs qutebrowser running?", *socketPath))
+			os.Exit(0)
+		}
+
+		err = r.SetValue(TARGET_KEY_NAME, target)
+		if err != nil {
+			return err
+		}
+
+		watchData := []byte(fmt.Sprintf("target: %s\n", target))
+		err = os.WriteFile(WATCH_FILE, watchData, 0644)
+		if err != nil {
+			return err
+		}
+
+		l.Debugw("[qbtarget.perform]", "status", fmt.Sprintf("url target set to `%s`", target), TARGET_KEY_NAME, target)
+		ui.NotifyNormal("[qbtarget]", fmt.Sprintf("url target set to `%s`", target))
 	}
-	err = impl.SendToUnixSocket(*socketPath, rb)
-	if _, ok := err.(impl.FileErrNotExist); ok {
-		ui.NotifyCritical("[qutebrowser]", fmt.Sprintf("cannot access socket at `%s`\nIs qutebrowser running?", *socketPath))
-		os.Exit(0)
-	}
-	l.Debugw("[qbtarget.perform]", "status", fmt.Sprintf("url target set to `%s`", target))
-	ui.NotifyNormal("[qbtarget]", fmt.Sprintf("url target set to `%s`", target))
 
 	return nil
 }
@@ -63,7 +118,13 @@ func createCLI() *cli.App {
 			Name:     "target",
 			Aliases:  []string{"t"},
 			Usage:    "URL target to use from now on",
-			Required: true,
+			Required: false,
+		},
+		&cli.BoolFlag{
+			Name:     "notify-status",
+			Aliases:  []string{"s"},
+			Usage:    "Show currently set target notification",
+			Required: false,
 		},
 	}
 	app.Action = perform
@@ -74,8 +135,15 @@ func main() {
 	logger = impl.NewLogger()
 	defer logger.Sync()
 	l := logger.Sugar()
+
+	var err error
+
+	r, err = redis.NewRedisLocal()
+	if err != nil {
+		l.Errorw("[main]", "err", err)
+	}
 	app := createCLI()
-	err := app.Run(os.Args)
+	err = app.Run(os.Args)
 	if err != nil {
 		l.Errorw("[main]", "err", err)
 	}
