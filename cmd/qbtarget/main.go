@@ -64,7 +64,11 @@ func perform(ctx *cli.Context) error {
 			if err != nil {
 				return err
 			}
-			io.WriteString(os.Stdout, fmt.Sprintf("%s\n", strings.ToUpper(target)))
+			targetStr := strings.ToUpper(target)
+			if ctx.Bool("colorize") && ctx.String("foreground") != "" {
+				targetStr = fmt.Sprintf("<span foreground=\"%s\">%s</span>", ctx.String("foreground"), targetStr)
+			}
+			io.WriteString(os.Stdout, fmt.Sprintf("%s\n", targetStr))
 			return nil
 		default:
 			return fmt.Errorf("unknown url target '%s'", targetParam)
@@ -124,6 +128,18 @@ func createCLI() *cli.App {
 			Name:     "notify-status",
 			Aliases:  []string{"s"},
 			Usage:    "Show currently set target notification",
+			Required: false,
+		},
+		&cli.BoolFlag{
+			Name:     "colorize",
+			Aliases:  []string{"c"},
+			Usage:    "Whether to colorize text foreground using Pango <span> markup",
+			Required: false,
+		},
+		&cli.StringFlag{
+			Name:     "foreground",
+			Aliases:  []string{"fg"},
+			Usage:    "Text foreground color to use. No values validation provided",
 			Required: false,
 		},
 	}
