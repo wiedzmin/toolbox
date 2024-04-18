@@ -28,6 +28,10 @@ var (
 	KittySocketEnvVarName = fmt.Sprintf("%s_KITTY_SOCKET", impl.EnvPrefix)
 )
 
+type TerminalTraits struct {
+	Backend, VTermCmd, TmuxSession string
+}
+
 type ErrInvalidCmd struct {
 	Cmd string
 }
@@ -46,6 +50,14 @@ func (e ErrNoEnvVar) Error() string {
 
 func init() {
 	logger = impl.NewLogger()
+}
+
+func TermTraitsFromContext(ctx *cli.Context) TerminalTraits {
+	return TerminalTraits{
+		Backend:     ctx.String(TerminalBackendFlagName),
+		VTermCmd:    ctx.String(TerminalCommandFlagName),
+		TmuxSession: ctx.String("tmux-session"),
+	}
 }
 
 // ShellCmd executes shell commands
@@ -80,22 +92,19 @@ func ShellCmd(cmd string, input *string, cwd *string, env []string, needOutput, 
 	}
 }
 
-func RunInTerminal(ctx *cli.Context, cmd, title string) error {
+func RunInTerminal(cmd, title string, traits TerminalTraits) error {
 	l := logger.Sugar()
-	backend := ctx.String(TerminalBackendFlagName)
-	vtermCmd := ctx.String(TerminalCommandFlagName)
-	if len(vtermCmd) == 0 && backend != "kitty" {
-		return ErrInvalidCmd{Cmd: vtermCmd}
+	if len(traits.VTermCmd) == 0 && traits.Backend != "kitty" {
+		return ErrInvalidCmd{Cmd: traits.VTermCmd}
 	}
-	switch backend {
+	switch traits.Backend {
 	case "kitty":
 		return RunInKitty(cmd, title)
 	case "tmux":
-		session := ctx.String("tmux-session")
-		return RunInTmux(cmd, session, title, vtermCmd)
+		return RunInTmux(cmd, traits.TmuxSession, title, traits.VTermCmd)
 	default:
-		l.Debugw("[OpenInTerminal]", "backend", backend, "summary", fmt.Sprintf("unknown terminal backend '%s'...", backend))
-		return RunInBareTerminal(cmd, vtermCmd)
+		l.Debugw("[OpenInTerminal]", "backend", traits.Backend, "summary", "unknown terminal backend")
+		return RunInBareTerminal(cmd, traits.VTermCmd)
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/redis"
+	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/shell/tmux"
 	"github.com/wiedzmin/toolbox/impl/systemd"
 	"github.com/wiedzmin/toolbox/impl/ui"
@@ -100,7 +101,7 @@ func perform(ctx *cli.Context) error {
 	}
 	entries, err = r.GetList(redisKey, 0, -1)
 	xkb.EnsureEnglishKeyboardLayout()
-	entry, err := ui.GetSelection(ctx, entries, "select", true, false)
+	entry, err := ui.GetSelection(entries, "select", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
 	if err != nil {
 		return err
 	}
@@ -116,7 +117,7 @@ func perform(ctx *cli.Context) error {
 	} else {
 		unit = systemd.UnitFromString(entry)
 		// FIXME: ensure sort order
-		operation, err = ui.GetSelection(ctx, OPERATIONS, "perform", true, false)
+		operation, err = ui.GetSelection(OPERATIONS, "perform", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
 		if err != nil {
 			return err
 		}
@@ -143,7 +144,7 @@ func perform(ctx *cli.Context) error {
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error stopping `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
-		err = unit.ShowJournal(ctx, true)
+		err = unit.ShowJournal(shell.TermTraitsFromContext(ctx), true, ctx.Bool(systemd.DumpCmdFlagName))
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error following journal for `%s`:\n\n%s", unit.Name, err.Error()))
@@ -163,35 +164,35 @@ func perform(ctx *cli.Context) error {
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error restarting `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
-		err = unit.ShowJournal(ctx, true)
+		err = unit.ShowJournal(shell.TermTraitsFromContext(ctx), true, ctx.Bool(systemd.DumpCmdFlagName))
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error following journal for `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
 	case "show":
-		err = unit.Show(ctx)
+		err = unit.Show(shell.TermTraitsFromContext(ctx), ctx.Bool(systemd.DumpCmdFlagName))
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error showing `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
 	case "journal":
-		err = unit.ShowJournal(ctx, false)
+		err = unit.ShowJournal(shell.TermTraitsFromContext(ctx), false, ctx.Bool(systemd.DumpCmdFlagName))
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error showing journal for `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
 	case "journal/follow":
-		err = unit.ShowJournal(ctx, true)
+		err = unit.ShowJournal(shell.TermTraitsFromContext(ctx), true, ctx.Bool(systemd.DumpCmdFlagName))
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error following journal for `%s`:\n\n%s", unit.Name, err.Error()))
 			return err
 		}
 	case "status":
-		err = unit.ShowStatus(ctx)
+		err = unit.ShowStatus(shell.TermTraitsFromContext(ctx), ctx.Bool(systemd.DumpCmdFlagName))
 		if err != nil {
 			l.Errorw("[perform]", "err", err)
 			ui.NotifyCritical("[services]", fmt.Sprintf("Error showing status for `%s`:\n\n%s", unit.Name, err.Error()))

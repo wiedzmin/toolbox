@@ -28,7 +28,7 @@ func perform(ctx *cli.Context) error {
 	}
 	sort.Strings(names)
 	xkb.EnsureEnglishKeyboardLayout()
-	sessionName, err := ui.GetSelection(ctx, names, "load", true, false)
+	sessionName, err := ui.GetSelection(names, "load", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
 	if err != nil {
 		return err
 	}

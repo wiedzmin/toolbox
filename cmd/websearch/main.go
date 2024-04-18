@@ -24,7 +24,7 @@ func perform(ctx *cli.Context) error {
 		return err
 	}
 	xkb.EnsureEnglishKeyboardLayout()
-	key, err := ui.GetSelection(ctx, searchengines.Keys(), "search with", true, false)
+	key, err := ui.GetSelection(searchengines.Keys(), "search with", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
 	l.Debugw("[perform]", "key", key, "err", err)
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func perform(ctx *cli.Context) error {
 			}
 			var searchTerm string
 			if ctx.Bool("prompt") {
-				searchTerm, err = ui.GetSelection(ctx, []string{}, fmt.Sprintf("%s | term", key), true, true)
+				searchTerm, err = ui.GetSelection([]string{}, fmt.Sprintf("%s | term", key), ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, true)
 				l.Debugw("[perform]", "searchTerm", searchTerm, "err", err)
 				if err != nil {
 					return err

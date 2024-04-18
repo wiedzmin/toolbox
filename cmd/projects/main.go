@@ -27,7 +27,7 @@ func open(ctx *cli.Context) error {
 		return err
 	}
 	xkb.EnsureEnglishKeyboardLayout()
-	key, err := ui.GetSelection(ctx, bookmarks.Keys(), "open", true, false)
+	key, err := ui.GetSelection(bookmarks.Keys(), "open", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
 	l.Debugw("[open]", "key", key, "err", err)
 	if err != nil {
 		return err
@@ -70,7 +70,7 @@ func open(ctx *cli.Context) error {
 func search(ctx *cli.Context) error {
 	l := logger.Sugar()
 	xkb.EnsureEnglishKeyboardLayout()
-	searchTerm, err := ui.GetSelection(ctx, []string{}, "token", true, false)
+	searchTerm, err := ui.GetSelection([]string{}, "token", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
 	if err != nil {
 		l.Warnw("[search]", "no keyword provided")
 		ui.NotifyCritical("[search repos]", "no keyword provided")
@@ -84,9 +84,9 @@ func search(ctx *cli.Context) error {
 	}
 	var path string
 	if len(*matchingRepos) > 0 {
- 		matchingReposSlice := strings.Split(*matchingRepos, "\n")
+		matchingReposSlice := strings.Split(*matchingRepos, "\n")
 		xkb.EnsureEnglishKeyboardLayout()
-		path, err = ui.GetSelection(ctx, matchingReposSlice, "explore", true, false) // FIXME: handle "no search results" case, do not show empty `dmenu`
+		path, err = ui.GetSelection(matchingReposSlice, "explore", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false) // FIXME: handle "no search results" case, do not show empty `dmenu`
 		if err != nil {
 			l.Warnw("[search]", "no repository provided")
 			ui.NotifyNormal("[search repos]", "no repository selected")

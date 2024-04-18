@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"go.uber.org/zap"
@@ -196,35 +195,34 @@ func CollectUnits(system, user bool) ([]Unit, error) {
 }
 
 // TODO: consider adding something similar for non-interactive commands (Start/Stop, etc.)
-func doShow(ctx *cli.Context, cmd, title string) error {
-	dumpCmd := ctx.Bool(DumpCmdFlagName)
+func doShow(cmd, title string, terminalTraits shell.TerminalTraits, dumpCmd bool) error {
 	if dumpCmd {
 		_, err := shell.ShellCmd("xsel -ib", &cmd, nil, nil, false, false)
 		if err != nil {
 			return err
 		}
 	} else {
-		return shell.RunInTerminal(ctx, cmd, title)
+		return shell.RunInTerminal(cmd, title, terminalTraits)
 	}
 	return nil
 }
 
 // Show shows unit's settings
-func (s *Unit) Show(ctx *cli.Context) error {
-	return doShow(ctx, sysctlCmd(s.User, "show", s.Name), fmt.Sprintf("show :: %s", s.Name))
+func (s *Unit) Show(terminalTraits shell.TerminalTraits, dumpCmd bool) error {
+	return doShow(sysctlCmd(s.User, "show", s.Name), fmt.Sprintf("show :: %s", s.Name), terminalTraits, dumpCmd)
 }
 
 // ShowStatus shows unit's status in form of `systemctl status` output
-func (s *Unit) ShowStatus(ctx *cli.Context) error {
-	return doShow(ctx, sysctlCmd(s.User, "status", s.Name), fmt.Sprintf("status :: %s", s.Name))
+func (s *Unit) ShowStatus(terminalTraits shell.TerminalTraits, dumpCmd bool) error {
+	return doShow(sysctlCmd(s.User, "status", s.Name), fmt.Sprintf("status :: %s", s.Name), terminalTraits, dumpCmd)
 }
 
 // ShowJournal shows unit's journal in form of `journalctl` output
-func (s *Unit) ShowJournal(ctx *cli.Context, follow bool) error {
+func (s *Unit) ShowJournal(terminalTraits shell.TerminalTraits, follow, dumpCmd bool) error {
 	if follow {
-		return doShow(ctx, jctlCmd(s.User, follow, s.Name), fmt.Sprintf("journal/follow :: %s", s.Name))
+		return doShow(jctlCmd(s.User, follow, s.Name), fmt.Sprintf("journal/follow :: %s", s.Name), terminalTraits, dumpCmd)
 	}
-	return doShow(ctx, jctlCmd(s.User, follow, s.Name), fmt.Sprintf("journal :: %s", s.Name))
+	return doShow(jctlCmd(s.User, follow, s.Name), fmt.Sprintf("journal :: %s", s.Name), terminalTraits, dumpCmd)
 }
 
 // TryRestart tries to restart unit

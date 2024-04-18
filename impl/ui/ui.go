@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/0xAX/notificator"
-	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"go.uber.org/zap"
@@ -35,16 +34,15 @@ func init() {
 }
 
 // GetSelection returns users choice from list of options, using predefined selector tool
-func GetSelection(ctx *cli.Context, seq []string, prompt string, caseInsensitive, normalWindow bool) (string, error) {
+func GetSelection(seq []string, prompt, tool, font string, caseInsensitive, normalWindow bool) (string, error) {
 	l := logger.Sugar()
-	tool := ctx.String(SelectorToolFlagName)
 	switch tool {
 	case "rofi":
 		return GetSelectionRofi(seq, prompt, caseInsensitive, normalWindow)
 	case "dmenu":
-		return GetSelectionDmenu(seq, prompt, caseInsensitive, ctx.String(impl.SelectorFontFlagName))
+		return GetSelectionDmenu(seq, prompt, caseInsensitive, font)
 	case "bemenu":
-		return GetSelectionBemenu(seq, prompt, caseInsensitive, ctx.String(impl.SelectorFontFlagName))
+		return GetSelectionBemenu(seq, prompt, caseInsensitive, font)
 	default:
 		l.Debugw("[GetSelection]", "tool", tool, "summary", fmt.Sprintf("unknown selector tool '%s'...", tool))
 		return "", fmt.Errorf("unknown selector tool: '%s'", tool)

@@ -61,7 +61,7 @@ func perform(ctx *cli.Context) error {
 	}
 	if ctx.Bool("save-named") {
 		xkb.EnsureEnglishKeyboardLayout()
-		name, err := ui.GetSelection(ctx, []string{}, "save as", true, false)
+		name, err := ui.GetSelection([]string{}, "save as", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
 		if err != nil {
 			return err
 		}
@@ -75,7 +75,7 @@ func perform(ctx *cli.Context) error {
 		exportFormat = qutebrowser.SESSION_FORMAT_ORG_FLAT
 	}
 	if ctx.Bool("export") {
-		sessionName, err := browsers.SelectSession(ctx, *sessionsPath, "export")
+		sessionName, err := browsers.SelectSession(*sessionsPath, "export", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName))
 		if err != nil {
 			return err
 		}

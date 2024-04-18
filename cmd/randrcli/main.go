@@ -24,7 +24,7 @@ func fingerprint(ctx *cli.Context) error {
 	}
 	l.Debugw("[fingerprint]", "fingerprint", fp)
 	xkb.EnsureEnglishKeyboardLayout()
-	head, err := ui.GetSelection(ctx, heads, "head", true, false)
+	head, err := ui.GetSelection(heads, "head", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
 	if err != nil {
 		return err
 	}
@@ -62,12 +62,12 @@ func appTraits(ctx *cli.Context) error {
 		titles = append(titles, traits.Title)
 	}
 
-	title, err := ui.GetSelection(ctx, titles, "window", true, false)
+	title, err := ui.GetSelection(titles, "window", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
 	if err != nil {
 		return err
 	}
 	if traits, ok := traitsMap[title]; ok {
-		traitName, err := ui.GetSelection(ctx, traits.ListNames(), ">", true, false)
+		traitName, err := ui.GetSelection(traits.ListNames(), ">", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
 		if err != nil {
 			return err
 		}
@@ -109,7 +109,7 @@ func activate(ctx *cli.Context) error {
 		return err
 	}
 
-	profile, err := ui.GetSelection(ctx, profiles, "profile", true, false)
+	profile, err := ui.GetSelection(profiles, "profile", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
 	if err != nil {
 		return err
 	}

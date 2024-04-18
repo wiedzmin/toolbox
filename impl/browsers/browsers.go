@@ -1,7 +1,6 @@
 package browsers
 
 import (
-	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl/fs"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/xserver/xkb"
@@ -12,13 +11,13 @@ var (
 )
 
 // SelectSession collects session files and allows selecting one
-func SelectSession(ctx *cli.Context, path, prompt string) (*string, error) {
+func SelectSession(path, prompt, tool, font string) (*string, error) {
 	files, err := fs.CollectFiles(path, false, false, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 	xkb.EnsureEnglishKeyboardLayout()
-	sessionName, err := ui.GetSelection(ctx, files, prompt, true, false)
+	sessionName, err := ui.GetSelection(files, prompt, tool, font, true, false)
 
 	if err != nil {
 		return nil, err

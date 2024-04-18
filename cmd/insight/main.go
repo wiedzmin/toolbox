@@ -40,7 +40,7 @@ func docs(ctx *cli.Context) error {
 		}
 	}
 
-	doc, err := ui.GetSelection(ctx, result, "open", true, true)
+	doc, err := ui.GetSelection(result, "open", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, true)
 	if err != nil {
 		ui.NotifyNormal("[insight]", "no document selected")
 		return err
@@ -79,7 +79,7 @@ func ebooks(ctx *cli.Context) error {
 		}
 	}
 
-	book, err := ui.GetSelection(ctx, result, "open", true, true)
+	book, err := ui.GetSelection(result, "open", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, true)
 	if err != nil {
 		ui.NotifyNormal("[insight]", "no book selected")
 		return err
