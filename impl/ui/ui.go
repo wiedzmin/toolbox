@@ -40,11 +40,11 @@ func GetSelection(ctx *cli.Context, seq []string, prompt string, caseInsensitive
 	tool := ctx.String(SelectorToolFlagName)
 	switch tool {
 	case "rofi":
-		return GetSelectionRofi(seq, prompt, caseInsensitive, normalWindow, ctx.String(impl.SelectorFontFlagName))
+		return GetSelectionRofi(seq, prompt, caseInsensitive, normalWindow)
 	case "dmenu":
-		return GetSelectionDmenu(seq, prompt, caseInsensitive, normalWindow, ctx.String(impl.SelectorFontFlagName))
+		return GetSelectionDmenu(seq, prompt, caseInsensitive, ctx.String(impl.SelectorFontFlagName))
 	case "bemenu":
-		return GetSelectionBemenu(seq, prompt, caseInsensitive, normalWindow, ctx.String(impl.SelectorFontFlagName))
+		return GetSelectionBemenu(seq, prompt, caseInsensitive, ctx.String(impl.SelectorFontFlagName))
 	default:
 		l.Debugw("[GetSelection]", "tool", tool, "summary", fmt.Sprintf("unknown selector tool '%s'...", tool))
 		return "", fmt.Errorf("unknown selector tool: '%s'", tool)
@@ -52,7 +52,7 @@ func GetSelection(ctx *cli.Context, seq []string, prompt string, caseInsensitive
 }
 
 // GetSelectionRofi returns users choice from list of options, using Rofi selector tool
-func GetSelectionRofi(seq []string, prompt string, caseInsensitive, normalWindow bool, font string /*ignored*/) (string, error) {
+func GetSelectionRofi(seq []string, prompt string, caseInsensitive, normalWindow bool) (string, error) {
 	impl.EnsureBinary("rofi", *logger)
 	l := logger.Sugar()
 	sort.Strings(seq)
@@ -72,7 +72,7 @@ func GetSelectionRofi(seq []string, prompt string, caseInsensitive, normalWindow
 }
 
 // GetSelectionDmenu returns users choice from list of options, using Dmenu selector tool
-func GetSelectionDmenu(seq []string, prompt string, caseInsensitive, normalWindow /*ignored*/ bool, font string) (string, error) {
+func GetSelectionDmenu(seq []string, prompt string, caseInsensitive bool, font string) (string, error) {
 	impl.EnsureBinary("dmenu", *logger)
 	l := logger.Sugar()
 	sort.Strings(seq)
@@ -97,7 +97,7 @@ func GetSelectionDmenu(seq []string, prompt string, caseInsensitive, normalWindo
 }
 
 // GetSelectionBemenu returns users choice from list of options, using Bemenu selector tool
-func GetSelectionBemenu(seq []string, prompt string, caseInsensitive, normalWindow /*ignored*/ bool, font string) (string, error) {
+func GetSelectionBemenu(seq []string, prompt string, caseInsensitive bool, font string) (string, error) {
 	impl.EnsureBinary("bemenu", *logger)
 	l := logger.Sugar()
 	sort.Strings(seq)
