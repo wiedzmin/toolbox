@@ -75,7 +75,7 @@ func perform(ctx *cli.Context) error {
 		exportFormat = qutebrowser.SESSION_FORMAT_ORG_FLAT
 	}
 	if ctx.Bool("export") {
-		sessionName, err := browsers.SelectSession(*sessionsPath, "export", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName))
+		sessionName, err := browsers.SelectSession(*sessionsPath, "export", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), nil, nil)
 		if err != nil {
 			return err
 		}

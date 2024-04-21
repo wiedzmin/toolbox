@@ -67,7 +67,7 @@ func dump(ctx *cli.Context) error {
 
 func edit(ctx *cli.Context) error {
 	l := logger.Sugar()
-	sessionName, err := browsers.SelectSession(ctx.String("dumps-path"), "edit", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName))
+	sessionName, err := browsers.SelectSession(ctx.String("dumps-path"), "edit", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), nil, nil)
 	l.Debugw("[edit]", "sessionName", sessionName, "err", err)
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func edit(ctx *cli.Context) error {
 
 func remove(ctx *cli.Context) error {
 	l := logger.Sugar()
-	sessionName, err := browsers.SelectSession(ctx.String("dumps-path"), "remove", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName))
+	sessionName, err := browsers.SelectSession(ctx.String("dumps-path"), "remove", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), nil, nil)
 	l.Debugw("[remove]", "sessionName", sessionName, "err", err)
 	if err != nil {
 		return err
