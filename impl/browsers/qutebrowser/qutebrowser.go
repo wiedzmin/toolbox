@@ -25,10 +25,11 @@ type Request struct {
 }
 
 const (
-	SESSION_FORMAT_YAML     SessionFormat = 0
-	SESSION_FORMAT_ORG      SessionFormat = 1
-	SESSION_FORMAT_ORG_FLAT SessionFormat = 2
-	SessionstoreSubpath                   = ".local/share/qutebrowser/sessions"
+	SESSION_FORMAT_YAML SessionFormat = iota
+	SESSION_FORMAT_JSON
+	SESSION_FORMAT_ORG
+	SESSION_FORMAT_ORG_FLAT
+	SessionstoreSubpath = ".local/share/qutebrowser/sessions"
 )
 
 var logger *zap.Logger
