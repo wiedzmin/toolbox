@@ -127,7 +127,7 @@ func ShowTextDialog(text, title string) error {
 
 	titleChunk := ""
 	if title != "" {
-		titleChunk = fmt.Sprintf("--title %s ", title)
+		titleChunk = fmt.Sprintf("--title \"%s\" ", title)
 	}
 
 	dataPath := fmt.Sprintf("/tmp/dialog_text_%s", impl.GetSHA1(text))
