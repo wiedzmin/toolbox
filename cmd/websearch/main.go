@@ -1,5 +1,7 @@
 package main
 
+// FIXME: issue error when not predefined engine is selected (e.g. especially when trying to print search terms on this step)
+
 import (
 	"fmt"
 	"os"
