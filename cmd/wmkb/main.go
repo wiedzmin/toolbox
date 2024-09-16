@@ -149,7 +149,7 @@ func createCLI() *cli.App {
 			Name:     ui.SelectorToolFlagName,
 			Aliases:  []string{"T"},
 			EnvVars:  []string{impl.EnvPrefix + "_SELECTOR_TOOL"},
-			Value:    ui.SelectorTool,
+			Value:    ui.SelectorToolDefault,
 			Usage:    "Selector tool to use, e.g. dmenu, rofi, etc.",
 			Required: false,
 		},

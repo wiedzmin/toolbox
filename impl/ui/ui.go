@@ -19,7 +19,7 @@ const (
 	dmenuSelectionLinesCount = 15
 
 	SelectorToolFlagName = "selector-tool"
-	SelectorTool         = "dmenu"
+	SelectorToolDefault  = "dmenu"
 )
 
 var notify *notificator.Notificator
