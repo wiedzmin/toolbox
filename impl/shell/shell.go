@@ -17,6 +17,7 @@ import (
 const (
 	TerminalCommandFlagName = "term-command"
 	TerminalBackendFlagName = "term-backend"
+	TerminalBackendDefault  = "kitty"
 
 	grepMaxFileSize = 65536
 	osMetadataPath  = "/etc/os-release"
