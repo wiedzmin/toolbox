@@ -1,6 +1,8 @@
 package bookmarks
 
 import (
+	"errors"
+	"os"
 	"strings"
 
 	jsoniter "github.com/json-iterator/go"
@@ -43,6 +45,8 @@ type Bookmarks struct {
 	data   []byte
 	parsed map[string]Bookmark
 }
+
+type FnFormatBookmarkKey func(string, Bookmark) string
 
 var (
 	logger *zap.Logger
@@ -192,4 +196,39 @@ func (bm *Bookmarks) Get(key string) *Bookmark {
 	}
 	return &meta
 }
+
+func (bm *Bookmarks) FilteredPathsMap(keepFiles, keepDirs, ignoreNonexistent bool) (map[string]Bookmark, error) {
+	result := make(map[string]Bookmark)
+
+	for title, bookmark := range bm.parsed {
+		fi, err := os.Stat(bookmark.Path)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) && !ignoreNonexistent {
+				return nil, err
+			}
+			continue
+		}
+		if (fi.IsDir() && keepDirs) || (!fi.IsDir() && keepFiles) {
+			result[title] = bookmark
+		}
+	}
+	return result, nil
+}
+
+func CustomKeyedMap(m map[string]Bookmark, fnFormat FnFormatBookmarkKey) map[string]Bookmark {
+	result := make(map[string]Bookmark)
+
+	for title, bookmark := range m {
+		result[fnFormat(title, bookmark)] = bookmark
+	}
+	return result
+}
+
+func GetBookmarksMapKeys(m map[string]Bookmark) []string {
+	// FIXME: consider trying generics
+	var keys []string
+	for key := range m {
+		keys = append(keys, key)
+	}
+	return keys
 }
