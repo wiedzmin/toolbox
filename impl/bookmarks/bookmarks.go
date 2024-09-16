@@ -186,9 +186,10 @@ func (bm *Bookmarks) Keys() []string {
 }
 
 func (bm *Bookmarks) Get(key string) *Bookmark {
-	url, ok := bm.parsed[key]
+	meta, ok := bm.parsed[key]
 	if !ok {
 		return nil
 	}
-	return &url
+	return &meta
+}
 }
