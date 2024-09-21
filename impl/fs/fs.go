@@ -3,7 +3,6 @@ package fs
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -24,7 +23,7 @@ func init() {
 func FilesOlderThan(path, olderThan string, fullPath bool, regexWhitelist *string) ([]string, error) {
 	l := logger.Sugar()
 	l.Debugw("[FilesOlderThan]", "path", path, "olderThan", olderThan, "fullPath", fullPath, "regexWhitelist", regexWhitelist)
-	files, err := ioutil.ReadDir(fmt.Sprintf("%s/.", path))
+	files, err := os.ReadDir(fmt.Sprintf("%s/.", path))
 	l.Debugw("[FilesOlderThan]", "files", files)
 	if err != nil {
 		return nil, err
@@ -42,7 +41,11 @@ func FilesOlderThan(path, olderThan string, fullPath bool, regexWhitelist *strin
 	pastTime := time.Now().Add(-d)
 	var result []string
 	for _, fi := range files {
-		stat := fi.Sys().(*syscall.Stat_t)
+		fiInfo, err := fi.Info()
+		if err != nil {
+			return nil, err
+		}
+		stat := fiInfo.Sys().(*syscall.Stat_t)
 		ctime := time.Unix(int64(stat.Ctim.Sec), int64(stat.Ctim.Nsec))
 		if ctime.Before(pastTime) && !fi.IsDir() {
 			if regexWhitelist != nil && !regexWhitelistRe.MatchString(fi.Name()) {
@@ -79,7 +82,7 @@ func RotateOlderThan(path, olderThan string, regexWhitelist *string) error {
 func CollectFiles(path string, fullPath bool, allowDirs bool, regexpsWhitelist, regexpsBlacklist []string) ([]string, error) {
 	l := logger.Sugar()
 	l.Debugw("[CollectFiles]", "path", path, "fullPath", fullPath, "regexpsWhitelist", regexpsWhitelist, "regexpsBlacklist", regexpsBlacklist)
-	files, err := ioutil.ReadDir(fmt.Sprintf("%s/.", path))
+	files, err := os.ReadDir(fmt.Sprintf("%s/.", path))
 	l.Debugw("[CollectFiles]", "files", files)
 	if err != nil {
 		return nil, err
