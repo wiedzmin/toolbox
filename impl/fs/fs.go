@@ -110,37 +110,15 @@ func CollectFiles(path string, fullPath bool, allowDirs bool, regexpsWhitelist, 
 		acceptAll = true
 	}
 
-	if acceptAll {
-		for _, fi := range files {
-			if !fi.IsDir() || allowDirs {
+	for _, fi := range files {
+		if !fi.IsDir() || allowDirs {
+			if acceptAll ||
+				regexpsWhitelist != nil && impl.MatchAnyRegexp(fi.Name(), regexpsWhitelistRe) ||
+				regexpsBlacklist != nil && !impl.MatchAnyRegexp(fi.Name(), regexpsBlacklistRe) {
 				if fullPath {
 					result = append(result, fmt.Sprintf("%s/%s", path, fi.Name()))
 				} else {
 					result = append(result, fi.Name())
-				}
-			}
-		}
-	} else if regexpsWhitelist != nil {
-		for _, fi := range files {
-			if !fi.IsDir() || allowDirs {
-				if impl.MatchAnyRegexp(fi.Name(), regexpsWhitelistRe) {
-					if fullPath {
-						result = append(result, fmt.Sprintf("%s/%s", path, fi.Name()))
-					} else {
-						result = append(result, fi.Name())
-					}
-				}
-			}
-		}
-	} else if regexpsBlacklist != nil {
-		for _, fi := range files {
-			if !fi.IsDir() || allowDirs {
-				if !impl.MatchAnyRegexp(fi.Name(), regexpsBlacklistRe) {
-					if fullPath {
-						result = append(result, fmt.Sprintf("%s/%s", path, fi.Name()))
-					} else {
-						result = append(result, fi.Name())
-					}
 				}
 			}
 		}
@@ -181,17 +159,9 @@ func CollectFilesRecursive(path string, allowDirs bool, regexpsWhitelist, regexp
 				return err
 			}
 			if !fi.IsDir() || allowDirs {
-				if acceptAll {
-					if trimPrefix {
-						pathentry = strings.TrimPrefix(pathentry, path+"/")
-					}
-					result = append(result, pathentry)
-				} else if regexpsWhitelist != nil && impl.MatchAnyRegexp(fi.Name(), regexpsWhitelistRe) {
-					if trimPrefix {
-						pathentry = strings.TrimPrefix(pathentry, path+"/")
-					}
-					result = append(result, pathentry)
-				} else if regexpsBlacklist != nil && !impl.MatchAnyRegexp(fi.Name(), regexpsBlacklistRe) {
+				if acceptAll ||
+					regexpsWhitelist != nil && impl.MatchAnyRegexp(fi.Name(), regexpsWhitelistRe) ||
+					regexpsBlacklist != nil && !impl.MatchAnyRegexp(fi.Name(), regexpsBlacklistRe) {
 					if trimPrefix {
 						pathentry = strings.TrimPrefix(pathentry, path+"/")
 					}
