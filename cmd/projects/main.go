@@ -22,49 +22,62 @@ var logger *zap.Logger
 
 func open(ctx *cli.Context) error {
 	l := logger.Sugar()
-	bookmarks, err := bookmarks.BookmarksFromRedis("nav/bookmarks")
+
+	emacsService := systemd.Unit{Name: "emacs.service", User: true}
+	isActive, err := emacsService.IsActive()
 	if err != nil {
 		return err
 	}
-	xkb.EnsureEnglishKeyboardLayout()
-	key, err := ui.GetSelection(bookmarks.Keys(), "open", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
-	l.Debugw("[open]", "key", key, "err", err)
-	if err != nil {
-		return err
+	if !isActive {
+		l.Errorw("[open]", "`emacs` service", "not running")
+		ui.NotifyCritical("[bookmarks]", "Emacs service not running")
+		os.Exit(1)
 	}
-	if bookmark := bookmarks.Get(key); bookmark == nil {
-		l.Errorw("[open]", "failed to get bookmark metadata for", key)
+
+	var pathStr string
+	if ctx.String("path") != "" {
+		pathStr = ctx.String("path")
 	} else {
-		if bookmark.Path == "" {
-			l.Errorw("[open]", "missing bookmark path", key)
+		bookmarks, err := bookmarks.BookmarksFromRedis("nav/bookmarks")
+		if err != nil {
+			return err
+		}
+		var keyStr string
+		if ctx.String("key") != "" {
+			keyStr = ctx.String("key")
 		} else {
-			if bookmark.Shell {
-				// FIXME: consider not erroring out, think of more useful reaction
-				l.Errorw("[open]", "open shell", "not implemented")
-			}
-			emacsService := systemd.Unit{Name: "emacs.service", User: true}
-			isActive, err := emacsService.IsActive()
+			xkb.EnsureEnglishKeyboardLayout()
+			keyStr, err = ui.GetSelection(bookmarks.Keys(), "open", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
+			l.Debugw("[open]", "key", keyStr, "err", err)
 			if err != nil {
 				return err
 			}
-			if !isActive {
-				l.Errorw("[open]", "`emacs` service", "not running")
-				ui.NotifyCritical("[bookmarks]", "Emacs service not running")
-				os.Exit(1)
+		}
+		if bookmark := bookmarks.Get(keyStr); bookmark == nil {
+			l.Errorw("[open]", "failed to get bookmark metadata for", keyStr)
+		} else {
+			if bookmark.Path == "" {
+				l.Errorw("[open]", "missing bookmark path", keyStr)
+			} else {
+				if bookmark.Shell {
+					// FIXME: consider not erroring out, think of more useful reaction
+					l.Errorw("[open]", "open shell", "not implemented")
+				}
+				pathStr = bookmark.Path
 			}
-			fi, err := os.Stat(bookmark.Path)
-			if err != nil {
-				return err
-			}
-			elispCmd := fmt.Sprintf("(open-project \"%s\")", bookmark.Path)
-			if !fi.IsDir() {
-				elispCmd = fmt.Sprintf("(find-file \"%s\")", bookmark.Path)
-			}
-			l.Debugw("[open]", "elispCmd", elispCmd)
-			return emacs.SendToServer(elispCmd)
 		}
 	}
-	return nil
+
+	fi, err := os.Stat(pathStr)
+	if err != nil {
+		return err
+	}
+	elispCmd := fmt.Sprintf("(open-project \"%s\")", pathStr)
+	if !fi.IsDir() {
+		elispCmd = fmt.Sprintf("(find-file \"%s\")", pathStr)
+	}
+	l.Debugw("[open]", "elispCmd", elispCmd)
+	return emacs.SendToServer(elispCmd)
 }
 
 func search(ctx *cli.Context) error {
@@ -126,6 +139,18 @@ func createCLI() *cli.App {
 			Name:   "open",
 			Usage:  "Open bookmarked project",
 			Action: open,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "path",
+					Usage:    "Use predefined path",
+					Required: false,
+				},
+				&cli.StringFlag{
+					Name:     "key",
+					Usage:    "Search bookmarks by preselcted key",
+					Required: false,
+				},
+			},
 		},
 		{
 			Name:   "search",
