@@ -29,7 +29,7 @@
 
   languages.go = {
     enable = true;
-    package = pkgs.go_1_22;
+    package = pkgs.go_1_23;
   };
 
   # FIXME: re-enable after broken `pre-commit` config semantic will be fixed
