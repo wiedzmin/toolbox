@@ -36,6 +36,25 @@ func modes(ctx *cli.Context) error {
 	return nil
 }
 
+func workspaces(ctx *cli.Context) error {
+	workspaces, err := wm.WorkspacesFromRedis("wm/workspaces")
+	if err != nil {
+		return err
+	}
+
+	prompt := "Workspaces"
+	if ctx.Bool("fuzzy") {
+		_, err := ui.GetSelection(workspaces.Fuzzy(), prompt, ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
+		if err != nil {
+			return err
+		}
+	} else {
+		ui.ShowTextDialog(workspaces.AsText(), prompt)
+	}
+
+	return nil
+}
+
 func keys(ctx *cli.Context) error {
 	keybindings, err := wm.KeybindingsFromRedis("wm/keybindings")
 	if err != nil {
@@ -132,6 +151,18 @@ func createCLI() *cli.App {
 				&cli.BoolFlag{
 					Name:     "tree",
 					Usage:    "Whether to show tree-like, representation, conflicts with fuzzy matching",
+					Required: false,
+				},
+			},
+		},
+		{
+			Name:   "workspaces",
+			Usage:  "Whether to show workspaces keybindings",
+			Action: workspaces,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:     "fuzzy",
+					Usage:    "Whether to use fuzzy matching",
 					Required: false,
 				},
 			},

@@ -13,6 +13,11 @@ import (
 
 type Keys []string
 
+type Workspaces struct {
+	data   []byte
+	parsed map[string]string
+}
+
 type Keybinding struct {
 	Cmd             string `json:"cmd"`
 	Key             Keys   `json:"key"`
@@ -82,6 +87,36 @@ type ErrLinkBroken struct {
 
 func (e ErrLinkBroken) Error() string {
 	return e.Reason
+}
+
+func NewWorkspaces(data []byte) (*Workspaces, error) {
+	var result Workspaces
+	result.data = data
+	err := jsoniter.Unmarshal(data, &result.parsed)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func WorkspacesFromRedis(key string) (*Workspaces, error) {
+	workspacesData, err := r.GetValue(key)
+	if err != nil {
+		return nil, err
+	}
+	return NewWorkspaces(workspacesData)
+}
+
+func (wss *Workspaces) Fuzzy() []string {
+	var result []string
+	for ws, key := range wss.parsed {
+		result = append(result, fmt.Sprintf("%-30s | %-10s", ws, key))
+	}
+	return result
+}
+
+func (wss *Workspaces) AsText() string {
+	return strings.Join(wss.Fuzzy()[:], "\n")
 }
 
 func NewModebindings(data []byte) (*Modebindings, error) {
