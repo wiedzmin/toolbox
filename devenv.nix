@@ -33,12 +33,10 @@
     package = pkgs.go_1_23;
   };
 
-  # FIXME: re-enable after broken `pre-commit` config semantic will be fixed
-  # namely, InvalidConfigError issued about wrong hook name for some reason
   pre-commit.hooks = {
-    golangci-lint.enable = false;
-    gofmt.enable = false;
-    govet.enable = false;
-    typos.enable = false;
+    golangci-lint.enable = true;
+    gofmt.enable = true;
+    govet.enable = true;
+    typos.enable = true;
   };
 }
