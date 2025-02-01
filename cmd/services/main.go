@@ -61,7 +61,7 @@ func ensureUnitsCache(ctx *cli.Context) error {
 			return err
 		}
 		for _, op := range OPERATIONS {
-			err = r.AppendToList(redisKeyNameFlat, fmt.Sprintf("%s / %s", u.String(), op))
+			_ = r.AppendToList(redisKeyNameFlat, fmt.Sprintf("%s / %s", u.String(), op))
 		}
 	}
 
@@ -99,7 +99,7 @@ func perform(ctx *cli.Context) error {
 	} else {
 		redisKey = redisKeyName
 	}
-	entries, err = r.GetList(redisKey, 0, -1)
+	entries, _ = r.GetList(redisKey, 0, -1)
 	xkb.EnsureEnglishKeyboardLayout()
 	entry, err := ui.GetSelection(entries, "select", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
 	if err != nil {
