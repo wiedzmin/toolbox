@@ -5,6 +5,7 @@
     PROJECTNAME = "toolbox";
     GREEN = "\\033[0;32m";
     NC = "\\033[0m"; # No Color
+    GOPATH = lib.mkForce "/home/alex3rd/workspace/go"; # FIXME: try unhardcoding
   };
 
   scripts.hello.exec = ''echo -e "''${GREEN}welcome to $PROJECTNAME''${NC}"'';
