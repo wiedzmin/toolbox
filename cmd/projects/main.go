@@ -147,7 +147,7 @@ func createCLI() *cli.App {
 				},
 				&cli.StringFlag{
 					Name:     "key",
-					Usage:    "Search bookmarks by preselcted key",
+					Usage:    "Search bookmarks by preselected key",
 					Required: false,
 				},
 			},
