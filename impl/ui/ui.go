@@ -71,6 +71,11 @@ func GetSelectionRofi(seq []string, prompt string, caseInsensitive, normalWindow
 
 // GetSelectionDmenu returns users choice from list of options, using Dmenu selector tool
 func GetSelectionDmenu(seq []string, prompt string, caseInsensitive bool, font string) (string, error) {
+	// TODO: try embedding dmenu into X windows
+	// Embedding in current terminal
+	// Dmenu can be embedded inside any window using the -w id option.
+	// To embed it inside the currently active window (like for example the terminal it is being run from), use xdo to get its id:
+	// $ echo hello | dmenu -w $(xdo id)
 	impl.EnsureBinary("dmenu", *logger)
 	l := logger.Sugar()
 	sort.Strings(seq)
