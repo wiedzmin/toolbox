@@ -252,6 +252,20 @@ func createCLI() *cli.App {
 			Usage:    "Selector tool to use, e.g. dmenu, rofi, etc.",
 			Required: false,
 		},
+		// TODO: consider providing some kind of defaults (preferably in-code) for such parameters
+		&cli.StringFlag{
+			Name:     shell.TerminalCommandFlagName,
+			EnvVars:  []string{impl.EnvPrefix + "_TERMINAL_CMD"},
+			Usage:    "Terminal command to use",
+			Required: false,
+		},
+		&cli.StringFlag{
+			Name:     shell.TerminalBackendFlagName,
+			EnvVars:  []string{impl.EnvPrefix + "_TERMINAL_BACKEND"},
+			Value:    shell.TerminalBackendDefault,
+			Usage:    "Terminal backend to use",
+			Required: false,
+		},
 	}
 	app.Action = perform
 	return app
