@@ -68,16 +68,21 @@ func open(ctx *cli.Context) error {
 		}
 	}
 
-	fi, err := os.Stat(pathStr)
-	if err != nil {
-		return err
+	if !ctx.Bool("shell") {
+		fi, err := os.Stat(pathStr)
+		if err != nil {
+			return err
+		}
+		elispCmd := fmt.Sprintf("(open-project \"%s\")", pathStr)
+		if !fi.IsDir() {
+			elispCmd = fmt.Sprintf("(find-file \"%s\")", pathStr)
+		}
+		l.Debugw("[open]", "elispCmd", elispCmd)
+		return emacs.SendToServer(elispCmd)
+	} else {
+		ui.NotifyNormal("[open]", fmt.Sprintf("opening terminal at %s", pathStr))
+		return shell.OpenTerminal(pathStr, shell.TermTraitsFromContext(ctx))
 	}
-	elispCmd := fmt.Sprintf("(open-project \"%s\")", pathStr)
-	if !fi.IsDir() {
-		elispCmd = fmt.Sprintf("(find-file \"%s\")", pathStr)
-	}
-	l.Debugw("[open]", "elispCmd", elispCmd)
-	return emacs.SendToServer(elispCmd)
 }
 
 func search(ctx *cli.Context) error {
@@ -111,20 +116,25 @@ func search(ctx *cli.Context) error {
 		return errors.New("no matching repos found")
 	}
 
-	emacsService := systemd.Unit{Name: "emacs.service", User: true}
-	l.Debugw("[search]", "emacsService", emacsService)
-	isActive, err := emacsService.IsActive()
-	if err != nil {
-		return err
+	if !ctx.Bool("shell") {
+		emacsService := systemd.Unit{Name: "emacs.service", User: true}
+		l.Debugw("[search]", "emacsService", emacsService)
+		isActive, err := emacsService.IsActive()
+		if err != nil {
+			return err
+		}
+		if !isActive {
+			l.Errorw("[search]", "`emacs` service", "not running")
+			ui.NotifyCritical("[search repos]", "Emacs service not running")
+			os.Exit(1)
+		}
+		elispCmd := fmt.Sprintf("(open-project \"%s\")", path)
+		l.Debugw("[search]", "elispCmd", elispCmd)
+		return emacs.SendToServer(elispCmd)
+	} else {
+		ui.NotifyNormal("[search repos]", fmt.Sprintf("opening terminal at %s", path))
+		return shell.OpenTerminal(path, shell.TermTraitsFromContext(ctx))
 	}
-	if !isActive {
-		l.Errorw("[search]", "`emacs` service", "not running")
-		ui.NotifyCritical("[search repos]", "Emacs service not running")
-		os.Exit(1)
-	}
-	elispCmd := fmt.Sprintf("(open-project \"%s\")", path)
-	l.Debugw("[search]", "elispCmd", elispCmd)
-	return emacs.SendToServer(elispCmd)
 }
 
 func createCLI() *cli.App {
@@ -148,6 +158,11 @@ func createCLI() *cli.App {
 				&cli.StringFlag{
 					Name:     "key",
 					Usage:    "Search bookmarks by preselected key",
+					Required: false,
+				},
+				&cli.BoolFlag{
+					Name:     "shell",
+					Usage:    "spawn shell at selected path",
 					Required: false,
 				},
 			},
@@ -199,6 +214,19 @@ func createCLI() *cli.App {
 			EnvVars:  []string{impl.EnvPrefix + "_SELECTOR_TOOL"},
 			Value:    ui.SelectorToolDefault,
 			Usage:    "Selector tool to use, e.g. dmenu, rofi, etc.",
+			Required: false,
+		},
+		&cli.StringFlag{
+			Name:     shell.TerminalCommandFlagName,
+			EnvVars:  []string{impl.EnvPrefix + "_TERMINAL_CMD"},
+			Usage:    "Terminal command to use",
+			Required: false,
+		},
+		&cli.StringFlag{
+			Name:     shell.TerminalBackendFlagName,
+			EnvVars:  []string{impl.EnvPrefix + "_TERMINAL_BACKEND"},
+			Value:    shell.TerminalBackendDefault,
+			Usage:    "Terminal backend to use",
 			Required: false,
 		},
 	}
