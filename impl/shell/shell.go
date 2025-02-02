@@ -93,6 +93,27 @@ func ShellCmd(cmd string, input *string, cwd *string, env []string, needOutput, 
 	}
 }
 
+// FIXME: remove duplication below
+func OpenTerminal(path string, traits TerminalTraits) error {
+	l := logger.Sugar()
+	if len(traits.VTermCmd) == 0 && traits.Backend != "kitty" {
+		return ErrInvalidCmd{Cmd: traits.VTermCmd}
+	}
+	switch traits.Backend {
+	case "kitty":
+		l.Debugw("[OpenTerminal]", "backend", "kitty")
+		return OpenKitty(path)
+	// TODO: implement opening tmux pane (or Zellij, or something alike)
+	default:
+		// NOTE: because VT programs has no agreement on syntax for just opening new
+		// window/pane with particular CWD, we could not relay on any defaults for this
+		// So it would be more correct to implement this functionality for each VT tool
+		// being put into use over time (such as for Kitty over here).
+		l.Debugw("[OpenTerminal]", "error", "unsupported terminal")
+		return ErrInvalidCmd{Cmd: traits.VTermCmd}
+	}
+}
+
 func RunInTerminal(cmd, title string, traits TerminalTraits) error {
 	l := logger.Sugar()
 	if len(traits.VTermCmd) == 0 && traits.Backend != "kitty" {
@@ -107,6 +128,21 @@ func RunInTerminal(cmd, title string, traits TerminalTraits) error {
 		l.Debugw("[OpenInTerminal]", "backend", traits.Backend, "summary", "unknown terminal backend")
 		return RunInBareTerminal(cmd, traits.VTermCmd)
 	}
+}
+
+func OpenKitty(path string) error {
+	l := logger.Sugar()
+	impl.EnsureBinary("kitty", *logger)
+	l.Debugw("[OpenKitty]", "path", path)
+	socket := os.Getenv(KittySocketEnvVarName)
+	if socket == "" {
+		return ErrNoEnvVar{Name: KittySocketEnvVarName}
+	}
+	_, err := ShellCmd(fmt.Sprintf("kitty @ --to %s launch --cwd %s --type os-window", socket, path), nil, nil, nil, false, false)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func RunInKitty(cmd, title string) error {
