@@ -135,7 +135,6 @@ func RunInTmux(cmd, title, session, vtermCmd string) error {
 			}
 			return session.NewWindow(cmd, title, "", true)
 		}
-		return nil
 	} else {
 		return RunInBareTerminal(cmd, vtermCmd)
 	}
