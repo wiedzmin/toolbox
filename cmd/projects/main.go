@@ -68,7 +68,13 @@ func open(ctx *cli.Context) error {
 		}
 	}
 
-	if !ctx.Bool("shell") {
+	if ctx.Bool("copy-local") {
+		_, err := shell.ShellCmd("xsel -ib", &pathStr, nil, nil, false, false)
+		if err != nil {
+			return err
+		}
+		return nil
+	} else if !ctx.Bool("shell") {
 		fi, err := os.Stat(pathStr)
 		if err != nil {
 			return err
@@ -115,8 +121,13 @@ func search(ctx *cli.Context) error {
 		ui.NotifyNormal("[search repos]", "no matching repos found")
 		return errors.New("no matching repos found")
 	}
-
-	if !ctx.Bool("shell") {
+	if ctx.Bool("copy-local") {
+		_, err := shell.ShellCmd("xsel -ib", &path, nil, nil, false, false)
+		if err != nil {
+			return err
+		}
+		return nil
+	} else if !ctx.Bool("shell") {
 		emacsService := systemd.Unit{Name: "emacs.service", User: true}
 		l.Debugw("[search]", "emacsService", emacsService)
 		isActive, err := emacsService.IsActive()
@@ -165,6 +176,11 @@ func createCLI() *cli.App {
 					Usage:    "spawn shell at selected path",
 					Required: false,
 				},
+				&cli.BoolFlag{
+					Name:     "copy-local",
+					Usage:    "Copy project's local path to clipboard",
+					Required: false,
+				},
 			},
 		},
 		{
@@ -188,6 +204,11 @@ func createCLI() *cli.App {
 				&cli.BoolFlag{
 					Name:     "shell",
 					Usage:    "spawn shell at selected path",
+					Required: false,
+				},
+				&cli.BoolFlag{
+					Name:     "copy-local",
+					Usage:    "Copy project's local path to clipboard",
 					Required: false,
 				},
 			},
