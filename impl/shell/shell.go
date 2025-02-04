@@ -99,6 +99,9 @@ func OpenTerminal(path string, traits TerminalTraits) error {
 	if len(traits.VTermCmd) == 0 && traits.Backend != "kitty" {
 		return ErrInvalidCmd{Cmd: traits.VTermCmd}
 	}
+	if impl.HasSpaces(path) {
+		path = impl.Quote(path)
+	}
 	switch traits.Backend {
 	case "kitty":
 		l.Debugw("[OpenTerminal]", "backend", "kitty")
