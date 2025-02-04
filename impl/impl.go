@@ -64,6 +64,21 @@ func (e ErrNotImplemented) Error() string {
 	return fmt.Sprintf("'%s' not implemented", e.Token)
 }
 
+func HasSpaces(s string) bool {
+	hasSpaces := false
+	for c := range s {
+		if c == ' ' {
+			hasSpaces = true
+			break
+		}
+	}
+	return hasSpaces
+}
+
+func Quote(s string) string {
+	return fmt.Sprintf("\"%s\"", s)
+}
+
 func FetchUserinfo() (*user.User, error) {
 	l := logger.Sugar()
 	userInfo, err := user.Current()
