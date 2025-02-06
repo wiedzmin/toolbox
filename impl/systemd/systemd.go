@@ -6,6 +6,7 @@ import (
 
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/shell"
+	"github.com/wiedzmin/toolbox/impl/xserver"
 	"go.uber.org/zap"
 )
 
@@ -197,10 +198,7 @@ func CollectUnits(system, user bool) ([]Unit, error) {
 // TODO: consider adding something similar for non-interactive commands (Start/Stop, etc.)
 func doShow(cmd, title string, terminalTraits shell.TerminalTraits, dumpCmd bool) error {
 	if dumpCmd {
-		_, err := shell.ShellCmd("xsel -ib", &cmd, nil, nil, false, false)
-		if err != nil {
-			return err
-		}
+		return xserver.WriteClipboard(&cmd, false)
 	} else {
 		return shell.RunInTerminal(cmd, title, terminalTraits)
 	}

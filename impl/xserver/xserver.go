@@ -404,3 +404,20 @@ func HeadsFingerprint() (map[string]string, []string, error) {
 	}
 	return headEDIDs, headNames, nil
 }
+
+func ReadClipboard(primary bool) (*string, error) {
+	cbFlag := " -b"
+	if primary {
+		cbFlag = "" // NOTE: primary selection is default for `xsel`
+	}
+	return shell.ShellCmd(fmt.Sprintf("xsel -o%s", cbFlag), nil, nil, nil, true, false)
+}
+
+func WriteClipboard(data *string, primary bool) error {
+	cbFlag := " -b"
+	if primary {
+		cbFlag = "" // NOTE: primary selection is default for `xsel`
+	}
+	_, err := shell.ShellCmd(fmt.Sprintf("xsel -i%s", cbFlag), data, nil, nil, false, false)
+	return err
+}

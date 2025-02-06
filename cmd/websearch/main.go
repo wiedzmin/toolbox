@@ -13,6 +13,7 @@ import (
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/vpn"
+	"github.com/wiedzmin/toolbox/impl/xserver"
 	"github.com/wiedzmin/toolbox/impl/xserver/xkb"
 	"go.uber.org/zap"
 )
@@ -71,7 +72,7 @@ func perform(ctx *cli.Context) error {
 				searchTerm = ctx.String("term")
 			} else {
 				impl.EnsureBinary("xsel", *logger)
-				result, err := shell.ShellCmd("xsel -o", nil, nil, nil, true, false)
+				result, err := xserver.ReadClipboard(true)
 				l.Debugw("[perform]", "clipboard/searchTerm", *result, "err", err)
 				if err != nil {
 					return err

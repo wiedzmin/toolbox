@@ -14,6 +14,7 @@ import (
 	"github.com/wiedzmin/toolbox/impl/shell/tmux"
 	"github.com/wiedzmin/toolbox/impl/systemd"
 	"github.com/wiedzmin/toolbox/impl/ui"
+	"github.com/wiedzmin/toolbox/impl/xserver"
 	"github.com/wiedzmin/toolbox/impl/xserver/xkb"
 	"go.uber.org/zap"
 )
@@ -69,11 +70,7 @@ func open(ctx *cli.Context) error {
 	}
 
 	if ctx.Bool("copy-local") {
-		_, err := shell.ShellCmd("xsel -ib", &pathStr, nil, nil, false, false)
-		if err != nil {
-			return err
-		}
-		return nil
+		return xserver.WriteClipboard(&pathStr, false)
 	} else if !ctx.Bool("shell") {
 		fi, err := os.Stat(pathStr)
 		if err != nil {
@@ -122,11 +119,7 @@ func search(ctx *cli.Context) error {
 		return errors.New("no matching repos found")
 	}
 	if ctx.Bool("copy-local") {
-		_, err := shell.ShellCmd("xsel -ib", &path, nil, nil, false, false)
-		if err != nil {
-			return err
-		}
-		return nil
+		return xserver.WriteClipboard(&path, false)
 	} else if !ctx.Bool("shell") {
 		emacsService := systemd.Unit{Name: "emacs.service", User: true}
 		l.Debugw("[search]", "emacsService", emacsService)
