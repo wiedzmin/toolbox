@@ -9,7 +9,6 @@ import (
 	"github.com/anaskhan96/soup"
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
-	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/xserver"
 	"github.com/wiedzmin/toolbox/impl/xserver/xkb"
@@ -40,7 +39,7 @@ func acquireUrl() (*url.URL, error) {
 	var uri *url.URL
 	var err error
 	l := logger.Sugar()
-	urlCandidate, err := shell.ShellCmd("xsel -o -b", nil, nil, nil, true, false)
+	urlCandidate, err := xserver.ReadClipboard(false)
 	l.Debugw("[acquireUrl]", "urlCandidate", urlCandidate, "err", err)
 	if err != nil {
 		return nil, err

@@ -29,11 +29,8 @@ func fingerprint(ctx *cli.Context) error {
 		return err
 	}
 	if edid, ok := fp[head]; ok {
-		_, err = shell.ShellCmd("xsel -ib", &edid, nil, nil, false, false)
-		if err != nil {
-			return err
-		}
-		ui.NotifyNormal("[randrutil]", fmt.Sprintf("EDID for '%s' copied to clipboard", head))
+		ui.NotifyNormal("[randrutil]", fmt.Sprintf("copying EDID for '%s' to clipboard", head))
+		return xserver.WriteClipboard(&edid, false)
 	} else {
 		ui.NotifyCritical("[randrutil]", fmt.Sprintf("Strangely, no EDID found for '%s'", head))
 	}
@@ -72,11 +69,8 @@ func appTraits(ctx *cli.Context) error {
 			return err
 		}
 		if trait, ok := traits.AsMap()[traitName]; ok {
-			_, err = shell.ShellCmd("xsel -ib", &trait, nil, nil, false, false)
-			if err != nil {
-				return err
-			}
-			ui.NotifyNormal("[randrutil]", fmt.Sprintf("trait '%s' for '%s' copied to clipboard", traitName, impl.ShorterString(title, 20)))
+			ui.NotifyNormal("[randrutil]", fmt.Sprintf("copying trait '%s' for '%s' to clipboard", traitName, impl.ShorterString(title, 20)))
+			return xserver.WriteClipboard(&trait, false)
 		} else {
 			ui.NotifyCritical("[randrutil]", fmt.Sprintf("Strangely, no '%s' trait found for '%s'", traitName, title))
 		}

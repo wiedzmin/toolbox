@@ -69,10 +69,7 @@ func perform(ctx *cli.Context) error {
 			l.Debugw("[perform]", "url", webjump.URL)
 			copyURL := ctx.Bool("copy")
 			if copyURL {
-				_, err := shell.ShellCmd("xsel -ib", &webjump.URL, nil, nil, false, false)
-				if err != nil {
-					return err
-				}
+				return xserver.WriteClipboard(&webjump.URL, false)
 			} else {
 				var browserCmd string
 				if webjump.Browser != "" {
