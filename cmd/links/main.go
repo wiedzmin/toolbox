@@ -27,10 +27,10 @@ func (l orgLink) String() string {
 	if l.Link == "" {
 		result = "<empty link>"
 	} else {
+		result = fmt.Sprintf("* %s", l.Link)
 		if l.Title != "" {
 			result = fmt.Sprintf("* [[%s][%s]]", l.Link, l.Title)
 		}
-		result = fmt.Sprintf("* %s", l.Link)
 	}
 	return result
 }
@@ -67,7 +67,7 @@ func acquireUrl() (*url.URL, error) {
 	l.Debugw("[acquireUrl]", "uri (from window name)", uri, "err", err)
 	if err != nil {
 		ui.NotifyCritical("[scrape]", "Non-URL content in active window name, giving up")
-		return nil, impl.ErrInvalidUrl{windowTraits.Title}
+		return nil, impl.ErrInvalidUrl{Content: windowTraits.Title}
 	}
 
 	return nil, impl.ErrInvalidUrl{}
@@ -157,7 +157,7 @@ func perform(ctx *cli.Context) error {
 	}
 
 	orgContent := []string{
-		fmt.Sprintf("#+TITLE: %s", title),
+		fmt.Sprintf("#+TITLE: %s", *title),
 		fmt.Sprintf("#+PROPERTY: url %s", pageUrl.String()),
 	}
 	for _, link := range links {
@@ -167,6 +167,9 @@ func perform(ctx *cli.Context) error {
 	orgFilename := fmt.Sprintf("%s/%s.org", ctx.String("export-path"), sessionName)
 	l.Debugw("[perform]", "orgFilename", orgFilename)
 	file, err := os.OpenFile(orgFilename, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
 	defer file.Close()
 	writer := bufio.NewWriter(file)
 	defer writer.Flush()
