@@ -24,17 +24,6 @@ var logger *zap.Logger
 func open(ctx *cli.Context) error {
 	l := logger.Sugar()
 
-	emacsService := systemd.Unit{Name: "emacs.service", User: true}
-	isActive, err := emacsService.IsActive()
-	if err != nil {
-		return err
-	}
-	if !isActive {
-		l.Errorw("[open]", "`emacs` service", "not running")
-		ui.NotifyCritical("[bookmarks]", "Emacs service not running")
-		os.Exit(1)
-	}
-
 	var pathStr string
 	if ctx.String("path") != "" {
 		pathStr = ctx.String("path")
@@ -72,6 +61,17 @@ func open(ctx *cli.Context) error {
 	if ctx.Bool("copy-local") {
 		return xserver.WriteClipboard(&pathStr, false)
 	} else if !ctx.Bool("shell") {
+		emacsService := systemd.Unit{Name: "emacs.service", User: true}
+		isActive, err := emacsService.IsActive()
+		if err != nil {
+			return err
+		}
+		if !isActive {
+			l.Errorw("[open]", "`emacs` service", "not running")
+			ui.NotifyCritical("[bookmarks]", "Emacs service not running")
+			os.Exit(1)
+		}
+
 		fi, err := os.Stat(pathStr)
 		if err != nil {
 			return err
