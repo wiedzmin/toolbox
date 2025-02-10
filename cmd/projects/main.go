@@ -12,7 +12,6 @@ import (
 	"github.com/wiedzmin/toolbox/impl/emacs"
 	"github.com/wiedzmin/toolbox/impl/shell"
 	"github.com/wiedzmin/toolbox/impl/shell/tmux"
-	"github.com/wiedzmin/toolbox/impl/systemd"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"github.com/wiedzmin/toolbox/impl/xserver"
 	"github.com/wiedzmin/toolbox/impl/xserver/xkb"
@@ -23,6 +22,9 @@ var logger *zap.Logger
 
 func open(ctx *cli.Context) error {
 	l := logger.Sugar()
+	if !(ctx.Bool("copy-local") || ctx.Bool("shell")) {
+		emacs.ServiceState("open", true)
+	}
 
 	var pathStr string
 	if ctx.String("path") != "" {
@@ -61,17 +63,6 @@ func open(ctx *cli.Context) error {
 	if ctx.Bool("copy-local") {
 		return xserver.WriteClipboard(&pathStr, false)
 	} else if !ctx.Bool("shell") {
-		emacsService := systemd.Unit{Name: "emacs.service", User: true}
-		isActive, err := emacsService.IsActive()
-		if err != nil {
-			return err
-		}
-		if !isActive {
-			l.Errorw("[open]", "`emacs` service", "not running")
-			ui.NotifyCritical("[bookmarks]", "Emacs service not running")
-			os.Exit(1)
-		}
-
 		fi, err := os.Stat(pathStr)
 		if err != nil {
 			return err
@@ -90,6 +81,10 @@ func open(ctx *cli.Context) error {
 
 func search(ctx *cli.Context) error {
 	l := logger.Sugar()
+	if !(ctx.Bool("copy-local") || ctx.Bool("shell")) {
+		emacs.ServiceState("search", true)
+	}
+
 	xkb.EnsureEnglishKeyboardLayout()
 	searchTerm, err := ui.GetSelection([]string{}, "token", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
 	if err != nil {
@@ -121,17 +116,6 @@ func search(ctx *cli.Context) error {
 	if ctx.Bool("copy-local") {
 		return xserver.WriteClipboard(&path, false)
 	} else if !ctx.Bool("shell") {
-		emacsService := systemd.Unit{Name: "emacs.service", User: true}
-		l.Debugw("[search]", "emacsService", emacsService)
-		isActive, err := emacsService.IsActive()
-		if err != nil {
-			return err
-		}
-		if !isActive {
-			l.Errorw("[search]", "`emacs` service", "not running")
-			ui.NotifyCritical("[search repos]", "Emacs service not running")
-			os.Exit(1)
-		}
 		elispCmd := fmt.Sprintf("(open-project \"%s\")", path)
 		l.Debugw("[search]", "elispCmd", elispCmd)
 		return emacs.SendToServer(elispCmd)
