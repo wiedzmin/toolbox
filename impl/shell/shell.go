@@ -143,7 +143,11 @@ func OpenKitty(path string) error {
 	}
 	_, err := ShellCmd(fmt.Sprintf("kitty @ --to %s launch --cwd %s --type os-window", socket, path), nil, nil, nil, false, false)
 	if err != nil {
-		return err
+		// NOTE: most likely, kitty is not running, hence no socket listening - let's start new instance with required CWD
+		_, err = ShellCmd(fmt.Sprintf("kitty --working-directory %s", path), nil, nil, nil, false, false)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
