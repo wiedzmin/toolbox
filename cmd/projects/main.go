@@ -72,7 +72,7 @@ func open(ctx *cli.Context) error {
 			elispCmd = fmt.Sprintf("(find-file \"%s\")", pathStr)
 		}
 		l.Debugw("[open]", "elispCmd", elispCmd)
-		return emacs.SendToServer(elispCmd)
+		return emacs.SendToServer(elispCmd, true)
 	} else {
 		ui.NotifyNormal("[open]", fmt.Sprintf("opening terminal at %s", pathStr))
 		return shell.OpenTerminal(pathStr, shell.TermTraitsFromContext(ctx))
@@ -118,7 +118,7 @@ func search(ctx *cli.Context) error {
 	} else if !ctx.Bool("shell") {
 		elispCmd := fmt.Sprintf("(open-project \"%s\")", path)
 		l.Debugw("[search]", "elispCmd", elispCmd)
-		return emacs.SendToServer(elispCmd)
+		return emacs.SendToServer(elispCmd, true)
 	} else {
 		ui.NotifyNormal("[search repos]", fmt.Sprintf("opening terminal at %s", path))
 		return shell.OpenTerminal(path, shell.TermTraitsFromContext(ctx))
