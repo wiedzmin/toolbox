@@ -9,15 +9,17 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/browsers/qutebrowser"
+	"github.com/wiedzmin/toolbox/impl/emacs"
 	"github.com/wiedzmin/toolbox/impl/redis"
 	"github.com/wiedzmin/toolbox/impl/ui"
 	"go.uber.org/zap"
 )
 
 const (
-	URL_TARGET_SETTING = "new_instance_open_target"
-	TARGET_KEY_NAME    = "qb_current_url_target"
-	WATCH_FILE         = "/tmp/qbtarget"
+	URL_TARGET_SETTING                = "new_instance_open_target"
+	TARGET_KEY_NAME                   = "qb_current_url_target"
+	WATCH_FILE                        = "/tmp/qbtarget"
+	BROWSE_URL_USE_TABS_VARIABLE_NAME = "browse-url-qutebrowser-new-window-is-tab"
 )
 
 var (
@@ -42,7 +44,7 @@ func getCurrentTarget() (string, error) {
 func perform(ctx *cli.Context) error {
 	l := logger.Sugar()
 
-	var target string
+	var target, emacsUseTabs string
 
 	if ctx.Bool("notify-status") {
 		target, err := getCurrentTarget()
@@ -53,12 +55,13 @@ func perform(ctx *cli.Context) error {
 		return nil
 	} else {
 		targetParam := ctx.String("target")
-
 		switch targetParam {
 		case "tab":
 			target = "tab"
+			emacsUseTabs = "t"
 		case "window":
 			target = "window"
+			emacsUseTabs = "nil"
 		case "":
 			target, err := getCurrentTarget()
 			if err != nil {
@@ -80,6 +83,10 @@ func perform(ctx *cli.Context) error {
 		resp := qutebrowser.Request{Commands: []string{
 			fmt.Sprintf(":set %s %s", URL_TARGET_SETTING, target),
 		}}
+		err = emacs.SendToServer(fmt.Sprintf("(setq %s %s)", BROWSE_URL_USE_TABS_VARIABLE_NAME, emacsUseTabs), false)
+		if err != nil {
+			return err
+		}
 
 		l.Debugw("[perform]", "request", r)
 		rb, err := resp.Marshal()
