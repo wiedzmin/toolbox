@@ -52,14 +52,21 @@ func ServiceState(tag string, restart bool) {
 	}
 }
 
-func SendToServer(elisp string) error {
+func SendToServer(elisp string, createFrame bool) error {
 	l := logger.Sugar()
 	l.Debugw("[SendToServer]", "elisp", elisp)
 	socketPath, err := SocketPath()
 	if err != nil {
 		return err
 	}
-	_, err = shell.ShellCmd(fmt.Sprintf("emacsclient -c -s %s -e '%s'", *socketPath, elisp), nil, nil, nil, false, false)
+
+	var createFrameStr string
+	if createFrame {
+		createFrameStr = "-c "
+	} else {
+		createFrameStr = ""
+	}
+	_, err = shell.ShellCmd(fmt.Sprintf("emacsclient %s-s %s -e '%s'", createFrameStr, *socketPath, elisp), nil, nil, nil, false, false)
 	if err != nil {
 		return err
 	}

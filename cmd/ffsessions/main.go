@@ -72,7 +72,7 @@ func edit(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	return emacs.SendToServer(fmt.Sprintf("(find-file \"%s/%s\")", ctx.String("dumps-path"), *sessionName))
+	return emacs.SendToServer(fmt.Sprintf("(find-file \"%s/%s\")", ctx.String("dumps-path"), *sessionName), true)
 }
 
 func remove(ctx *cli.Context) error {
