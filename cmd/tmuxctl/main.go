@@ -20,6 +20,9 @@ func perform(ctx *cli.Context) error {
 		return impl.FileErrNotExist{"<tmuxp sessions default root>"}
 	}
 	sessions, err := tmuxp.CollectSessions(*root)
+	if err != nil {
+		return err
+	}
 	sessionsByName := make(map[string]tmuxp.Session)
 	var names []string
 	for _, s := range sessions {

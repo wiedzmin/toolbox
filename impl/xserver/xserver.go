@@ -159,6 +159,10 @@ func (q WindowQuery) prepare() {
 func NewX() (*X, error) {
 	l := logger.Sugar()
 	connXgb, err := xgb.NewConn()
+	if err != nil {
+		l.Warnw("[NewX]", "err", err)
+		return nil, err
+	}
 	connXu, err := xgbutil.NewConnXgb(connXgb)
 	if err != nil {
 		l.Warnw("[NewX]", "err", err)
@@ -234,6 +238,9 @@ func (x *X) BringWindowAbove(query WindowQuery) error {
 		return err
 	}
 	curDesktop, err := ewmh.CurrentDesktopGet(x.connXU)
+	if err != nil {
+		return err
+	}
 	l.Debugw("[BringWindowAbove]", "winDesktop", winDesktop, "curDesktop", curDesktop)
 	err = ewmh.CurrentDesktopSet(x.connXU, winDesktop)
 	if err != nil {
