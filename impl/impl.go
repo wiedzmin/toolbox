@@ -191,7 +191,7 @@ func callerName(skip int) string {
 
 // FuncDuration measures whole function execution time for debugging purposes
 // `defer impl.FuncDuration("<some function ID>")()` should be the first statement in function being measured
-// if aformentioned function ID is "", actual function name will be guessed from runtime metadata
+// if aforementioned function ID is "", actual function name will be guessed from runtime metadata
 func FuncDuration(id string) func() {
 	l := logger.Sugar()
 	functionId := id
