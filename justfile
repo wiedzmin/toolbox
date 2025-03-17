@@ -5,33 +5,17 @@ default:
 build:
     go build -v ./...
 
-# Build project's docker infra
-build-docker:
-    docker-compose build
+# Build project
+install:
+    go install -v ./...
 
 # Run generation commands
 generate:
     go generate -v ./...
 
-# Run unit tests
-test:
-    go test -v ./...
-
-# Run functional tests
-test-func:
-    echo "add actual functional testing commands here"
-
-# Lint cource code
+# Lint source code
 lint:
     golangci-lint run ./...
-
-# Fix linter complaints automatically
-lint-fix:
-    golangci-lint run --fix ./...
-
-# Download dependencies
-deps-download:
-    go mod download
 
 # Update dependencies versions
 deps-update:
@@ -40,14 +24,6 @@ deps-update:
 # Garbage-collect dependencies
 deps-gc:
     go mod tidy
-
-# Publish source code updates
-publish: generate build lint
-    git push
-
-# Enforce source code updates publishing
-publish-force: generate build lint
-    git push --force-with-lease
 
 # Install "pre-commit" hooks
 pre-commit-install:
