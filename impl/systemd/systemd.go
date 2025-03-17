@@ -63,9 +63,7 @@ func sysctlCmd(user bool, cmd, name string, args ...string) string {
 	} else {
 		tokens = []string{"systemctl", cmd}
 	}
-	for _, arg := range args {
-		tokens = append(tokens, arg)
-	}
+	tokens = append(tokens, args...)
 	tokens = append(tokens, name)
 	var result strings.Builder
 	for _, t := range tokens {
