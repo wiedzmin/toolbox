@@ -47,14 +47,14 @@ func perform(ctx *cli.Context) error {
 	if ctx.String("start") != "" {
 		service := services.Get(ctx.String("start"))
 		if service == nil {
-			return vpn.ServiceNotFound{ctx.String("start")}
+			return vpn.ServiceNotFound{Name: ctx.String("start")}
 		}
 		return service.Start(true)
 	}
 	if ctx.String("stop") != "" {
 		service := services.Get(ctx.String("stop"))
 		if service == nil {
-			return vpn.ServiceNotFound{ctx.String("stop")}
+			return vpn.ServiceNotFound{Name: ctx.String("stop")}
 		}
 		return service.Stop(true)
 	}

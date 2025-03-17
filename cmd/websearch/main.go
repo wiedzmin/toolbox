@@ -46,7 +46,7 @@ func perform(ctx *cli.Context) error {
 				service.Start(true)
 			} else {
 				ui.NotifyCritical("[VPN]", fmt.Sprintf("Cannot find '%s' service", searchengine.VPN))
-				return vpn.ServiceNotFound{searchengine.VPN}
+				return vpn.ServiceNotFound{Name: searchengine.VPN}
 			}
 			l.Debugw("[perform]", "searchengine.VPN", searchengine.VPN, "vpnMeta", service, "services", *services)
 		}

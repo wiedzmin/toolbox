@@ -54,7 +54,7 @@ func exportSession(sessionsPath, sessionName, exportPath string, format qutebrow
 func perform(ctx *cli.Context) error {
 	sessionsPath := qutebrowser.RawSessionsPath()
 	if sessionsPath == nil {
-		return impl.FileErrNotExist{fmt.Sprintf("~/%s", qutebrowser.SessionstoreSubpath)}
+		return impl.FileErrNotExist{Path: fmt.Sprintf("~/%s", qutebrowser.SessionstoreSubpath)}
 	}
 	if ctx.Bool("save") {
 		return saveSession(nil)
