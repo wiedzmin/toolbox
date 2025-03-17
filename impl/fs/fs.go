@@ -94,17 +94,13 @@ func CollectFiles(path string, fullPath bool, allowDirs bool, regexpsWhitelist, 
 	if regexpsWhitelist != nil && regexpsBlacklist != nil {
 		return nil, fmt.Errorf("it makes no sense to provide both blacklist and whitelist")
 	}
-	if regexpsWhitelist != nil {
-		for _, re := range regexpsWhitelist {
-			rc := regexp.MustCompile(re)
-			regexpsWhitelistRe = append(regexpsWhitelistRe, *rc)
-		}
+	for _, re := range regexpsWhitelist {
+		rc := regexp.MustCompile(re)
+		regexpsWhitelistRe = append(regexpsWhitelistRe, *rc)
 	}
-	if regexpsBlacklist != nil {
-		for _, re := range regexpsBlacklist {
-			rc := regexp.MustCompile(re)
-			regexpsBlacklistRe = append(regexpsBlacklistRe, *rc)
-		}
+	for _, re := range regexpsBlacklist {
+		rc := regexp.MustCompile(re)
+		regexpsBlacklistRe = append(regexpsBlacklistRe, *rc)
 	}
 	if regexpsWhitelist == nil && regexpsBlacklist == nil {
 		acceptAll = true
@@ -137,17 +133,13 @@ func CollectFilesRecursive(path string, allowDirs bool, regexpsWhitelist, regexp
 	if regexpsWhitelist != nil && regexpsBlacklist != nil {
 		return nil, fmt.Errorf("it makes no sense to provide both blacklist and whitelist")
 	}
-	if regexpsWhitelist != nil {
-		for _, re := range regexpsWhitelist {
-			rc := regexp.MustCompile(re)
-			regexpsWhitelistRe = append(regexpsWhitelistRe, *rc)
-		}
+	for _, re := range regexpsWhitelist {
+		rc := regexp.MustCompile(re)
+		regexpsWhitelistRe = append(regexpsWhitelistRe, *rc)
 	}
-	if regexpsBlacklist != nil {
-		for _, re := range regexpsBlacklist {
-			rc := regexp.MustCompile(re)
-			regexpsBlacklistRe = append(regexpsBlacklistRe, *rc)
-		}
+	for _, re := range regexpsBlacklist {
+		rc := regexp.MustCompile(re)
+		regexpsBlacklistRe = append(regexpsBlacklistRe, *rc)
 	}
 	if regexpsWhitelist == nil && regexpsBlacklist == nil {
 		acceptAll = true
