@@ -7,3 +7,5 @@
 ** [[file:cmd/qbsessions/main.go::// TODO: stabilize rethought \[\[file:~/workspace/repos/github.com/wiedzmin/toolbox/cmd/ffsessions/main.go::func createCLI() *cli.App {\]\[ffsessions CLI\]\] and rework qbsessions' one after it][rework `qbsessions` CLI]]
 ** [[file:impl/browsers/firefox/firefox.go::// FIXME: try to generalize Tridactyl workaround(s) below][handle "moz-extension" gracefully]]
 ** play with https://github.com/walles/moar/#embedding
+* https://github.com/jroimartin/gocui
+* https://github.com/mitchellh/go-ps/blob/ddafa7589c607e0e81a7436520ccdbac913665a2/process.go#L21
