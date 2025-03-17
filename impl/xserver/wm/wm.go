@@ -317,7 +317,7 @@ func (kb *Keybindings) Fuzzy(fnFormat FnFormatKBPartsStr) ([]string, error) {
 	var formattedStr string
 	kb.partsHelper = make(map[string]KeybindingFormattedParts)
 
-	partsRoot, _ := kbItems[keyNameRoot]
+	partsRoot := kbItems[keyNameRoot]
 	partsDangling, okDangling := kbItems[keyNameDangling]
 	for _, mode := range kb.modeNames {
 		partsMode, okMode := kbItems[mode]
@@ -353,7 +353,7 @@ func (kb *Keybindings) AsText(fnFormat FnFormatKBPartsStr) (*string, error) {
 
 	var acc []string
 
-	partsRoot, _ := kbItems[keyNameRoot]
+	partsRoot := kbItems[keyNameRoot]
 	partsDangling, okDangling := kbItems[keyNameDangling]
 	for _, mode := range kb.modeNames {
 		partsMode, okMode := kbItems[mode]
@@ -384,7 +384,7 @@ func (kb *Keybindings) AsTextTree(fnFormat FnFormatKBPartsStr) (*string, error) 
 
 	var acc []string
 
-	partsRoot, _ := kbItems[keyNameRoot]
+	partsRoot := kbItems[keyNameRoot]
 	partsDangling, okDangling := kbItems[keyNameDangling]
 	for _, mode := range kb.modeNames {
 		partsMode, okMode := kbItems[mode]
