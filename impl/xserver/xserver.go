@@ -138,7 +138,7 @@ func (q WindowQuery) MatchTraits(traits WindowTraits) bool {
 	return true
 }
 
-func (q WindowQuery) prepare() {
+func (q *WindowQuery) prepare() {
 	if q.Fuzzy {
 		if q.Name != "" {
 			q.nameRegexp = regexp.MustCompile(q.Name)
@@ -378,7 +378,7 @@ func CurrentWorkspaceTitle() (string, error) {
 	for _, line := range strings.Split(strings.TrimSpace(*out), "\n") {
 		fields := strings.Fields(strings.TrimSpace(line))
 		if strings.TrimSpace(fields[1]) == "*" {
-			result = strings.Join(fields[8:len(fields)], " ")
+			result = strings.Join(fields[8:], " ")
 			break
 		}
 	}
