@@ -35,9 +35,7 @@ func docs(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		for _, doc := range docs {
-			result = append(result, doc)
-		}
+		result = append(result, docs...)
 	}
 
 	doc, err := ui.GetSelection(result, "open", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, true)
@@ -74,9 +72,7 @@ func ebooks(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		for _, book := range ebooks {
-			result = append(result, book)
-		}
+		result = append(result, ebooks...)
 	}
 
 	book, err := ui.GetSelection(result, "open", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, true)
