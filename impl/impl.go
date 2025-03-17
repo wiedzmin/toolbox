@@ -105,10 +105,10 @@ func SendToUnixSocket(socket string, data []byte) error {
 		return FileErrNotExist{}
 	}
 	c, err := net.Dial("unix", socket)
-	defer c.Close()
 	if err != nil {
 		return err
 	}
+	defer c.Close()
 	data = append(data, '\n')
 	_, err = c.Write(data)
 	return err
