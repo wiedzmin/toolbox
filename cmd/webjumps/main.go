@@ -61,7 +61,7 @@ func perform(ctx *cli.Context) error {
 				service.Start(true)
 			} else {
 				ui.NotifyCritical("[VPN]", fmt.Sprintf("Cannot find '%s' service", webjump.VPN))
-				return vpn.ServiceNotFound{webjump.VPN}
+				return vpn.ServiceNotFound{Name: webjump.VPN}
 			}
 			l.Debugw("[perform]", "webjump.VPN", webjump.VPN, "vpnMeta", service)
 		}

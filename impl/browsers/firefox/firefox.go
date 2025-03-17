@@ -75,7 +75,7 @@ func getSessionData(sessionFilename string) ([]byte, error) {
 		return nil, err
 	}
 	if string(header) != MOZ_LZ_MAGIC_HEADER {
-		return nil, impl.FileFormatError{fmt.Sprintf("wrong header: %s", string(header))}
+		return nil, impl.FileFormatError{Content: fmt.Sprintf("wrong header: %s", string(header))}
 	}
 
 	dstSizeBytes := make([]byte, 4)
