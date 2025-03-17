@@ -224,7 +224,7 @@ func FileExists(path string) bool {
 	l := logger.Sugar()
 	fi, err := os.Stat(path)
 	if err != nil {
-		l.Debugw("[FileExists]", "desc", "error occured, assuming file not exist", "err", err)
+		l.Debugw("[FileExists]", "desc", "error occurred, assuming file not exist", "err", err)
 		return false
 	}
 	if fi.IsDir() {
