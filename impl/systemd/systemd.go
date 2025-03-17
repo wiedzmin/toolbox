@@ -200,7 +200,6 @@ func doShow(cmd, title string, terminalTraits shell.TerminalTraits, dumpCmd bool
 	} else {
 		return shell.RunInTerminal(cmd, title, terminalTraits)
 	}
-	return nil
 }
 
 // Show shows unit's settings
