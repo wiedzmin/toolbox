@@ -74,20 +74,16 @@ func perform(ctx *cli.Context) error {
 		default:
 			return fmt.Errorf("unknown url target '%s'", targetParam)
 		}
-		socketPath, err := qutebrowser.SocketPath()
-		if err != nil {
-			return err
-		}
+
 		resp := qutebrowser.Request{Commands: []string{
 			fmt.Sprintf(":set %s %s", qutebrowser.URL_TARGET_SETTING, target),
 		}}
-		err = emacs.SendToServer(fmt.Sprintf("(setq %s %s)", BROWSE_URL_USE_TABS_VARIABLE_NAME, emacsUseTabs), false)
+		l.Debugw("[perform]", "request", r)
+		rb, err := resp.Marshal()
 		if err != nil {
 			return err
 		}
-
-		l.Debugw("[perform]", "request", r)
-		rb, err := resp.Marshal()
+		socketPath, err := qutebrowser.SocketPath()
 		if err != nil {
 			return err
 		}
@@ -97,11 +93,15 @@ func perform(ctx *cli.Context) error {
 			os.Exit(0)
 		}
 
-		err = r.SetValue(qutebrowser.URL_TARGET_KEYNAME, target)
+		err = emacs.SendToServer(fmt.Sprintf("(setq %s %s)", BROWSE_URL_USE_TABS_VARIABLE_NAME, emacsUseTabs), false)
 		if err != nil {
 			return err
 		}
 
+		err = r.SetValue(qutebrowser.URL_TARGET_KEYNAME, target)
+		if err != nil {
+			return err
+		}
 		watchData := []byte(fmt.Sprintf("target: %s\n", target))
 		err = os.WriteFile(WATCH_FILE, watchData, 0644)
 		if err != nil {
