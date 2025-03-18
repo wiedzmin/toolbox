@@ -16,8 +16,6 @@ import (
 )
 
 const (
-	URL_TARGET_SETTING                = "new_instance_open_target"
-	TARGET_KEY_NAME                   = "qb_current_url_target"
 	WATCH_FILE                        = "/tmp/qbtarget"
 	BROWSE_URL_USE_TABS_VARIABLE_NAME = "browse-url-qutebrowser-new-window-is-tab"
 )
@@ -29,7 +27,7 @@ var (
 
 func getCurrentTarget() (string, error) {
 	l := logger.Sugar()
-	value, err := r.GetValue(TARGET_KEY_NAME)
+	value, err := r.GetValue(qutebrowser.URL_TARGET_KEYNAME)
 	if err != nil {
 		return "", err
 	}
@@ -37,7 +35,7 @@ func getCurrentTarget() (string, error) {
 	if target == "" {
 		target = "unknown"
 	}
-	l.Debugw("[qbtarget.getCurrentTarget]", "key", TARGET_KEY_NAME, "value", target)
+	l.Debugw("[qbtarget.getCurrentTarget]", "key", qutebrowser.URL_TARGET_KEYNAME, "value", target)
 	return target, nil
 }
 
@@ -81,7 +79,7 @@ func perform(ctx *cli.Context) error {
 			return err
 		}
 		resp := qutebrowser.Request{Commands: []string{
-			fmt.Sprintf(":set %s %s", URL_TARGET_SETTING, target),
+			fmt.Sprintf(":set %s %s", qutebrowser.URL_TARGET_SETTING, target),
 		}}
 		err = emacs.SendToServer(fmt.Sprintf("(setq %s %s)", BROWSE_URL_USE_TABS_VARIABLE_NAME, emacsUseTabs), false)
 		if err != nil {
@@ -99,7 +97,7 @@ func perform(ctx *cli.Context) error {
 			os.Exit(0)
 		}
 
-		err = r.SetValue(TARGET_KEY_NAME, target)
+		err = r.SetValue(qutebrowser.URL_TARGET_KEYNAME, target)
 		if err != nil {
 			return err
 		}
@@ -110,7 +108,7 @@ func perform(ctx *cli.Context) error {
 			return err
 		}
 
-		l.Debugw("[qbtarget.perform]", "status", fmt.Sprintf("url target set to `%s`", target), TARGET_KEY_NAME, target)
+		l.Debugw("[qbtarget.perform]", "status", fmt.Sprintf("url target set to `%s`", target), qutebrowser.URL_TARGET_KEYNAME, target)
 		ui.NotifyNormal("[qbtarget]", fmt.Sprintf("url target set to `%s`", target))
 	}
 
