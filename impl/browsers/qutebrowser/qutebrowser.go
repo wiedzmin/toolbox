@@ -30,6 +30,8 @@ const (
 	SESSION_FORMAT_ORG
 	SESSION_FORMAT_ORG_FLAT
 	SessionstoreSubpath = ".local/share/qutebrowser/sessions"
+	URL_TARGET_SETTING  = "new_instance_open_target"
+	URL_TARGET_KEYNAME  = "qb_current_url_target"
 )
 
 var logger *zap.Logger
