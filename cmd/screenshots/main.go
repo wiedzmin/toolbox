@@ -69,20 +69,25 @@ func perform(ctx *cli.Context) error {
 				}
 			}
 			if failCount == len(regexpsC) {
-				fallbackDir = fmt.Sprintf("%s/%s", ctx.String("root"), ctx.String("unmatched"))
-				err := os.MkdirAll(fallbackDir, 0777)
-				if err != nil && !os.IsExist(err) {
-					ui.NotifyCritical("[screenshots]", fmt.Sprintf("failed to create path %s\n\nCause: %#v", fallbackDir, err))
-				}
-				srcPath = fmt.Sprintf("%s/%s", ctx.String("root"), f)
-				destPath = fmt.Sprintf("%s/%s", fallbackDir, f)
-				ui.NotifyCritical("[screenshots]", fmt.Sprintf("%s did not matched any regexps, custom name encountered\n\nMoving under '%s' subdirectory", f, fallbackDir))
-				l.Debugw("[perform]", "fallbackDir", fallbackDir, "srcPath", srcPath, "destPath", destPath)
-				err = os.Rename(srcPath, destPath)
-				if err != nil {
-					ui.NotifyCritical("[screenshots]", fmt.Sprintf("%s --> %s FAILED\n\nCause: %#v", f, fallbackDir, err))
-				} else {
-					ui.NotifyNormal("[screenshots]", fmt.Sprintf("%s --> %s", f, fallbackDir))
+				if !ctx.Bool("skip-unmatched") {
+					fallbackDir = fmt.Sprintf("%s/%s", ctx.String("root"), ctx.String("unmatched"))
+					err := os.MkdirAll(fallbackDir, 0777)
+					if err != nil && !os.IsExist(err) {
+						ui.NotifyCritical("[screenshots]", fmt.Sprintf("failed to create path %s\n\nCause: %#v", fallbackDir, err))
+					}
+					srcPath = fmt.Sprintf("%s/%s", ctx.String("root"), f)
+					destPath = fmt.Sprintf("%s/%s", fallbackDir, f)
+					ui.NotifyCritical("[screenshots]", fmt.Sprintf("%s did not matched any regexps, custom name encountered\n\nMoving under '%s' subdirectory", f, fallbackDir))
+					l.Debugw("[perform]", "fallbackDir", fallbackDir, "srcPath", srcPath, "destPath", destPath)
+					err = os.Rename(srcPath, destPath)
+					if err != nil {
+						ui.NotifyCritical("[screenshots]", fmt.Sprintf("%s --> %s FAILED\n\nCause: %#v", f, fallbackDir, err))
+					} else {
+						ui.NotifyNormal("[screenshots]", fmt.Sprintf("%s --> %s", f, fallbackDir))
+					}
+				} else if ctx.Bool("skip-unmatched") {
+					ui.NotifyNormal("[screenshots]", fmt.Sprintf("skipping '%s' due to `skip-unmatched` flag", f))
+					l.Debugw("[perform]", "note", fmt.Sprintf("skipping '%s' due to `skip-unmatched` flag", f))
 				}
 			}
 		}
@@ -108,6 +113,12 @@ func createCLI() *cli.App {
 			Name:     "unmatched",
 			Value:    "named",
 			Usage:    "Directory under base to place custom-named/unmatched screenshots to",
+			Required: false,
+		},
+		&cli.BoolFlag{
+			Name:     "skip-unmatched",
+			Usage:    "Whether to skip files that did not matched any regexps",
+			Value:    false,
 			Required: false,
 		},
 	}
