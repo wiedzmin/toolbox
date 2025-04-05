@@ -44,6 +44,7 @@ func perform(ctx *cli.Context) error {
 		if destRootTrimmed == "" {
 			destRootTrimmed = rootTrimmed
 		}
+		l.Debugw("[perform]", "rootTrimmed", rootTrimmed, "destRootTrimmed", destRootTrimmed)
 		for _, f := range files {
 			failCount := 0
 			errored := false
