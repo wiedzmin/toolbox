@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
 	"errors"
@@ -12,6 +13,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"text/template"
 	"time"
 
 	"go.uber.org/zap"
@@ -202,4 +204,35 @@ func FuncDuration(id string) func() {
 	return func() {
 		l.Debugw("[FuncDuration]", "function", functionId, "duration", time.Since(start))
 	}
+}
+
+// RegexpToTemplate instantiates template from named regexp matching groups, using the respective mapping
+func RegexpToTemplate(data string, rc regexp.Regexp, mapping map[string]string) (*string, error) {
+	l := logger.Sugar()
+	templateStr, ok := mapping[rc.String()]
+	if ok {
+		l.Debugw("[RegexpToTemplate]", "templateStr", templateStr)
+	}
+
+	fieldsValues := make(map[string]interface{})
+
+	var resultBytes bytes.Buffer
+
+	matches := rc.FindStringSubmatch(data)
+	for _, sn := range rc.SubexpNames()[1:] {
+		snIndex := rc.SubexpIndex(sn)
+		fieldsValues[sn] = matches[snIndex]
+	}
+
+	t, err := template.New("").Parse(templateStr)
+	if err != nil {
+		return nil, err
+	}
+	err = t.Execute(&resultBytes, fieldsValues)
+	if err != nil {
+		return nil, err
+	}
+
+	result := resultBytes.String()
+	return &result, nil
 }

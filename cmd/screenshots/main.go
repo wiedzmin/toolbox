@@ -1,12 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"regexp"
 	"strings"
-	"text/template"
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
@@ -16,8 +14,8 @@ import (
 )
 
 var (
-	logger                   *zap.Logger
-	dateRegexpToPathTemplate = map[string]string{
+	logger                  *zap.Logger
+	srcRegexpToDestTemplate = map[string]string{
 		"screenshot-(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}:[0-9]{2}:[0-9]{2}":          "{{.year}}/{{.month}}/{{.day}}",
 		"screenshot-(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}-[0-9]{2}-[0-9]{2}":          "{{.year}}/{{.month}}/{{.day}}",
 		"(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}:[0-9]{2}:[0-9]{2}_[0-9]+x[0-9]+_scrot": "{{.year}}/{{.month}}/{{.day}}",
@@ -29,36 +27,6 @@ var (
 	}
 )
 
-func resultPath(filename string, rc regexp.Regexp) (*string, error) {
-	l := logger.Sugar()
-	pathTemplate, ok := dateRegexpToPathTemplate[rc.String()]
-	if ok {
-		l.Debugw("[resultPath]", "pathTemplate", pathTemplate)
-	}
-
-	fieldsValues := make(map[string]interface{})
-
-	var resultBytes bytes.Buffer
-
-	matches := rc.FindStringSubmatch(filename)
-	for _, sn := range rc.SubexpNames()[1:] {
-		snIndex := rc.SubexpIndex(sn)
-		fieldsValues[sn] = matches[snIndex]
-	}
-
-	t, err := template.New("destPath").Parse(pathTemplate)
-	if err != nil {
-		return nil, err
-	}
-	err = t.Execute(&resultBytes, fieldsValues)
-	if err != nil {
-		return nil, err
-	}
-
-	result := resultBytes.String()
-	return &result, nil
-}
-
 func perform(ctx *cli.Context) error {
 	l := logger.Sugar()
 	files := fs.NewFSCollection(ctx.String("root"), nil, nil, false).Emit(false)
@@ -68,7 +36,7 @@ func perform(ctx *cli.Context) error {
 		os.Exit(0)
 	} else {
 		var regexpsC []regexp.Regexp
-		for re := range dateRegexpToPathTemplate {
+		for re := range srcRegexpToDestTemplate {
 			regexpsC = append(regexpsC, *regexp.MustCompile(re))
 		}
 		rootTrimmed := strings.TrimSuffix(ctx.String("root"), "/")
@@ -83,7 +51,7 @@ func perform(ctx *cli.Context) error {
 			for _, rc := range regexpsC {
 				if rc.MatchString(f) {
 					l.Debugw("[perform]", "matched", f, "rc", rc)
-					result, err := resultPath(f, rc)
+					result, err := impl.RegexpToTemplate(f, rc, srcRegexpToDestTemplate)
 					if err != nil {
 						errored = true
 						l.Debugw("[perform]", "error getting result path", err)
