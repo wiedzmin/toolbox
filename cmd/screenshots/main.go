@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
@@ -48,7 +49,7 @@ func perform(ctx *cli.Context) error {
 					yearIndex := rc.SubexpIndex("year")
 					monthIndex := rc.SubexpIndex("month")
 					dayIndex := rc.SubexpIndex("day")
-					destDir = fmt.Sprintf("%s/%s/%s/%s", ctx.String("root"), matches[yearIndex], matches[monthIndex], matches[dayIndex])
+					destDir = fmt.Sprintf("%s/%s/%s/%s", strings.TrimSuffix(ctx.String("root"), "/"), matches[yearIndex], matches[monthIndex], matches[dayIndex])
 					srcPath = fmt.Sprintf("%s/%s", ctx.String("root"), f)
 					destPath = fmt.Sprintf("%s/%s", destDir, f)
 					l.Debugw("[perform]", "destDir", destDir, "srcPath", srcPath, "destPath", destPath)
