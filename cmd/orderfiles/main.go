@@ -32,7 +32,7 @@ func perform(ctx *cli.Context) error {
 	files := fs.NewFSCollection(ctx.String("root"), nil, nil, false).Emit(false)
 	filesCount := len(files)
 	if filesCount == 0 {
-		ui.NotifyCritical("[screenshots]", "No screenshots found")
+		ui.NotifyCritical("[orderfiles]", "No source files found")
 		os.Exit(0)
 	} else {
 		var regexpsC []regexp.Regexp
@@ -64,7 +64,7 @@ func perform(ctx *cli.Context) error {
 					err = os.MkdirAll(destDir, 0777)
 					if err != nil && !os.IsExist(err) {
 						errorText := fmt.Sprintf("failed to create path %s\n\nCause: %#v", destDir, err)
-						ui.NotifyCritical("[screenshots]", errorText)
+						ui.NotifyCritical("[orderfiles]", errorText)
 						l.Debugw("[perform]", "error", errorText)
 						continue
 					}
@@ -75,9 +75,9 @@ func perform(ctx *cli.Context) error {
 
 					err = os.Rename(srcPath, destPath)
 					if err != nil {
-						ui.NotifyCritical("[screenshots]", fmt.Sprintf("%s --> %s FAILED\n\nCause: %#v", f, destDir, err))
+						ui.NotifyCritical("[orderfiles]", fmt.Sprintf("%s --> %s FAILED\n\nCause: %#v", f, destDir, err))
 					} else {
-						ui.NotifyNormal("[screenshots]", fmt.Sprintf("%s --> %s", f, destDir))
+						ui.NotifyNormal("[orderfiles]", fmt.Sprintf("%s --> %s", f, destDir))
 					}
 					break
 				} else {
@@ -92,20 +92,20 @@ func perform(ctx *cli.Context) error {
 					fallbackDir = fmt.Sprintf("%s/%s", rootTrimmed, ctx.String("unmatched"))
 					err := os.MkdirAll(fallbackDir, 0777)
 					if err != nil && !os.IsExist(err) {
-						ui.NotifyCritical("[screenshots]", fmt.Sprintf("failed to create path %s\n\nCause: %#v", fallbackDir, err))
+						ui.NotifyCritical("[orderfiles]", fmt.Sprintf("failed to create path %s\n\nCause: %#v", fallbackDir, err))
 					}
 					srcPath = fmt.Sprintf("%s/%s", rootTrimmed, f)
 					destPath = fmt.Sprintf("%s/%s", fallbackDir, f)
-					ui.NotifyCritical("[screenshots]", fmt.Sprintf("%s did not matched any regexps, custom name encountered\n\nMoving under '%s' subdirectory", f, fallbackDir))
+					ui.NotifyCritical("[orderfiles]", fmt.Sprintf("%s did not matched any regexps, custom name encountered\n\nMoving under '%s' subdirectory", f, fallbackDir))
 					l.Debugw("[perform]", "fallbackDir", fallbackDir, "srcPath", srcPath, "destPath", destPath)
 					err = os.Rename(srcPath, destPath)
 					if err != nil {
-						ui.NotifyCritical("[screenshots]", fmt.Sprintf("%s --> %s FAILED\n\nCause: %#v", f, fallbackDir, err))
+						ui.NotifyCritical("[orderfiles]", fmt.Sprintf("%s --> %s FAILED\n\nCause: %#v", f, fallbackDir, err))
 					} else {
-						ui.NotifyNormal("[screenshots]", fmt.Sprintf("%s --> %s", f, fallbackDir))
+						ui.NotifyNormal("[orderfiles]", fmt.Sprintf("%s --> %s", f, fallbackDir))
 					}
 				} else if ctx.Bool("skip-unmatched") {
-					ui.NotifyNormal("[screenshots]", fmt.Sprintf("skipping '%s' due to `skip-unmatched` flag", f))
+					ui.NotifyNormal("[orderfiles]", fmt.Sprintf("skipping '%s' due to `skip-unmatched` flag", f))
 					l.Debugw("[perform]", "note", fmt.Sprintf("skipping '%s' due to `skip-unmatched` flag", f))
 				}
 			}
@@ -117,9 +117,9 @@ func perform(ctx *cli.Context) error {
 
 func createCLI() *cli.App {
 	app := cli.NewApp()
-	app.Name = "Screenshots"
-	app.Usage = "Screenshots ordering"
-	app.Description = "Screenshots"
+	app.Name = "Orderfiles"
+	app.Usage = "Arbitrary files ordering"
+	app.Description = "Orderfiles"
 	app.Version = "0.0.1#master"
 
 	app.Flags = []cli.Flag{
@@ -136,7 +136,7 @@ func createCLI() *cli.App {
 		&cli.StringFlag{
 			Name:     "unmatched",
 			Value:    "named",
-			Usage:    "Directory under base to place custom-named/unmatched screenshots to",
+			Usage:    "Directory under base to place custom-named/unmatched files to",
 			Required: false,
 		},
 		&cli.BoolFlag{
