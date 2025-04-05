@@ -82,12 +82,8 @@ func perform(ctx *cli.Context) error {
 		return exportSession(*sessionsPath, *sessionName, ctx.String("export-path"), exportFormat)
 	}
 	if ctx.Bool("export-all") {
-		files, err := fs.CollectFiles(*sessionsPath, false, false, nil, nil)
-		if err != nil {
-			return err
-		}
-		for _, f := range files {
-			err = exportSession(*sessionsPath, f, ctx.String("export-path"), exportFormat)
+		for _, f := range fs.NewFSCollection(*sessionsPath, nil, nil, false).Emit(false) {
+			err := exportSession(*sessionsPath, f, ctx.String("export-path"), exportFormat)
 			if err != nil {
 				return err
 			}

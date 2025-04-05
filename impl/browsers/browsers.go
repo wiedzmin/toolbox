@@ -12,10 +12,7 @@ var (
 
 // SelectSession collects session files and allows selecting one
 func SelectSession(path, prompt, tool, font string, regexpsWhitelist, regexpsBlacklist []string) (*string, error) {
-	files, err := fs.CollectFiles(path, false, false, regexpsWhitelist, regexpsBlacklist)
-	if err != nil {
-		return nil, err
-	}
+	files := fs.NewFSCollection(path, regexpsWhitelist, regexpsBlacklist, false).Emit(false)
 	xkb.EnsureEnglishKeyboardLayout()
 	sessionName, err := ui.GetSelection(files, prompt, tool, font, true, false)
 

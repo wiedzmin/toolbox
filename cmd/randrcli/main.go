@@ -98,12 +98,8 @@ func activate(ctx *cli.Context) error {
 		return err
 	}
 
-	profiles, err := fs.CollectFiles(*profilesPath, false, true, nil, []string{"\\.d$"})
-	if err != nil {
-		return err
-	}
-
-	profile, err := ui.GetSelection(profiles, "profile", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
+	profile, err := ui.GetSelection(
+		fs.NewFSCollection(*profilesPath, nil, []string{"\\.d$"}, true).Emit(false), "profile", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
 	if err != nil {
 		return err
 	}

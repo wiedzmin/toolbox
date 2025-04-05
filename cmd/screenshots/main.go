@@ -28,10 +28,7 @@ var (
 
 func perform(ctx *cli.Context) error {
 	l := logger.Sugar()
-	files, err := fs.CollectFiles(ctx.String("root"), false, false, nil, nil)
-	if err != nil {
-		return err
-	}
+	files := fs.NewFSCollection(ctx.String("root"), nil, nil, false).Emit(false)
 	filesCount := len(files)
 	if filesCount == 0 {
 		ui.NotifyCritical("[screenshots]", "No screenshots found")

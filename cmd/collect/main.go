@@ -15,10 +15,7 @@ import (
 var logger *zap.Logger
 
 func perform(ctx *cli.Context) error {
-	result, err := fs.CollectFilesRecursive(ctx.String("root"), false, strings.Split(ctx.String("exts"), ","), nil, false)
-	if err != nil {
-		return err
-	}
+	result := fs.NewFSCollection(ctx.String("root"), strings.Split(ctx.String("exts"), ","), nil, false).EmitRecursive(true)
 	jsonData, err := jsoniter.Marshal(result)
 	if err != nil {
 		return err

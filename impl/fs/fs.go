@@ -20,6 +20,103 @@ func init() {
 	logger = impl.NewLogger()
 }
 
+type FSCollection struct {
+	path                                   string
+	regexpsWhitelistRe, regexpsBlacklistRe []regexp.Regexp
+	acceptAll                              bool
+	allowDirs                              bool
+}
+
+// NewFSCollection creates FS path representation object that could be further queried in various applicable ways
+// Note that currently there is no black/white-listing cross logic implemented
+func NewFSCollection(path string, regexpsWhitelist, regexpsBlacklist []string, allowDirs bool) *FSCollection {
+	l := logger.Sugar()
+	l.Debugw("[NewFSCollection]", "path", path, "regexpsWhitelist", regexpsWhitelist, "regexpsBlacklist", regexpsBlacklist, "allowDirs", allowDirs)
+	if regexpsWhitelist != nil && regexpsBlacklist != nil {
+		l.Debugw("[FSCollection.Emit]", "error", "Note that currently there is no black/white-listing cross logic implemented")
+		return nil
+	}
+
+	var result FSCollection
+	result.path = path
+	result.allowDirs = allowDirs
+	for _, re := range regexpsWhitelist {
+		rc := regexp.MustCompile(re)
+		result.regexpsWhitelistRe = append(result.regexpsWhitelistRe, *rc)
+	}
+	for _, re := range regexpsBlacklist {
+		rc := regexp.MustCompile(re)
+		result.regexpsBlacklistRe = append(result.regexpsBlacklistRe, *rc)
+	}
+	if regexpsWhitelist == nil && regexpsBlacklist == nil {
+		result.acceptAll = true
+	}
+	l.Debugw("[NewFSCollection]", "result.path", result.path, "result.regexpsWhitelistRe", result.regexpsWhitelistRe, "result.regexpsBlacklistRe", result.regexpsBlacklistRe, "result.acceptAll", result.acceptAll)
+	return &result
+}
+
+// Emit generates list of files according to previously initialized FSCollection,
+// either with absolute path oor basename only
+func (fsc *FSCollection) Emit(absolutePath bool) []string {
+	l := logger.Sugar()
+	files, err := os.ReadDir(fmt.Sprintf("%s/.", fsc.path))
+	l.Debugw("[FSCollection.Emit]", "files", files)
+	if err != nil {
+		l.Debugw("[FSCollection.Emit]", "err", err)
+		return nil
+	}
+	var result []string
+
+	for _, fi := range files {
+		l.Debugw("[FSCollection.Emit]", "fi.IsDir", fi.IsDir(), "fi.Name", fi.Name())
+		if !fi.IsDir() || fsc.allowDirs {
+			if fsc.acceptAll ||
+				fsc.regexpsWhitelistRe != nil && impl.MatchAnyRegexp(fi.Name(), fsc.regexpsWhitelistRe) ||
+				fsc.regexpsBlacklistRe != nil && !impl.MatchAnyRegexp(fi.Name(), fsc.regexpsBlacklistRe) {
+				if absolutePath {
+					result = append(result, fmt.Sprintf("%s/%s", fsc.path, fi.Name()))
+				} else {
+					result = append(result, fi.Name())
+				}
+			}
+		}
+	}
+	return result
+}
+
+// EmitRecursive recursively generates list of files according to previously initialized FSCollection,
+// either with absolute path oor basename only
+func (fsc *FSCollection) EmitRecursive(absolutePath bool) []string {
+	l := logger.Sugar()
+
+	var result []string
+
+	err := filepath.Walk(fsc.path,
+		func(pathentry string, fi os.FileInfo, err error) error {
+			if err != nil {
+				l.Debugw("[FSCollection.EmitRecursive/walker]", "err", err, "pathentry", pathentry)
+				return err
+			}
+			if !fi.IsDir() || fsc.allowDirs {
+				if fsc.acceptAll ||
+					fsc.regexpsWhitelistRe != nil && impl.MatchAnyRegexp(fi.Name(), fsc.regexpsWhitelistRe) ||
+					fsc.regexpsBlacklistRe != nil && !impl.MatchAnyRegexp(fi.Name(), fsc.regexpsBlacklistRe) {
+					if !absolutePath {
+						pathentry = strings.TrimPrefix(pathentry, fsc.path+"/")
+					}
+					result = append(result, pathentry)
+				}
+			}
+			return nil
+		})
+	if err != nil {
+		return nil
+	}
+
+	l.Debugw("[FSCollection.EmitRecursive]", "result", result)
+	return result
+}
+
 func FilesOlderThan(path, olderThan string, fullPath bool, regexWhitelist *string) ([]string, error) {
 	l := logger.Sugar()
 	l.Debugw("[FilesOlderThan]", "path", path, "olderThan", olderThan, "fullPath", fullPath, "regexWhitelist", regexWhitelist)
@@ -77,96 +174,6 @@ func RotateOlderThan(path, olderThan string, regexWhitelist *string) error {
 		l.Debugw("[RotateOlderThan]", "removed", f)
 	}
 	return nil
-}
-
-func CollectFiles(path string, fullPath bool, allowDirs bool, regexpsWhitelist, regexpsBlacklist []string) ([]string, error) {
-	l := logger.Sugar()
-	l.Debugw("[CollectFiles]", "path", path, "fullPath", fullPath, "regexpsWhitelist", regexpsWhitelist, "regexpsBlacklist", regexpsBlacklist)
-	files, err := os.ReadDir(fmt.Sprintf("%s/.", path))
-	l.Debugw("[CollectFiles]", "files", files)
-	if err != nil {
-		return nil, err
-	}
-	var result []string
-	var regexpsWhitelistRe, regexpsBlacklistRe []regexp.Regexp
-	acceptAll := false
-
-	if regexpsWhitelist != nil && regexpsBlacklist != nil {
-		return nil, fmt.Errorf("it makes no sense to provide both blacklist and whitelist")
-	}
-	for _, re := range regexpsWhitelist {
-		rc := regexp.MustCompile(re)
-		regexpsWhitelistRe = append(regexpsWhitelistRe, *rc)
-	}
-	for _, re := range regexpsBlacklist {
-		rc := regexp.MustCompile(re)
-		regexpsBlacklistRe = append(regexpsBlacklistRe, *rc)
-	}
-	if regexpsWhitelist == nil && regexpsBlacklist == nil {
-		acceptAll = true
-	}
-
-	for _, fi := range files {
-		if !fi.IsDir() || allowDirs {
-			if acceptAll ||
-				regexpsWhitelist != nil && impl.MatchAnyRegexp(fi.Name(), regexpsWhitelistRe) ||
-				regexpsBlacklist != nil && !impl.MatchAnyRegexp(fi.Name(), regexpsBlacklistRe) {
-				if fullPath {
-					result = append(result, fmt.Sprintf("%s/%s", path, fi.Name()))
-				} else {
-					result = append(result, fi.Name())
-				}
-			}
-		}
-	}
-
-	return result, nil
-}
-
-func CollectFilesRecursive(path string, allowDirs bool, regexpsWhitelist, regexpsBlacklist []string, trimPrefix bool) ([]string, error) {
-	l := logger.Sugar()
-	l.Debugw("[CollectFilesRecursive]", "path", path, "regexpsWhitelist", regexpsWhitelist, "regexpsBlacklist", regexpsBlacklist)
-
-	var result []string
-	var regexpsWhitelistRe, regexpsBlacklistRe []regexp.Regexp
-	acceptAll := false
-	if regexpsWhitelist != nil && regexpsBlacklist != nil {
-		return nil, fmt.Errorf("it makes no sense to provide both blacklist and whitelist")
-	}
-	for _, re := range regexpsWhitelist {
-		rc := regexp.MustCompile(re)
-		regexpsWhitelistRe = append(regexpsWhitelistRe, *rc)
-	}
-	for _, re := range regexpsBlacklist {
-		rc := regexp.MustCompile(re)
-		regexpsBlacklistRe = append(regexpsBlacklistRe, *rc)
-	}
-	if regexpsWhitelist == nil && regexpsBlacklist == nil {
-		acceptAll = true
-	}
-
-	err := filepath.Walk(path,
-		func(pathentry string, fi os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			if !fi.IsDir() || allowDirs {
-				if acceptAll ||
-					regexpsWhitelist != nil && impl.MatchAnyRegexp(fi.Name(), regexpsWhitelistRe) ||
-					regexpsBlacklist != nil && !impl.MatchAnyRegexp(fi.Name(), regexpsBlacklistRe) {
-					if trimPrefix {
-						pathentry = strings.TrimPrefix(pathentry, path+"/")
-					}
-					result = append(result, pathentry)
-				}
-			}
-			return nil
-		})
-	if err != nil {
-		return nil, err
-	}
-	l.Debugw("[CollectFilesRecursive]", "result", result)
-	return result, nil
 }
 
 func copyFileContents(src, dst string) (err error) {
