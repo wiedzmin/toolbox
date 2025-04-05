@@ -24,6 +24,12 @@ var (
 		"screenshot-(?P<day>[0-9]{2})-(?P<month>[0-9]{2})-(?P<year>[0-9]{4})-[0-9]{2}:[0-9]{2}:[0-9]{2}":          "{{.year}}/{{.month}}/{{.day}}",
 		"screenshot-[0-9]{2}:[0-9]{2}:[0-9]{2} (?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})":          "{{.year}}/{{.month}}/{{.day}}",
 		"screenshot-[0-9]{2}:[0-9]{2}:[0-9]{2}_(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})":          "{{.year}}/{{.month}}/{{.day}}",
+		"(?P<basename>.*)\\.doc":  "docs",
+		"(?P<basename>.*)\\.docx": "docs",
+		"(?P<basename>.*)\\.mp3":  "audio",
+		"(?P<basename>.*)\\.mp4":  "video",
+		"(?P<basename>.*)\\.pdf":  "pdf",
+		"(?P<basename>.*)\\.webm": "video",
 	}
 )
 
