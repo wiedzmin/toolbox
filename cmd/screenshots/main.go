@@ -72,6 +72,10 @@ func perform(ctx *cli.Context) error {
 			regexpsC = append(regexpsC, *regexp.MustCompile(re))
 		}
 		rootTrimmed := strings.TrimSuffix(ctx.String("root"), "/")
+		destRootTrimmed := strings.TrimSuffix(ctx.String("dest-root"), "/")
+		if destRootTrimmed == "" {
+			destRootTrimmed = rootTrimmed
+		}
 		for _, f := range files {
 			failCount := 0
 			errored := false
@@ -87,7 +91,7 @@ func perform(ctx *cli.Context) error {
 					}
 					l.Debugw("[perform]", "result path", result)
 
-					destDir = fmt.Sprintf("%s/%s", rootTrimmed, *result)
+					destDir = fmt.Sprintf("%s/%s", destRootTrimmed, *result)
 					l.Debugw("[perform]", "destDir", destDir)
 					err = os.MkdirAll(destDir, 0777)
 					if err != nil && !os.IsExist(err) {
@@ -155,6 +159,11 @@ func createCLI() *cli.App {
 			Name:     "root",
 			Usage:    "Base directory to perform sorting under",
 			Required: true,
+		},
+		&cli.StringFlag{
+			Name:     "dest-root",
+			Usage:    "Base directory to move sorted files under",
+			Required: false,
 		},
 		&cli.StringFlag{
 			Name:     "unmatched",
