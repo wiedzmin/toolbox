@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
+	"text/template"
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
@@ -13,18 +16,48 @@ import (
 )
 
 var (
-	logger      *zap.Logger
-	dateRegexps = []string{
-		"screenshot-(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}:[0-9]{2}:[0-9]{2}",
-		"screenshot-(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}-[0-9]{2}-[0-9]{2}",
-		"(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}:[0-9]{2}:[0-9]{2}_[0-9]+x[0-9]+_scrot",
-		"(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})-[0-9]{6}_[0-9]+x[0-9]+_scrot",
-		"(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}-[0-9]{2}",
-		"screenshot-(?P<day>[0-9]{2})-(?P<month>[0-9]{2})-(?P<year>[0-9]{4})-[0-9]{2}:[0-9]{2}:[0-9]{2}",
-		"screenshot-[0-9]{2}:[0-9]{2}:[0-9]{2} (?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})",
-		"screenshot-[0-9]{2}:[0-9]{2}:[0-9]{2}_(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})",
+	logger                   *zap.Logger
+	dateRegexpToPathTemplate = map[string]string{
+		"screenshot-(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}:[0-9]{2}:[0-9]{2}":          "{{.year}}/{{.month}}/{{.day}}",
+		"screenshot-(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}-[0-9]{2}-[0-9]{2}":          "{{.year}}/{{.month}}/{{.day}}",
+		"(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}:[0-9]{2}:[0-9]{2}_[0-9]+x[0-9]+_scrot": "{{.year}}/{{.month}}/{{.day}}",
+		"(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})-[0-9]{6}_[0-9]+x[0-9]+_scrot":                   "{{.year}}/{{.month}}/{{.day}}",
+		"(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}-[0-9]{2}":                              "{{.year}}/{{.month}}/{{.day}}",
+		"screenshot-(?P<day>[0-9]{2})-(?P<month>[0-9]{2})-(?P<year>[0-9]{4})-[0-9]{2}:[0-9]{2}:[0-9]{2}":          "{{.year}}/{{.month}}/{{.day}}",
+		"screenshot-[0-9]{2}:[0-9]{2}:[0-9]{2} (?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})":          "{{.year}}/{{.month}}/{{.day}}",
+		"screenshot-[0-9]{2}:[0-9]{2}:[0-9]{2}_(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})":          "{{.year}}/{{.month}}/{{.day}}",
 	}
 )
+
+func resultPath(filename string, rc regexp.Regexp) (*string, error) {
+	l := logger.Sugar()
+	pathTemplate, ok := dateRegexpToPathTemplate[rc.String()]
+	if ok {
+		l.Debugw("[resultPath]", "pathTemplate", pathTemplate)
+	}
+
+	fieldsValues := make(map[string]interface{})
+
+	var resultBytes bytes.Buffer
+
+	matches := rc.FindStringSubmatch(filename)
+	for _, sn := range rc.SubexpNames()[1:] {
+		snIndex := rc.SubexpIndex(sn)
+		fieldsValues[sn] = matches[snIndex]
+	}
+
+	t, err := template.New("destPath").Parse(pathTemplate)
+	if err != nil {
+		return nil, err
+	}
+	err = t.Execute(&resultBytes, fieldsValues)
+	if err != nil {
+		return nil, err
+	}
+
+	result := resultBytes.String()
+	return &result, nil
+}
 
 func perform(ctx *cli.Context) error {
 	l := logger.Sugar()
@@ -35,27 +68,39 @@ func perform(ctx *cli.Context) error {
 		os.Exit(0)
 	} else {
 		var regexpsC []regexp.Regexp
-		for _, re := range dateRegexps { // FIXME: could we precompile regexps earlier?
+		for re := range dateRegexpToPathTemplate {
 			regexpsC = append(regexpsC, *regexp.MustCompile(re))
 		}
+		rootTrimmed := strings.TrimSuffix(ctx.String("root"), "/")
 		for _, f := range files {
 			failCount := 0
+			errored := false
 			var destDir, fallbackDir, srcPath, destPath string
 			for _, rc := range regexpsC {
 				if rc.MatchString(f) {
 					l.Debugw("[perform]", "matched", f, "rc", rc)
-					matches := rc.FindStringSubmatch(f)
-					yearIndex := rc.SubexpIndex("year")
-					monthIndex := rc.SubexpIndex("month")
-					dayIndex := rc.SubexpIndex("day")
-					destDir = fmt.Sprintf("%s/%s/%s/%s", ctx.String("root"), matches[yearIndex], matches[monthIndex], matches[dayIndex])
-					srcPath = fmt.Sprintf("%s/%s", ctx.String("root"), f)
-					destPath = fmt.Sprintf("%s/%s", destDir, f)
-					l.Debugw("[perform]", "destDir", destDir, "srcPath", srcPath, "destPath", destPath)
-					err := os.MkdirAll(destDir, 0777)
-					if err != nil && !os.IsExist(err) {
-						ui.NotifyCritical("[screenshots]", fmt.Sprintf("failed to create path %s\n\nCause: %#v", destDir, err))
+					result, err := resultPath(f, rc)
+					if err != nil {
+						errored = true
+						l.Debugw("[perform]", "error getting result path", err)
+						continue
 					}
+					l.Debugw("[perform]", "result path", result)
+
+					destDir = fmt.Sprintf("%s/%s", rootTrimmed, *result)
+					l.Debugw("[perform]", "destDir", destDir)
+					err = os.MkdirAll(destDir, 0777)
+					if err != nil && !os.IsExist(err) {
+						errorText := fmt.Sprintf("failed to create path %s\n\nCause: %#v", destDir, err)
+						ui.NotifyCritical("[screenshots]", errorText)
+						l.Debugw("[perform]", "error", errorText)
+						continue
+					}
+
+					srcPath = fmt.Sprintf("%s/%s", rootTrimmed, f)
+					destPath = fmt.Sprintf("%s/%s", destDir, f)
+					l.Debugw("[perform]", "srcPath", srcPath, "destPath", destPath)
+
 					err = os.Rename(srcPath, destPath)
 					if err != nil {
 						ui.NotifyCritical("[screenshots]", fmt.Sprintf("%s --> %s FAILED\n\nCause: %#v", f, destDir, err))
@@ -67,21 +112,29 @@ func perform(ctx *cli.Context) error {
 					failCount++
 				}
 			}
+			if errored {
+				break
+			}
 			if failCount == len(regexpsC) {
-				fallbackDir = fmt.Sprintf("%s/%s", ctx.String("root"), ctx.String("non-matched"))
-				err := os.MkdirAll(fallbackDir, 0777)
-				if err != nil && !os.IsExist(err) {
-					ui.NotifyCritical("[screenshots]", fmt.Sprintf("failed to create path %s\n\nCause: %#v", fallbackDir, err))
-				}
-				srcPath = fmt.Sprintf("%s/%s", ctx.String("root"), f)
-				destPath = fmt.Sprintf("%s/%s", fallbackDir, f)
-				ui.NotifyCritical("[screenshots]", fmt.Sprintf("%s did not matched any regexps, custom name encountered\n\nMoving under '%s' subdirectory", f, fallbackDir))
-				l.Debugw("[perform]", "fallbackDir", fallbackDir, "srcPath", srcPath, "destPath", destPath)
-				err = os.Rename(srcPath, destPath)
-				if err != nil {
-					ui.NotifyCritical("[screenshots]", fmt.Sprintf("%s --> %s FAILED\n\nCause: %#v", f, fallbackDir, err))
-				} else {
-					ui.NotifyNormal("[screenshots]", fmt.Sprintf("%s --> %s", f, fallbackDir))
+				if !ctx.Bool("skip-unmatched") {
+					fallbackDir = fmt.Sprintf("%s/%s", rootTrimmed, ctx.String("unmatched"))
+					err := os.MkdirAll(fallbackDir, 0777)
+					if err != nil && !os.IsExist(err) {
+						ui.NotifyCritical("[screenshots]", fmt.Sprintf("failed to create path %s\n\nCause: %#v", fallbackDir, err))
+					}
+					srcPath = fmt.Sprintf("%s/%s", rootTrimmed, f)
+					destPath = fmt.Sprintf("%s/%s", fallbackDir, f)
+					ui.NotifyCritical("[screenshots]", fmt.Sprintf("%s did not matched any regexps, custom name encountered\n\nMoving under '%s' subdirectory", f, fallbackDir))
+					l.Debugw("[perform]", "fallbackDir", fallbackDir, "srcPath", srcPath, "destPath", destPath)
+					err = os.Rename(srcPath, destPath)
+					if err != nil {
+						ui.NotifyCritical("[screenshots]", fmt.Sprintf("%s --> %s FAILED\n\nCause: %#v", f, fallbackDir, err))
+					} else {
+						ui.NotifyNormal("[screenshots]", fmt.Sprintf("%s --> %s", f, fallbackDir))
+					}
+				} else if ctx.Bool("skip-unmatched") {
+					ui.NotifyNormal("[screenshots]", fmt.Sprintf("skipping '%s' due to `skip-unmatched` flag", f))
+					l.Debugw("[perform]", "note", fmt.Sprintf("skipping '%s' due to `skip-unmatched` flag", f))
 				}
 			}
 		}
@@ -104,9 +157,15 @@ func createCLI() *cli.App {
 			Required: true,
 		},
 		&cli.StringFlag{
-			Name:     "non-matched",
+			Name:     "unmatched",
 			Value:    "named",
-			Usage:    "Directory under base to place named/non-matched screenshots to",
+			Usage:    "Directory under base to place custom-named/unmatched screenshots to",
+			Required: false,
+		},
+		&cli.BoolFlag{
+			Name:     "skip-unmatched",
+			Usage:    "Whether to skip files that did not matched any regexps",
+			Value:    false,
 			Required: false,
 		},
 	}
