@@ -69,7 +69,7 @@ func perform(ctx *cli.Context) error {
 				}
 			}
 			if failCount == len(regexpsC) {
-				fallbackDir = fmt.Sprintf("%s/%s", ctx.String("root"), ctx.String("non-matched"))
+				fallbackDir = fmt.Sprintf("%s/%s", ctx.String("root"), ctx.String("unmatched"))
 				err := os.MkdirAll(fallbackDir, 0777)
 				if err != nil && !os.IsExist(err) {
 					ui.NotifyCritical("[screenshots]", fmt.Sprintf("failed to create path %s\n\nCause: %#v", fallbackDir, err))
@@ -105,9 +105,9 @@ func createCLI() *cli.App {
 			Required: true,
 		},
 		&cli.StringFlag{
-			Name:     "non-matched",
+			Name:     "unmatched",
 			Value:    "named",
-			Usage:    "Directory under base to place named/non-matched screenshots to",
+			Usage:    "Directory under base to place custom-named/unmatched screenshots to",
 			Required: false,
 		},
 	}
