@@ -15,7 +15,7 @@ import (
 
 var (
 	logger                  *zap.Logger
-	srcRegexpToDestTemplate = map[string]string{
+	srcRegexpToDestTemplate = map[string]string{ // TODO: extract to external configuration
 		"screenshot-(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}:[0-9]{2}:[0-9]{2}":          "{{.year}}/{{.month}}/{{.day}}",
 		"screenshot-(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}-[0-9]{2}-[0-9]{2}":          "{{.year}}/{{.month}}/{{.day}}",
 		"(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}:[0-9]{2}:[0-9]{2}_[0-9]+x[0-9]+_scrot": "{{.year}}/{{.month}}/{{.day}}",
