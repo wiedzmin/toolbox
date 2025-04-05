@@ -24,8 +24,7 @@ func perform(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	err = r.SetValue(ctx.String("key"), string(jsonData))
-	return err
+	return r.SetValue(ctx.String("key"), string(jsonData))
 }
 
 func createCLI() *cli.App {
