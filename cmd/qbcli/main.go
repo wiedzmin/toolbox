@@ -31,7 +31,7 @@ func getCurrentTarget() (string, error) {
 	return target, nil
 }
 
-func perform(ctx *cli.Context) error {
+func open(ctx *cli.Context) error {
 	l := logger.Sugar()
 
 	var target, openParam string
@@ -50,11 +50,11 @@ func perform(ctx *cli.Context) error {
 		return fmt.Errorf("unknown url target '%s'", target)
 	}
 
-	resp := qutebrowser.Request{Commands: []string{
+	req := qutebrowser.Request{Commands: []string{
 		fmt.Sprintf(":open %s %s", openParam, ctx.String("url")),
 	}}
-	l.Debugw("[perform]", "request", r)
-	rb, err := resp.Marshal()
+	l.Debugw("[perform]", "request", req)
+	rb, err := req.Marshal()
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,39 @@ func perform(ctx *cli.Context) error {
 		return err
 	}
 	err = impl.SendToUnixSocket(*socketPath, rb)
-	if _, ok := err.(impl.FileErrNotExist); ok {
+	if _, ok := err.(impl.FileErrNotExist); ok { //  FIXME: make less interactive
+		ui.NotifyCritical("[qutebrowser]", fmt.Sprintf("cannot access socket at `%s`\nIs qutebrowser running?", *socketPath))
+		os.Exit(0)
+	}
+
+	return nil
+}
+
+func saveSession(ctx *cli.Context) error {
+	l := logger.Sugar()
+
+	var sessionName string
+	if ctx.String("name") != "" {
+		sessionName = ctx.String("name")
+	} else {
+		sessionName = fmt.Sprintf("session-%s", impl.CommonNowTimestamp(false))
+	}
+
+	req := qutebrowser.Request{Commands: []string{
+		fmt.Sprintf(":session-save --quiet %s", sessionName),
+		":session-save --quiet",
+	}}
+	l.Debugw("[perform]", "request", req)
+	rb, err := req.Marshal()
+	if err != nil {
+		return err
+	}
+	socketPath, err := qutebrowser.SocketPath()
+	if err != nil {
+		return err
+	}
+	err = impl.SendToUnixSocket(*socketPath, rb)
+	if _, ok := err.(impl.FileErrNotExist); ok { //  FIXME: make less interactive
 		ui.NotifyCritical("[qutebrowser]", fmt.Sprintf("cannot access socket at `%s`\nIs qutebrowser running?", *socketPath))
 		os.Exit(0)
 	}
@@ -73,20 +105,39 @@ func perform(ctx *cli.Context) error {
 
 func createCLI() *cli.App {
 	app := cli.NewApp()
-	app.Name = "Qbopen"
-	app.Usage = "Qutebrowser url opener, using IPC"
-	app.Description = "Qbopen"
+	app.Name = "Qbcli"
+	app.Usage = "CLI for Qutebrowser, with help of IPC"
+	app.Description = "Qbcli"
 	app.Version = "0.0.1#master"
 
-	app.Flags = []cli.Flag{
-		&cli.StringFlag{
-			Name:     "url",
-			Aliases:  []string{"u"},
-			Usage:    "URL to open",
-			Required: true,
+	app.Commands = cli.Commands{
+		{
+			Name:   "open",
+			Usage:  "Open URL",
+			Action: open,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "url",
+					Aliases:  []string{"u"},
+					Usage:    "URL to open",
+					Required: true,
+				},
+			},
+		},
+		{
+			Name:   "save-session",
+			Usage:  "Save current browser session",
+			Action: saveSession,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "name",
+					Aliases:  []string{"n"},
+					Usage:    "Session name",
+					Required: false,
+				},
+			},
 		},
 	}
-	app.Action = perform
 	return app
 }
 
