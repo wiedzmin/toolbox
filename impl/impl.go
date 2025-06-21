@@ -16,6 +16,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/mattn/go-isatty"
 	"go.uber.org/zap"
 )
 
@@ -32,6 +33,10 @@ var (
 
 func init() {
 	logger = NewLogger()
+}
+
+type EnvTraits struct {
+	InX, InShell bool
 }
 
 type ErrInvalidUrl struct {
@@ -64,6 +69,15 @@ type ErrNotImplemented struct {
 
 func (e ErrNotImplemented) Error() string {
 	return fmt.Sprintf("'%s' not implemented", e.Token)
+}
+
+func GetEnvTraits() EnvTraits {
+	_, displaySet := os.LookupEnv("DISPLAY")
+	isTTY := isatty.IsCygwinTerminal(os.Stdout.Fd())
+	return EnvTraits{
+		InX:     displaySet,
+		InShell: isTTY,
+	}
 }
 
 func HasSpaces(s string) bool {
