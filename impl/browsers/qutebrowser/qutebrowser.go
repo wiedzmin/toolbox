@@ -5,7 +5,6 @@ import (
 	"crypto/md5"
 	"fmt"
 	"os"
-	"os/user"
 	"strings"
 
 	jsoniter "github.com/json-iterator/go"
@@ -78,16 +77,7 @@ type SessionLayout struct {
 }
 
 func SocketPath() (*string, error) {
-	l := logger.Sugar()
-	userInfo, err := user.Current()
-	l.Debugw("[SocketPath]", "userInfo", userInfo)
-	if err != nil {
-		return nil, err
-	}
-	result := fmt.Sprintf("/run/user/%s/qutebrowser/ipc-%x",
-		userInfo.Uid, md5.Sum([]byte(userInfo.Username)))
-	l.Debugw("[SocketPath]", "socket path", result)
-	return &result, nil
+	return fs.AtRunUser(fmt.Sprintf("qutebrowser/ipc-%x", md5.Sum([]byte(os.Getenv("USER")))))
 }
 
 func Execute(commands []string) error {
