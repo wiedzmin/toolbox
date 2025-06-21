@@ -29,9 +29,9 @@ const (
 	SESSION_FORMAT_JSON
 	SESSION_FORMAT_ORG
 	SESSION_FORMAT_ORG_FLAT
-	SessionstoreSubpath = ".local/share/qutebrowser/sessions"
-	URL_TARGET_SETTING  = "new_instance_open_target"
-	URL_TARGET_KEYNAME  = "qb_current_url_target"
+	SESSIONSTORE_SUBPATH_DEFAULT = ".local/share/qutebrowser/sessions"
+	URL_TARGET_SETTING           = "new_instance_open_target"
+	URL_TARGET_KEYNAME           = "qb_current_url_target"
 )
 
 var logger *zap.Logger
@@ -119,7 +119,7 @@ func Execute(commands []string) error {
 }
 
 func RawSessionsPath() *string {
-	path, err := fs.AtHomedir(SessionstoreSubpath)
+	path, err := fs.AtHomedir(SESSIONSTORE_SUBPATH_DEFAULT)
 	if err != nil {
 		return nil
 	}
