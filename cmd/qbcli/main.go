@@ -53,17 +53,7 @@ func open(ctx *cli.Context) error {
 }
 
 func saveSession(ctx *cli.Context) error {
-	var sessionName string
-	if ctx.String("name") != "" {
-		sessionName = ctx.String("name")
-	} else {
-		sessionName = fmt.Sprintf("session-%s", impl.CommonNowTimestamp(false))
-	}
-
-	return qutebrowser.Execute([]string{
-		fmt.Sprintf(":session-save --quiet %s", sessionName),
-		":session-save --quiet",
-	})
+	return qutebrowser.SaveSessionInternal(ctx.String("name"))
 }
 
 func createCLI() *cli.App {

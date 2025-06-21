@@ -136,6 +136,18 @@ func (r *Request) Marshal() ([]byte, error) {
 	return bytes, nil
 }
 
+func SaveSessionInternal(name string) error {
+	sessionName := name
+	if name == "" {
+		sessionName = fmt.Sprintf("session-%s", impl.CommonNowTimestamp(false))
+	}
+
+	return Execute([]string{
+		fmt.Sprintf(":session-save --quiet %s", sessionName),
+		":session-save --quiet",
+	})
+}
+
 func LoadSession(path string) (*SessionLayout, error) {
 	l := logger.Sugar()
 	l.Debugw("[LoadSession]", "path", path)

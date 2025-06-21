@@ -17,29 +17,8 @@ import (
 
 var logger *zap.Logger
 
-func saveSession(name *string) error {
-	sessionName := fmt.Sprintf("session-%s", impl.CommonNowTimestamp())
-	if name != nil {
-		sessionName = *name
-	}
-	socketPath, err := qutebrowser.SocketPath()
-	if err != nil {
-		return err
-	}
-	r := qutebrowser.Request{Commands: []string{
-		fmt.Sprintf(":session-save --quiet %s", sessionName),
-		":session-save --quiet",
-	}}
-	rb, err := r.Marshal()
-	if err != nil {
-		return err
-	}
-	err = impl.SendToUnixSocket(*socketPath, rb)
-	if _, ok := err.(impl.FileErrNotExist); ok {
-		ui.NotifyCritical("[qutebrowser]", fmt.Sprintf("cannot access socket at `%s`\nIs qutebrowser running?", *socketPath))
-		os.Exit(0)
-	}
-	return err
+func saveSession(name string) error {
+	return qutebrowser.SaveSessionInternal(name)
 }
 
 func exportSession(sessionsPath, sessionName, exportPath string, format qutebrowser.SessionFormat) error {
@@ -57,7 +36,7 @@ func perform(ctx *cli.Context) error {
 		return impl.FileErrNotExist{Path: fmt.Sprintf("~/%s", qutebrowser.SessionstoreSubpath)}
 	}
 	if ctx.Bool("save") {
-		return saveSession(nil)
+		return saveSession("")
 	}
 	if ctx.Bool("save-named") {
 		xkb.EnsureEnglishKeyboardLayout()
@@ -65,7 +44,7 @@ func perform(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		return saveSession(&name)
+		return saveSession(name)
 	}
 	if ctx.Bool("rotate") {
 		return fs.RotateOlderThan(*sessionsPath, fmt.Sprintf("%dm", ctx.Int("keep-minutes")), &browsers.RegexTimedSessionName)
