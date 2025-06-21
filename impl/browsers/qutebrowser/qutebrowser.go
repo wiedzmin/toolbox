@@ -12,6 +12,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/fs"
+	"github.com/wiedzmin/toolbox/impl/ui"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 )
@@ -88,6 +89,34 @@ func SocketPath() (*string, error) {
 		userInfo.Uid, md5.Sum([]byte(userInfo.Username)))
 	l.Debugw("[SocketPath]", "socket path", result)
 	return &result, nil
+}
+
+func Execute(commands []string) error {
+	l := logger.Sugar()
+	req := Request{Commands: commands}
+	l.Debugw("[qutebrowser.Execute]", "request", req)
+	rb, err := req.Marshal()
+	if err != nil {
+		return err
+	}
+	socketPath, err := SocketPath()
+	if err != nil {
+		return err
+	}
+
+	err = impl.SendToUnixSocket(*socketPath, rb)
+	if _, ok := err.(impl.FileErrNotExist); ok {
+		msg := fmt.Sprintf("cannot access socket at `%s`\nIs qutebrowser running?", *socketPath)
+		etraits := impl.GetEnvTraits()
+		if etraits.InX {
+			ui.NotifyCritical("[qutebrowser]", msg)
+		}
+		l.Debugw("[qutebrowser.Execute]", "err", msg)
+		os.Exit(0)
+	} else {
+		return err
+	}
+	return nil
 }
 
 func RawSessionsPath() *string {

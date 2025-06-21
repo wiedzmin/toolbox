@@ -8,7 +8,6 @@ import (
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/browsers/qutebrowser"
 	"github.com/wiedzmin/toolbox/impl/redis"
-	"github.com/wiedzmin/toolbox/impl/ui"
 	"go.uber.org/zap"
 )
 
@@ -32,8 +31,6 @@ func getCurrentTarget() (string, error) {
 }
 
 func open(ctx *cli.Context) error {
-	l := logger.Sugar()
-
 	var target, openParam string
 
 	target, err := getCurrentTarget()
@@ -50,30 +47,12 @@ func open(ctx *cli.Context) error {
 		return fmt.Errorf("unknown url target '%s'", target)
 	}
 
-	req := qutebrowser.Request{Commands: []string{
+	return qutebrowser.Execute([]string{
 		fmt.Sprintf(":open %s %s", openParam, ctx.String("url")),
-	}}
-	l.Debugw("[perform]", "request", req)
-	rb, err := req.Marshal()
-	if err != nil {
-		return err
-	}
-	socketPath, err := qutebrowser.SocketPath()
-	if err != nil {
-		return err
-	}
-	err = impl.SendToUnixSocket(*socketPath, rb)
-	if _, ok := err.(impl.FileErrNotExist); ok { //  FIXME: make less interactive
-		ui.NotifyCritical("[qutebrowser]", fmt.Sprintf("cannot access socket at `%s`\nIs qutebrowser running?", *socketPath))
-		os.Exit(0)
-	}
-
-	return nil
+	})
 }
 
 func saveSession(ctx *cli.Context) error {
-	l := logger.Sugar()
-
 	var sessionName string
 	if ctx.String("name") != "" {
 		sessionName = ctx.String("name")
@@ -81,26 +60,10 @@ func saveSession(ctx *cli.Context) error {
 		sessionName = fmt.Sprintf("session-%s", impl.CommonNowTimestamp(false))
 	}
 
-	req := qutebrowser.Request{Commands: []string{
+	return qutebrowser.Execute([]string{
 		fmt.Sprintf(":session-save --quiet %s", sessionName),
 		":session-save --quiet",
-	}}
-	l.Debugw("[perform]", "request", req)
-	rb, err := req.Marshal()
-	if err != nil {
-		return err
-	}
-	socketPath, err := qutebrowser.SocketPath()
-	if err != nil {
-		return err
-	}
-	err = impl.SendToUnixSocket(*socketPath, rb)
-	if _, ok := err.(impl.FileErrNotExist); ok { //  FIXME: make less interactive
-		ui.NotifyCritical("[qutebrowser]", fmt.Sprintf("cannot access socket at `%s`\nIs qutebrowser running?", *socketPath))
-		os.Exit(0)
-	}
-
-	return nil
+	})
 }
 
 func createCLI() *cli.App {

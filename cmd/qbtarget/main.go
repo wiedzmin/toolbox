@@ -75,22 +75,11 @@ func perform(ctx *cli.Context) error {
 			return fmt.Errorf("unknown url target '%s'", targetParam)
 		}
 
-		resp := qutebrowser.Request{Commands: []string{
+		err := qutebrowser.Execute([]string{
 			fmt.Sprintf(":set %s %s", qutebrowser.URL_TARGET_SETTING, target),
-		}}
-		l.Debugw("[perform]", "request", r)
-		rb, err := resp.Marshal()
+		})
 		if err != nil {
 			return err
-		}
-		socketPath, err := qutebrowser.SocketPath()
-		if err != nil {
-			return err
-		}
-		err = impl.SendToUnixSocket(*socketPath, rb)
-		if _, ok := err.(impl.FileErrNotExist); ok {
-			ui.NotifyCritical("[qutebrowser]", fmt.Sprintf("cannot access socket at `%s`\nIs qutebrowser running?", *socketPath))
-			os.Exit(0)
 		}
 
 		err = emacs.SendToServer(fmt.Sprintf("(setq %s %s)", BROWSE_URL_USE_TABS_VARIABLE_NAME, emacsUseTabs), false)
