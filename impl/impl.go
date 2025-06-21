@@ -97,9 +97,13 @@ func FetchUserinfo() (*user.User, error) {
 	return userInfo, nil
 }
 
-func CommonNowTimestamp() string {
+func CommonNowTimestamp(nanos bool) string {
 	now := time.Now()
-	return fmt.Sprintf("%02d-%02d-%02d-%02d-%02d-%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
+	datetimePart := fmt.Sprintf("%02d-%02d-%02d-%02d-%02d-%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
+	if nanos {
+		return fmt.Sprintf("%s-%d", datetimePart, now.Nanosecond())
+	}
+	return datetimePart
 }
 
 func SendToUnixSocket(socket string, data []byte) error {

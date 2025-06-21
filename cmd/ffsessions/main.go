@@ -53,7 +53,7 @@ func dump(ctx *cli.Context) error {
 	if ctx.String("out") != "" {
 		sessionName = ctx.String("out")
 	} else {
-		sessionName = fmt.Sprintf("%s-%s.%s", ctx.String("dump-basename"), impl.CommonNowTimestamp(), sessionExtension)
+		sessionName = fmt.Sprintf("%s-%s.%s", ctx.String("dump-basename"), impl.CommonNowTimestamp(false), sessionExtension)
 	}
 
 	return firefox.DumpSession(
