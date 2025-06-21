@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"crypto/md5"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"strings"
@@ -141,7 +140,7 @@ func LoadSession(path string) (*SessionLayout, error) {
 	l := logger.Sugar()
 	l.Debugw("[LoadSession]", "path", path)
 	var session SessionLayout
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
