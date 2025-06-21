@@ -18,13 +18,10 @@ var logger *zap.Logger
 
 func dump(ctx *cli.Context) error {
 	sessionsPath := firefox.RawSessionsPath()
-	if sessionsPath == nil {
-		return fmt.Errorf("error getting firefox sessions path root")
-	}
 
 	// TODO: check/investigate cases, where we really need "previous.jsonlz4" here
-	sourceSessionPreviousFile := fmt.Sprintf("%s/previous.jsonlz4", *sessionsPath)
-	sourceSessionRecoveryFile := fmt.Sprintf("%s/recovery.jsonlz4", *sessionsPath)
+	sourceSessionPreviousFile := fmt.Sprintf("%s/previous.jsonlz4", sessionsPath)
+	sourceSessionRecoveryFile := fmt.Sprintf("%s/recovery.jsonlz4", sessionsPath)
 	sourceSessionFile := sourceSessionPreviousFile
 	if fs.FileExists(sourceSessionRecoveryFile) {
 		sourceSessionFile = sourceSessionRecoveryFile

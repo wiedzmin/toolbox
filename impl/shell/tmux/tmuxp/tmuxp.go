@@ -32,12 +32,8 @@ func init() {
 	impl.EnsureBinary("tmuxp", *logger)
 }
 
-func SessionsRootDefault() *string {
-	path, err := fs.AtHomedir(".tmuxp")
-	if err != nil {
-		return nil
-	}
-	return path
+func SessionsRootDefault() string {
+	return fs.AtHomedir(".tmuxp")
 }
 
 func CollectSessions(root string) ([]Session, error) {

@@ -15,11 +15,7 @@ import (
 var logger *zap.Logger
 
 func perform(ctx *cli.Context) error {
-	root := tmuxp.SessionsRootDefault()
-	if root == nil {
-		return impl.FileErrNotExist{Path: "<tmuxp sessions default root>"}
-	}
-	sessions, err := tmuxp.CollectSessions(*root)
+	sessions, err := tmuxp.CollectSessions(tmuxp.SessionsRootDefault())
 	if err != nil {
 		return err
 	}

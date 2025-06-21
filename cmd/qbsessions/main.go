@@ -32,9 +32,6 @@ func exportSession(sessionsPath, sessionName, exportPath string, format qutebrow
 
 func perform(ctx *cli.Context) error {
 	sessionsPath := qutebrowser.RawSessionsPath()
-	if sessionsPath == nil {
-		return impl.FileErrNotExist{Path: fmt.Sprintf("~/%s", qutebrowser.SESSIONSTORE_SUBPATH_DEFAULT)}
-	}
 	if ctx.Bool("save") {
 		return saveSession("")
 	}
@@ -47,22 +44,22 @@ func perform(ctx *cli.Context) error {
 		return saveSession(name)
 	}
 	if ctx.Bool("rotate") {
-		return fs.RotateOlderThan(*sessionsPath, fmt.Sprintf("%dm", ctx.Int("keep-minutes")), &browsers.RegexTimedSessionName)
+		return fs.RotateOlderThan(sessionsPath, fmt.Sprintf("%dm", ctx.Int("keep-minutes")), &browsers.RegexTimedSessionName)
 	}
 	exportFormat := qutebrowser.SESSION_FORMAT_ORG
 	if ctx.Bool("flat") {
 		exportFormat = qutebrowser.SESSION_FORMAT_ORG_FLAT
 	}
 	if ctx.Bool("export") {
-		sessionName, err := browsers.SelectSession(*sessionsPath, "export", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), nil, nil)
+		sessionName, err := browsers.SelectSession(sessionsPath, "export", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), nil, nil)
 		if err != nil {
 			return err
 		}
-		return exportSession(*sessionsPath, *sessionName, ctx.String("export-path"), exportFormat)
+		return exportSession(sessionsPath, *sessionName, ctx.String("export-path"), exportFormat)
 	}
 	if ctx.Bool("export-all") {
-		for _, f := range fs.NewFSCollection(*sessionsPath, nil, nil, false).Emit(false) {
-			err := exportSession(*sessionsPath, f, ctx.String("export-path"), exportFormat)
+		for _, f := range fs.NewFSCollection(sessionsPath, nil, nil, false).Emit(false) {
+			err := exportSession(sessionsPath, f, ctx.String("export-path"), exportFormat)
 			if err != nil {
 				return err
 			}

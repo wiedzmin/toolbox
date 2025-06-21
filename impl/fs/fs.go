@@ -240,29 +240,14 @@ func FileExists(path string) bool {
 	return true
 }
 
-func AtHomedir(suffix string) (*string, error) {
-	userInfo, err := impl.FetchUserinfo()
-	if err != nil {
-		return nil, err
-	}
-	result := fmt.Sprintf("%s/%s", userInfo.HomeDir, strings.TrimPrefix(suffix, "/"))
-	return &result, nil
+func AtHomedir(suffix string) string {
+	return fmt.Sprintf("%s/%s", os.Getenv("HOME"), strings.TrimPrefix(suffix, "/"))
 }
 
-func AtRunUser(suffix string) (*string, error) {
-	userInfo, err := impl.FetchUserinfo()
-	if err != nil {
-		return nil, err
-	}
-	result := fmt.Sprintf("/run/user/%s/%s", userInfo.Uid, strings.TrimPrefix(suffix, "/"))
-	return &result, nil
+func AtRunUser(suffix string) string {
+	return fmt.Sprintf("/run/user/%d/%s", os.Getuid(), strings.TrimPrefix(suffix, "/"))
 }
 
-func AtDotConfig(suffix string) (*string, error) {
-	userInfo, err := impl.FetchUserinfo()
-	if err != nil {
-		return nil, err
-	}
-	result := fmt.Sprintf("%s/.config/%s", userInfo.HomeDir, strings.TrimPrefix(suffix, "/"))
-	return &result, nil
+func AtDotConfig(suffix string) string {
+	return fmt.Sprintf("%s/.config/%s", os.Getenv("HOME"), strings.TrimPrefix(suffix, "/"))
 }

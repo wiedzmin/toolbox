@@ -18,7 +18,7 @@ func init() {
 	logger = impl.NewLogger()
 }
 
-func SocketPath() (*string, error) {
+func SocketPath() string {
 	return fs.AtRunUser("emacs/server")
 }
 
@@ -55,10 +55,6 @@ func ServiceState(tag string, restart bool) {
 func SendToServer(elisp string, createFrame bool) error {
 	l := logger.Sugar()
 	l.Debugw("[SendToServer]", "elisp", elisp)
-	socketPath, err := SocketPath()
-	if err != nil {
-		return err
-	}
 
 	var createFrameStr string
 	if createFrame {
@@ -66,7 +62,7 @@ func SendToServer(elisp string, createFrame bool) error {
 	} else {
 		createFrameStr = ""
 	}
-	_, err = shell.ShellCmd(fmt.Sprintf("emacsclient %s-s %s -e '%s'", createFrameStr, *socketPath, elisp), nil, nil, nil, false, false)
+	_, err := shell.ShellCmd(fmt.Sprintf("emacsclient %s-s %s -e '%s'", createFrameStr, SocketPath(), elisp), nil, nil, nil, false, false)
 	if err != nil {
 		return err
 	}

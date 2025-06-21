@@ -93,13 +93,10 @@ func traits(ctx *cli.Context) error {
 
 func activate(ctx *cli.Context) error {
 	impl.EnsureBinary("autorandr", *logger)
-	profilesPath, err := fs.AtDotConfig("autorandr")
-	if err != nil {
-		return err
-	}
+	profilesPath := fs.AtDotConfig("autorandr")
 
 	profile, err := ui.GetSelection(
-		fs.NewFSCollection(*profilesPath, nil, []string{"\\.d$"}, true).Emit(false), "profile", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
+		fs.NewFSCollection(profilesPath, nil, []string{"\\.d$"}, true).Emit(false), "profile", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
 	if err != nil {
 		return err
 	}

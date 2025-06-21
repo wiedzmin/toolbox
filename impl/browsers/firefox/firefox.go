@@ -49,12 +49,8 @@ func init() {
 }
 
 // RawSessionsPath returns path where raw jsonlz4 sessions are stored
-func RawSessionsPath() *string {
-	path, err := fs.AtHomedir(SessionstoreSubpath)
-	if err != nil {
-		return nil
-	}
-	return path
+func RawSessionsPath() string {
+	return fs.AtHomedir(SessionstoreSubpath)
 }
 
 // getSessionData returns decompressed session data, given path to "jsonlz4"-compressed session

@@ -76,7 +76,7 @@ type SessionLayout struct {
 	Windows []Window `yaml:"windows"`
 }
 
-func SocketPath() (*string, error) {
+func SocketPath() string {
 	return fs.AtRunUser(fmt.Sprintf("qutebrowser/ipc-%x", md5.Sum([]byte(os.Getenv("USER")))))
 }
 
@@ -88,14 +88,11 @@ func Execute(commands []string) error {
 	if err != nil {
 		return err
 	}
-	socketPath, err := SocketPath()
-	if err != nil {
-		return err
-	}
+	socketPath := SocketPath()
 
-	err = impl.SendToUnixSocket(*socketPath, rb)
+	err = impl.SendToUnixSocket(socketPath, rb)
 	if _, ok := err.(impl.FileErrNotExist); ok {
-		msg := fmt.Sprintf("cannot access socket at `%s`\nIs qutebrowser running?", *socketPath)
+		msg := fmt.Sprintf("cannot access socket at `%s`\nIs qutebrowser running?", socketPath)
 		etraits := impl.GetEnvTraits()
 		if etraits.InX {
 			ui.NotifyCritical("[qutebrowser]", msg)
@@ -108,12 +105,8 @@ func Execute(commands []string) error {
 	return nil
 }
 
-func RawSessionsPath() *string {
-	path, err := fs.AtHomedir(SESSIONSTORE_SUBPATH_DEFAULT)
-	if err != nil {
-		return nil
-	}
-	return path
+func RawSessionsPath() string {
+	return fs.AtHomedir(SESSIONSTORE_SUBPATH_DEFAULT)
 }
 
 func (r *Request) Marshal() ([]byte, error) {
