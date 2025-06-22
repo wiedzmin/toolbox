@@ -11,15 +11,10 @@ import (
 	"github.com/wiedzmin/toolbox/impl/browsers/qutebrowser"
 	"github.com/wiedzmin/toolbox/impl/fs"
 	"github.com/wiedzmin/toolbox/impl/ui"
-	"github.com/wiedzmin/toolbox/impl/xserver/xkb"
 	"go.uber.org/zap"
 )
 
 var logger *zap.Logger
-
-func saveSession(name string) error {
-	return qutebrowser.SaveSessionInternal(name)
-}
 
 func exportSession(sessionsPath, sessionName, exportPath string, format qutebrowser.SessionFormat) error {
 	session, err := qutebrowser.LoadSession(fmt.Sprintf("%s/%s", sessionsPath, sessionName))
@@ -32,17 +27,6 @@ func exportSession(sessionsPath, sessionName, exportPath string, format qutebrow
 
 func perform(ctx *cli.Context) error {
 	sessionsPath := qutebrowser.RawSessionsPath()
-	if ctx.Bool("save") {
-		return saveSession("")
-	}
-	if ctx.Bool("save-named") {
-		xkb.EnsureEnglishKeyboardLayout()
-		name, err := ui.GetSelection([]string{}, "save as", ctx.String(ui.SelectorToolFlagName), ctx.String(impl.SelectorFontFlagName), true, false)
-		if err != nil {
-			return err
-		}
-		return saveSession(name)
-	}
 	if ctx.Bool("rotate") {
 		return fs.RotateOlderThan(sessionsPath, fmt.Sprintf("%dm", ctx.Int("keep-minutes")), &browsers.RegexTimedSessionName)
 	}
