@@ -120,11 +120,13 @@ func (r *Request) Marshal() ([]byte, error) {
 }
 
 func SaveSessionInternal(name string) error {
+	l := logger.Sugar()
 	sessionName := name
 	if name == "" {
 		sessionName = fmt.Sprintf("session-%s", impl.CommonNowTimestamp(false))
 	}
 
+	l.Debugw("[qutebrowser.SaveSessionInternal]", "sessionName", sessionName)
 	return Execute([]string{
 		fmt.Sprintf(":session-save --quiet %s", sessionName),
 		":session-save --quiet",
