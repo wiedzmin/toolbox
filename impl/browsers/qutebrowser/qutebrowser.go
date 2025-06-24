@@ -183,9 +183,9 @@ func FixSession(data *SessionLayout) *SessionLayout {
 	return &result
 }
 
-func DumpSession(path string, data *SessionLayout, format SessionFormat) error {
+func ExportSession(path string, data *SessionLayout, format SessionFormat) error {
 	l := logger.Sugar()
-	l.Debugw("[DumpSession]", "path", path, "data", data, "format", format)
+	l.Debugw("[ExportSession]", "path", path, "data", data, "format", format)
 	if data == nil {
 		return fmt.Errorf("empty session")
 	}
@@ -214,7 +214,7 @@ func DumpSession(path string, data *SessionLayout, format SessionFormat) error {
 			for _, t := range w.Tabs {
 				for _, p := range t.History {
 					if p.Active {
-						l.Debugw("[DumpSession]", "url", p.URL)
+						l.Debugw("[ExportSession]", "url", p.URL)
 						result = append(result, (fmt.Sprintf("** %s", p.URL)))
 						break
 					}
@@ -231,7 +231,7 @@ func DumpSession(path string, data *SessionLayout, format SessionFormat) error {
 			for _, t := range w.Tabs {
 				for _, p := range t.History {
 					if p.Active {
-						l.Debugw("[DumpSession]", "url", p.URL)
+						l.Debugw("[ExportSession]", "url", p.URL)
 						result = append(result, (fmt.Sprintf("* %s", p.URL)))
 						break
 					}

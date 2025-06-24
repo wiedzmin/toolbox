@@ -21,7 +21,7 @@ func exportSession(sessionsPath, sessionName, exportPath string, format qutebrow
 	if err != nil {
 		return err
 	}
-	return qutebrowser.DumpSession(fmt.Sprintf("%s/%s.org",
+	return qutebrowser.ExportSession(fmt.Sprintf("%s/%s.org",
 		exportPath, strings.Split(sessionName, ".")[0]), session, format)
 }
 
