@@ -30,10 +30,9 @@
 
   languages.go = {
     enable = true;
-    package = pkgs.go_1_23;
   };
 
-  pre-commit.hooks = {
+  git-hooks.hooks = {
     golangci-lint.enable = true;
     gofmt.enable = true;
     govet.enable = true;
