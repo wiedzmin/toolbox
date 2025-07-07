@@ -1,6 +1,6 @@
 inputs:
   nixpkgs:
-    url: github:NixOS/nixpkgs/0196c0175e9191c474c26ab5548db27ef5d34b05
+    url: github:NixOS/nixpkgs/30e2e2857ba47844aa71991daa6ed1fc678bcbb7
   nixpkgs-future:
     url: github:NixOS/nixpkgs/0ad13a6833440b8e238947e47bea7f11071dc2b2 # FIXME: investigate deduplication with flake.nix
   nur:
