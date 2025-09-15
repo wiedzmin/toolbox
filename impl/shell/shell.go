@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"syscall"
 
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
@@ -222,4 +223,24 @@ func PkexecPath() string {
 		return pkexecPathNixos
 	}
 	return "pkexec"
+}
+
+// RunDetached runs shell command in new process group, effectively unwiring it from parent's one
+// so this command won't be killed on parent exit
+func RunDetached(command string) error {
+	l := logger.Sugar()
+	parts := strings.Split(command, " ")
+	cmd, err := exec.LookPath(parts[0])
+	if err != nil {
+		return err
+	}
+	attr := &os.ProcAttr{Sys: &syscall.SysProcAttr{Setpgid: true}}
+	argv := append([]string{cmd}, parts[1:]...)
+	process, err := os.StartProcess(cmd, argv, attr)
+	if err != nil {
+		return err
+	}
+	l.Debugw("[RunDetached]", "process.Pid", process.Pid)
+	process.Release()
+	return nil
 }
