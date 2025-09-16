@@ -142,10 +142,10 @@ func OpenKitty(path string) error {
 	if socket == "" {
 		return ErrNoEnvVar{Name: KittySocketEnvVarName}
 	}
-	_, err := ShellCmd(fmt.Sprintf("kitty @ --to %s launch --cwd %s --type os-window", socket, path), nil, nil, nil, false, false)
+	err := RunDetached(fmt.Sprintf("kitty @ --to %s launch --cwd %s --type os-window", socket, path))
 	if err != nil {
 		// NOTE: most likely, kitty is not running, hence no socket listening - let's start new instance with required CWD
-		_, err = ShellCmd(fmt.Sprintf("kitty --working-directory %s", path), nil, nil, nil, false, false)
+		err = RunDetached(fmt.Sprintf("kitty --working-directory %s", path))
 		if err != nil {
 			return err
 		}
@@ -159,7 +159,7 @@ func RunInKitty(cmd, title string) error {
 	if socket == "" {
 		return ErrNoEnvVar{Name: KittySocketEnvVarName}
 	}
-	_, err := ShellCmd(fmt.Sprintf("kitty @ --to %s launch --type os-window sh -c \"%s\"", socket, cmd), nil, nil, nil, false, false)
+	err := RunDetached(fmt.Sprintf("kitty @ --to %s launch --type os-window sh -c \"%s\"", socket, cmd))
 	if err != nil {
 		return err
 	}
@@ -186,8 +186,7 @@ func RunInTmux(cmd, title, session, vtermCmd string) error {
 
 func RunInBareTerminal(cmd, vtermCmd string) error {
 	// TODO: elaborate/ensure `transient` commands proper handling, i.e. those who need "; read" thereafter
-	_, err := ShellCmd(fmt.Sprintf("%s \"sh -c %s\"", vtermCmd, cmd), nil, nil, nil, false, false)
-	return err
+	return RunDetached(fmt.Sprintf("%s \"sh -c %s\"", vtermCmd, cmd))
 }
 
 func Grep(path, token string) (bool, error) {

@@ -81,7 +81,7 @@ func perform(ctx *cli.Context) error {
 					}
 				}
 				l.Debugw("[perform]", "browserCmd", browserCmd)
-				_, err := shell.ShellCmd(fmt.Sprintf("%s %s", browserCmd, webjump.URL), nil, nil, nil, false, false)
+				err := shell.RunDetached(fmt.Sprintf("%s %s", browserCmd, webjump.URL))
 				if err != nil {
 					return err
 				}

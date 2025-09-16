@@ -44,12 +44,7 @@ func docs(ctx *cli.Context) error {
 		return err
 	}
 	fmt.Printf("doc: %s\n", doc)
-	_, err = shell.ShellCmd(fmt.Sprintf("%s \"%s\"", ctx.String("office-command"), doc),
-		nil, nil, nil, false, false)
-	if err != nil {
-		return err
-	}
-	return nil
+	return shell.RunDetached(fmt.Sprintf("%s \"%s\"", ctx.String("office-command"), doc))
 }
 
 func ebooks(ctx *cli.Context) error {
@@ -81,12 +76,7 @@ func ebooks(ctx *cli.Context) error {
 		return err
 	}
 	fmt.Printf("book: %s\n", book)
-	_, err = shell.ShellCmd(fmt.Sprintf("%s \"%s\"", ctx.String("reader-command"), book),
-		nil, nil, nil, false, false)
-	if err != nil {
-		return err
-	}
-	return nil
+	return shell.RunDetached(fmt.Sprintf("%s \"%s\"", ctx.String("reader-command"), book))
 }
 
 func createCLI() *cli.App {

@@ -101,7 +101,7 @@ func activate(ctx *cli.Context) error {
 		return err
 	}
 
-	_, err = shell.ShellCmd(fmt.Sprintf("autorandr --load %s", profile), nil, nil, nil, false, false)
+	err = shell.RunDetached(fmt.Sprintf("autorandr --load %s", profile))
 	if err != nil {
 		ui.NotifyCritical("[randrutil]", fmt.Sprintf("Failed to activate '%s' profile\n\nCause: %#v", profile, err))
 		return err

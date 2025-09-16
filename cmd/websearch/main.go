@@ -84,8 +84,7 @@ func perform(ctx *cli.Context) error {
 				searchTermPrepared = strings.ReplaceAll(searchTermPrepared, ",", "")
 				searchTermPrepared = strings.ReplaceAll(searchTermPrepared, "'s", "")
 				l.Debugw("[perform]", "browserCmd", browserCmd, "searchengine.URL", searchengine.URL)
-				_, err := shell.ShellCmd(fmt.Sprintf("%s '%s%s'", browserCmd, searchengine.URL,
-					searchTermPrepared), nil, nil, nil, false, false)
+				err := shell.RunDetached(fmt.Sprintf("%s '%s%s'", browserCmd, searchengine.URL, searchTermPrepared))
 				if err != nil {
 					return err
 				}

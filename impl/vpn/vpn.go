@@ -158,7 +158,7 @@ func startOVPN(name, device, cmd string, attempts int, notify bool) error {
 		return nil
 	} else {
 		success := false
-		_, err := shell.ShellCmd(cmd, nil, nil, nil, false, false)
+		err := shell.RunDetached(cmd)
 		if err == nil {
 			attempt := 0
 			for {
@@ -250,7 +250,7 @@ func stopOVPN(name, device, cmd string, attempts int, notify bool) error {
 		return nil
 	} else {
 		success := false
-		_, err := shell.ShellCmd(cmd, nil, nil, nil, false, false)
+		err := shell.RunDetached(cmd)
 		if err == nil {
 			attempt := 0
 			for {
