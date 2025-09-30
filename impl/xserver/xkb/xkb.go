@@ -35,13 +35,11 @@ func GetCurrentKeyboardLayout() (*string, error) {
 }
 
 func SetNextKeyboardLayout() error {
-	_, err := shell.ShellCmd("xkb-switch -n", nil, nil, nil, false, false)
-	return err
+	return shell.RunDetached("xkb-switch -n")
 }
 
 func SetKeyboardLayoutByName(layout string) error {
-	_, err := shell.ShellCmd(fmt.Sprintf("xkb-switch -s %s", layout), nil, nil, nil, false, false)
-	return err
+	return shell.RunDetached(fmt.Sprintf("xkb-switch -s %s", layout))
 }
 
 func EnsureEnglishKeyboardLayout() {

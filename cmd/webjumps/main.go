@@ -76,10 +76,7 @@ func perform(ctx *cli.Context) error {
 					browserCmd = ctx.String("fallback-browser")
 				}
 				l.Debugw("[perform]", "browserCmd", browserCmd)
-				_, err := shell.ShellCmd(fmt.Sprintf("%s %s", browserCmd, webjump.URL), nil, nil, nil, false, false)
-				if err != nil {
-					return err
-				}
+				return shell.RunDetached(fmt.Sprintf("%s %s", browserCmd, webjump.URL))
 			}
 		} else {
 			return fmt.Errorf("no URL to open")
