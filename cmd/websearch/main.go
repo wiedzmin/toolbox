@@ -52,14 +52,9 @@ func perform(ctx *cli.Context) error {
 		}
 		if searchengine.URL != "" {
 			l.Debugw("[perform]", "url", searchengine.URL)
-			var browserCmd string
-			if searchengine.Browser != "" {
-				browserCmd = searchengine.Browser
-			} else {
-				browserCmd = ctx.String("browser")
-				if ctx.Bool("use-fallback") {
-					browserCmd = ctx.String("fallback-browser")
-				}
+			browserCmd := searchengine.BrowseWith
+			if ctx.Bool("use-fallback") {
+				browserCmd = ctx.String("fallback-browser")
 			}
 			var searchTerm string
 			if ctx.Bool("prompt") {
@@ -106,13 +101,6 @@ func createCLI() *cli.App {
 	app.Version = "0.0.1#master"
 
 	app.Flags = []cli.Flag{
-		&cli.StringFlag{
-			Name:     "browser",
-			Aliases:  []string{"b"},
-			EnvVars:  []string{impl.EnvPrefix + "_DEFAULT_BROWSER"},
-			Usage:    "Default browser for opening selected links",
-			Required: true,
-		},
 		&cli.StringFlag{
 			Name:     "fallback-browser",
 			Aliases:  []string{"B"},

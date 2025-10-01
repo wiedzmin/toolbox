@@ -71,14 +71,9 @@ func perform(ctx *cli.Context) error {
 			if copyURL {
 				return xserver.WriteClipboard(&webjump.URL, false)
 			} else {
-				var browserCmd string
-				if webjump.Browser != "" {
-					browserCmd = webjump.Browser
-				} else {
-					browserCmd = ctx.String("browser")
-					if ctx.Bool("use-fallback") {
-						browserCmd = ctx.String("fallback-browser")
-					}
+				browserCmd := webjump.BrowseWith
+				if ctx.Bool("use-fallback") {
+					browserCmd = ctx.String("fallback-browser")
 				}
 				l.Debugw("[perform]", "browserCmd", browserCmd)
 				_, err := shell.ShellCmd(fmt.Sprintf("%s %s", browserCmd, webjump.URL), nil, nil, nil, false, false)
@@ -102,13 +97,6 @@ func createCLI() *cli.App {
 	app.Version = "0.0.1#master"
 
 	app.Flags = []cli.Flag{
-		&cli.StringFlag{
-			Name:     "browser",
-			Aliases:  []string{"b"},
-			EnvVars:  []string{impl.EnvPrefix + "_DEFAULT_BROWSER"},
-			Usage:    "Default browser for opening selected links",
-			Required: true,
-		},
 		&cli.StringFlag{
 			Name:     "fallback-browser",
 			Aliases:  []string{"B"},
