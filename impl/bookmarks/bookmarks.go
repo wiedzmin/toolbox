@@ -11,10 +11,10 @@ import (
 )
 
 type Webjump struct {
-	URL     string   `json:"url"`
-	Browser string   `json:"browser"`
-	VPN     string   `json:"vpn"`
-	Tags    []string `json:"tags"`
+	URL        string   `json:"url"`
+	BrowseWith string   `json:"browseWith"`
+	VPN        string   `json:"vpn"`
+	Tags       []string `json:"tags"`
 }
 
 type Webjumps struct {
@@ -23,9 +23,9 @@ type Webjumps struct {
 }
 
 type SearchEngine struct {
-	URL     string `json:"url"`
-	Browser string `json:"browser"`
-	VPN     string `json:"vpn"`
+	URL        string `json:"url"`
+	BrowseWith string `json:"browseWith"`
+	VPN        string `json:"vpn"`
 }
 
 type SearchEngines struct {
@@ -104,7 +104,7 @@ func (j *Webjumps) KeysByTag(tag string) []string {
 func (j *Webjumps) KeysByBrowser(browser string) []string {
 	var result []string
 	for key, meta := range j.parsed {
-		if strings.Contains(meta.Browser, browser) {
+		if strings.Contains(meta.BrowseWith, browser) {
 			result = append(result, key)
 		}
 	}
