@@ -9,6 +9,7 @@ require (
 	github.com/jezek/xgb v0.0.0-20210312150743-0e0f116e1240
 	github.com/jezek/xgbutil v0.0.0-20210302171758-530099784e66
 	github.com/json-iterator/go v1.1.12
+	github.com/knadh/koanf v1.5.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mediocregopher/radix/v3 v3.7.0
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
