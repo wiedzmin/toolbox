@@ -6,6 +6,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/providers/file"
 	"github.com/urfave/cli/v2"
 	"github.com/wiedzmin/toolbox/impl"
 	"github.com/wiedzmin/toolbox/impl/fs"
@@ -14,51 +17,58 @@ import (
 )
 
 var (
-	logger                  *zap.Logger
-	srcRegexpToDestTemplate = map[string]string{ // TODO: extract to external configuration
-		"screenshot-(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}:[0-9]{2}:[0-9]{2}":          "{{.year}}/{{.month}}/{{.day}}",
-		"screenshot-(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}-[0-9]{2}-[0-9]{2}":          "{{.year}}/{{.month}}/{{.day}}",
-		"(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}:[0-9]{2}:[0-9]{2}_[0-9]+x[0-9]+_scrot": "{{.year}}/{{.month}}/{{.day}}",
-		"(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})-[0-9]{6}_[0-9]+x[0-9]+_scrot":                   "{{.year}}/{{.month}}/{{.day}}",
-		"(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})_[0-9]{2}-[0-9]{2}":                              "{{.year}}/{{.month}}/{{.day}}",
-		"screenshot-(?P<day>[0-9]{2})-(?P<month>[0-9]{2})-(?P<year>[0-9]{4})-[0-9]{2}:[0-9]{2}:[0-9]{2}":          "{{.year}}/{{.month}}/{{.day}}",
-		"screenshot-[0-9]{2}:[0-9]{2}:[0-9]{2} (?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})":          "{{.year}}/{{.month}}/{{.day}}",
-		"screenshot-[0-9]{2}:[0-9]{2}:[0-9]{2}_(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})":          "{{.year}}/{{.month}}/{{.day}}",
-		"(?P<basename>.*)\\.doc":  "docs",
-		"(?P<basename>.*)\\.docx": "docs",
-		"(?P<basename>.*)\\.mp3":  "audio",
-		"(?P<basename>.*)\\.mp4":  "video",
-		"(?P<basename>.*)\\.pdf":  "pdf",
-		"(?P<basename>.*)\\.webm": "video",
-	}
+	logger                 *zap.Logger
+	conf                   = koanf.New(".")
+	unmatchedSubdirDefault = "named"
 )
 
 func perform(ctx *cli.Context) error {
 	l := logger.Sugar()
-	files := fs.NewFSCollection(ctx.String("root"), nil, nil, false).Emit(false)
+	if err := conf.Load(file.Provider(ctx.String("config")), json.Parser()); err != nil {
+		return err
+	}
+
+	notificationTitle := conf.String("title")
+	if notificationTitle == "" {
+		notificationTitle = "orderfiles"
+	}
+	notificationTitle = fmt.Sprintf("[%s]", notificationTitle)
+
+	if conf.String("from") == "" {
+		ui.NotifyCritical(notificationTitle, "Source path is not set")
+		os.Exit(0)
+	}
+	l.Debugw("[perform]", "from", conf.String("from"))
+	if len(conf.StringMap("rules")) == 0 {
+		ui.NotifyCritical(notificationTitle, "No rules provided")
+		os.Exit(0)
+	}
+	l.Debugw("[perform]", "rules", conf.StringMap("rules"))
+
+	files := fs.NewFSCollection(conf.String("from"), nil, nil, false).Emit(false)
 	filesCount := len(files)
 	if filesCount == 0 {
-		ui.NotifyCritical("[orderfiles]", "No source files found")
+		ui.NotifyCritical(notificationTitle, "No source files found")
 		os.Exit(0)
 	} else {
 		var regexpsC []regexp.Regexp
-		for re := range srcRegexpToDestTemplate {
+		for re := range conf.StringMap("rules") {
 			regexpsC = append(regexpsC, *regexp.MustCompile(re))
 		}
-		rootTrimmed := strings.TrimSuffix(ctx.String("root"), "/")
-		destRootTrimmed := strings.TrimSuffix(ctx.String("dest-root"), "/")
-		if destRootTrimmed == "" {
-			destRootTrimmed = rootTrimmed
+		fromTrimmed := strings.TrimSuffix(conf.String("from"), "/")
+		toTrimmed := strings.TrimSuffix(conf.String("to"), "/")
+		if toTrimmed == "" {
+			toTrimmed = fromTrimmed
 		}
-		l.Debugw("[perform]", "rootTrimmed", rootTrimmed, "destRootTrimmed", destRootTrimmed)
+		l.Debugw("[perform]", "fromTrimmed", fromTrimmed, "toTrimmed", toTrimmed)
 		for _, f := range files {
 			failCount := 0
 			errored := false
 			var destDir, fallbackDir, srcPath, destPath string
 			for _, rc := range regexpsC {
 				if rc.MatchString(f) {
-					l.Debugw("[perform]", "matched", f, "rc", rc)
-					result, err := impl.RegexpToTemplate(f, rc, srcRegexpToDestTemplate)
+					l.Debugw("[perform]", "matched", f, "rc", rc.String())
+					result, err := impl.RegexpToTemplate(f, rc, conf.StringMap("rules"))
 					if err != nil {
 						errored = true
 						l.Debugw("[perform]", "error getting result path", err)
@@ -66,25 +76,25 @@ func perform(ctx *cli.Context) error {
 					}
 					l.Debugw("[perform]", "result path", result)
 
-					destDir = fmt.Sprintf("%s/%s", destRootTrimmed, *result)
+					destDir = fmt.Sprintf("%s/%s", toTrimmed, *result)
 					l.Debugw("[perform]", "destDir", destDir)
 					err = os.MkdirAll(destDir, 0777)
 					if err != nil && !os.IsExist(err) {
 						errorText := fmt.Sprintf("failed to create path %s\n\nCause: %#v", destDir, err)
-						ui.NotifyCritical("[orderfiles]", errorText)
+						ui.NotifyCritical(notificationTitle, errorText)
 						l.Debugw("[perform]", "error", errorText)
 						continue
 					}
 
-					srcPath = fmt.Sprintf("%s/%s", rootTrimmed, f)
+					srcPath = fmt.Sprintf("%s/%s", fromTrimmed, f)
 					destPath = fmt.Sprintf("%s/%s", destDir, f)
 					l.Debugw("[perform]", "srcPath", srcPath, "destPath", destPath)
 
 					err = os.Rename(srcPath, destPath)
 					if err != nil {
-						ui.NotifyCritical("[orderfiles]", fmt.Sprintf("%s --> %s FAILED\n\nCause: %#v", f, destDir, err))
+						ui.NotifyCritical(notificationTitle, fmt.Sprintf("%s --> %s FAILED\n\nCause: %#v", f, destDir, err))
 					} else {
-						ui.NotifyNormal("[orderfiles]", fmt.Sprintf("%s --> %s", f, destDir))
+						ui.NotifyNormal(notificationTitle, fmt.Sprintf("%s --> %s", f, destDir))
 					}
 					break
 				} else {
@@ -95,24 +105,30 @@ func perform(ctx *cli.Context) error {
 				break
 			}
 			if failCount == len(regexpsC) {
-				if !ctx.Bool("skip-unmatched") {
-					fallbackDir = fmt.Sprintf("%s/%s", rootTrimmed, ctx.String("unmatched"))
+				l.Debugw("[perform]", "unmatched.skip", conf.Bool("unmatched.skip"))
+				l.Debugw("[perform]", "unmatched.subdir", conf.Bool("unmatched.subdir"))
+				if !conf.Bool("unmatched.skip") {
+					unmatchedSubdir := conf.String("unmatched.subdir")
+					if unmatchedSubdir == "" {
+						unmatchedSubdir = unmatchedSubdirDefault
+					}
+					fallbackDir = fmt.Sprintf("%s/%s", fromTrimmed, unmatchedSubdir)
 					err := os.MkdirAll(fallbackDir, 0777)
 					if err != nil && !os.IsExist(err) {
-						ui.NotifyCritical("[orderfiles]", fmt.Sprintf("failed to create path %s\n\nCause: %#v", fallbackDir, err))
+						ui.NotifyCritical(notificationTitle, fmt.Sprintf("failed to create path %s\n\nCause: %#v", fallbackDir, err))
 					}
-					srcPath = fmt.Sprintf("%s/%s", rootTrimmed, f)
+					srcPath = fmt.Sprintf("%s/%s", fromTrimmed, f)
 					destPath = fmt.Sprintf("%s/%s", fallbackDir, f)
-					ui.NotifyCritical("[orderfiles]", fmt.Sprintf("%s did not matched any regexps, custom name encountered\n\nMoving under '%s' subdirectory", f, fallbackDir))
+					ui.NotifyCritical(notificationTitle, fmt.Sprintf("%s did not matched any regexps, custom name encountered\n\nMoving under '%s' subdirectory", f, fallbackDir))
 					l.Debugw("[perform]", "fallbackDir", fallbackDir, "srcPath", srcPath, "destPath", destPath)
 					err = os.Rename(srcPath, destPath)
 					if err != nil {
-						ui.NotifyCritical("[orderfiles]", fmt.Sprintf("%s --> %s FAILED\n\nCause: %#v", f, fallbackDir, err))
+						ui.NotifyCritical(notificationTitle, fmt.Sprintf("%s --> %s FAILED\n\nCause: %#v", f, fallbackDir, err))
 					} else {
-						ui.NotifyNormal("[orderfiles]", fmt.Sprintf("%s --> %s", f, fallbackDir))
+						ui.NotifyNormal(notificationTitle, fmt.Sprintf("%s --> %s", f, fallbackDir))
 					}
-				} else if ctx.Bool("skip-unmatched") {
-					ui.NotifyNormal("[orderfiles]", fmt.Sprintf("skipping '%s' due to `skip-unmatched` flag", f))
+				} else if conf.Bool("unmatched.skip") {
+					ui.NotifyNormal(notificationTitle, fmt.Sprintf("skipping '%s' due to `skip-unmatched` flag", f))
 					l.Debugw("[perform]", "note", fmt.Sprintf("skipping '%s' due to `skip-unmatched` flag", f))
 				}
 			}
@@ -131,26 +147,10 @@ func createCLI() *cli.App {
 
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
-			Name:     "root",
-			Usage:    "Base directory to perform sorting under",
+			Name:     "config",
+			Aliases:  []string{"c"},
+			Usage:    "Configuration file to use",
 			Required: true,
-		},
-		&cli.StringFlag{
-			Name:     "dest-root",
-			Usage:    "Base directory to move sorted files under",
-			Required: false,
-		},
-		&cli.StringFlag{
-			Name:     "unmatched",
-			Value:    "named",
-			Usage:    "Directory under base to place custom-named/unmatched files to",
-			Required: false,
-		},
-		&cli.BoolFlag{
-			Name:     "skip-unmatched",
-			Usage:    "Whether to skip files that did not matched any regexps",
-			Value:    false,
-			Required: false,
 		},
 	}
 	app.Action = perform
